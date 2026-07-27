@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Nasconde le freccette (spinners) degli input numerici per un look più pulito */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+body { 
+  font-family: 'DM Sans', sans-serif; 
+  font-size: 16px; /* Base size */
+  line-height: 1.6;
+}
+.font-mono-num { font-family: 'DM Mono', monospace; }
+
+.trend-arrow { transition: transform 0.5s cubic-bezier(.34,1.56,.64,1); }
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
+.live-dot { animation: blink 2.5s ease-in-out infinite; }
