@@ -97,18 +97,50 @@
         </div>
       </div>
 
+      <!-- Quick Presets -->
+      <div class="card bg-base-200 shadow-sm border border-base-content/10">
+        <div class="card-body p-6 gap-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fi fi-sr-bolt text-primary"></i>
+            <span class="text-xs font-black uppercase tracking-widest opacity-50">Quick Presets (Homepage)</span>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <label class="label py-1">
+                <span class="label-text text-[10px] font-black uppercase opacity-40">Insulina (Unità)</span>
+              </label>
+              <div class="flex gap-2 items-center">
+                <input type="number" v-model.number="form.quick_insulin_1" class="input input-bordered font-black border-accent/30" />
+                <input type="number" v-model.number="form.quick_insulin_2" class="input input-bordered font-black border-accent/30" />
+              </div>
+            </div>
+
+            <div>
+              <label class="label py-1">
+                <span class="label-text text-[10px] font-black uppercase opacity-40">Carboidrati (g)</span>
+              </label>
+              <div class="flex gap-2 items-center">
+                <input type="number" v-model.number="form.quick_carb_1" class="input input-bordered font-black border-accent/30" />
+                <input type="number" v-model.number="form.quick_carb_2" class="input input-bordered font-black border-accent/30" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Parametri Predizione -->
       <div class="card bg-base-200 shadow-sm border border-base-content/10">
         <div class="card-body p-6 gap-4">
           <div class="flex items-center gap-2 mb-2">
             <i class="fi fi-sr-calculator text-secondary"></i>
-            <span class="text-xs font-black uppercase tracking-widest opacity-50">Parametri Predizione</span>
+            <span class="text-xs font-black uppercase tracking-widest opacity-50">Sensibilità e assorbimento</span>
           </div>
           
           <div class="flex flex-col gap-4">
             <div class="form-control">
               <label class="label py-1">
-                <span class="label-text text-[10px] font-black uppercase opacity-40">Sensibilità Insulina (ISF)</span>
+                <span class="label-text text-[10px] font-black uppercase opacity-40">Sensibilità Insulina <span class="lowercase">(quanti mg/dl fa scendere 1 u)</span></span>
               </label>
               <div class="flex items-center gap-2">
                 <input type="number" v-model.number="form.insulin_sensitivity" class="input input-bordered font-black flex-1" />
@@ -117,7 +149,7 @@
             </div>
             <div class="form-control">
               <label class="label py-1">
-                <span class="label-text text-[10px] font-black uppercase opacity-40">Rapporto Insulina/Carboidrati (CR)</span>
+                <span class="label-text text-[10px] font-black uppercase opacity-40">Rapporto Insulina/Carboidrati <span class="lowercase">(quanti g di carboidrati vengono coperti da 1 u)</span></span>
               </label>
               <div class="flex items-center gap-2">
                 <input type="number" v-model.number="form.carb_ratio" class="input input-bordered font-black flex-1" />
@@ -175,7 +207,11 @@ const form = reactive({
   slow_duration: 24,
   carb_duration: 4,
   insulin_sensitivity: 60,
-  carb_ratio: 15
+  carb_ratio: 15,
+  quick_insulin_1: 1,
+  quick_insulin_2: 2,
+  quick_carb_1: 10,
+  quick_carb_2: 20
 })
 
 onMounted(async () => {
@@ -193,6 +229,11 @@ function updateFormFromStore() {
   form.carb_duration = store.settings.carb_duration
   form.insulin_sensitivity = store.settings.insulin_sensitivity
   form.carb_ratio = store.settings.carb_ratio
+  // Quick presets
+  form.quick_insulin_1 = store.settings.quick_insulin_1 ?? 1
+  form.quick_insulin_2 = store.settings.quick_insulin_2 ?? 2
+  form.quick_carb_1 = store.settings.quick_carb_1 ?? 10
+  form.quick_carb_2 = store.settings.quick_carb_2 ?? 20
 }
 
 async function resetToDefaults() {
@@ -215,7 +256,11 @@ async function save() {
     slow_duration:  form.slow_duration || 24,
     carb_duration:  form.carb_duration || 4,
     insulin_sensitivity: form.insulin_sensitivity || 60,
-    carb_ratio:     form.carb_ratio || 15
+    carb_ratio:     form.carb_ratio || 15,
+    quick_insulin_1: form.quick_insulin_1 || 1,
+    quick_insulin_2: form.quick_insulin_2 || 2,
+    quick_carb_1: form.quick_carb_1 || 10,
+    quick_carb_2: form.quick_carb_2 || 20
   }
 
   await store.updateSettings(settingsToSave)

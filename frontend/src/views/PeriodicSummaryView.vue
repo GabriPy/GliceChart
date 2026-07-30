@@ -71,9 +71,7 @@
                       <div class="text-3xl font-black tracking-tight">{{ sd }}</div>
                       <div class="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">mg/dL</div>
                     </div>
-                    <div class="px-2 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest"
-                      :class="sdBadgeClass"
-                    >
+                    <div class="px-2 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest" :class="sdBadgeClass">
                       {{ sdLabel }}
                     </div>
                   </div>
@@ -130,9 +128,7 @@
                     <div class="text-3xl font-black tracking-tight">{{ gmi.toFixed(1) }}</div>
                     <div class="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">%</div>
                   </div>
-                  <div class="px-2 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest"
-                    :class="gmiBadgeClass"
-                  >
+                  <div class="px-2 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest" :class="gmiBadgeClass">
                     {{ gmiLabel }}
                   </div>
                 </div>
@@ -195,6 +191,7 @@ const days = ref(14)
 const readings = ref([])
 const loading = ref(false)
 const error = ref(null)
+let activeRequestId = 0
 
 function localDateKey(iso) {
   const d = new Date(iso)
@@ -306,18 +303,23 @@ const avgIntervalMin = computed(() => {
 })
 
 async function fetchPeriod() {
+  const requestId = ++activeRequestId
   loading.value = true
   error.value = null
   try {
     await store.fetchSettings()
     const minutes = days.value * 24 * 60
     const { data } = await axios.get('/api/readings', { params: { range: minutes } })
+    if (requestId !== activeRequestId) return
     readings.value = Array.isArray(data) ? data : []
   } catch (e) {
+    if (requestId !== activeRequestId) return
     error.value = e?.response?.data?.error || 'Errore caricamento resoconto'
     readings.value = []
   } finally {
-    loading.value = false
+    if (requestId === activeRequestId) {
+      loading.value = false
+    }
   }
 }
 

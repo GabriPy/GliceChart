@@ -19,12 +19,17 @@
             <button @click="changeDate(-1)" class="btn btn-ghost btn-xs btn-circle font-black">
               <i class="fi fi-sr-angle-left"></i>
             </button>
-            <input 
-              type="date" 
-              v-model="selectedDate" 
-              class="bg-transparent border-none text-xs font-black uppercase tracking-widest focus:ring-0 cursor-pointer px-2"
-              @change="fetchDayData"
-            />
+
+            <div class="flex items-center gap-2">
+              <input 
+                type="date" 
+                v-model="selectedDate" 
+                class="bg-transparent border-none text-xs font-black uppercase tracking-widest focus:ring-0 cursor-pointer px-2"
+                @change="fetchDayData"
+              />
+
+            </div>
+
             <button @click="changeDate(1)" class="btn btn-ghost btn-xs btn-circle font-black">
               <i class="fi fi-sr-angle-right"></i>
             </button>
@@ -491,6 +496,7 @@ async function fetchDayData() {
 }
 
 onMounted(() => {
+  // Carica i dati iniziali per la data selezionata
   fetchDayData()
 })
 </script>

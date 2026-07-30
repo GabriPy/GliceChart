@@ -70,6 +70,10 @@ async function initDB() {
         carb_duration       INT DEFAULT 4,
         insulin_sensitivity INT DEFAULT 60,
         carb_ratio          INT DEFAULT 15,
+        quick_insulin_1     INT DEFAULT 1,
+        quick_insulin_2     INT DEFAULT 2,
+        quick_carb_1        INT DEFAULT 10,
+        quick_carb_2        INT DEFAULT 20,
         CONSTRAINT one_row CHECK (id = 1)
       )
     `);
@@ -95,10 +99,27 @@ async function initDB() {
       await conn.execute(`ALTER TABLE settings ADD COLUMN carb_ratio INT DEFAULT 15 AFTER insulin_sensitivity`);
     } catch (e) {}
 
+    // Preset quick values: two insulin presets and two carb presets
+    try {
+      await conn.execute(`ALTER TABLE settings ADD COLUMN quick_insulin_1 INT DEFAULT 1 AFTER carb_ratio`);
+    } catch (e) {}
+
+    try {
+      await conn.execute(`ALTER TABLE settings ADD COLUMN quick_insulin_2 INT DEFAULT 2 AFTER quick_insulin_1`);
+    } catch (e) {}
+
+    try {
+      await conn.execute(`ALTER TABLE settings ADD COLUMN quick_carb_1 INT DEFAULT 10 AFTER quick_insulin_2`);
+    } catch (e) {}
+
+    try {
+      await conn.execute(`ALTER TABLE settings ADD COLUMN quick_carb_2 INT DEFAULT 20 AFTER quick_carb_1`);
+    } catch (e) {}
+
     // Inserisce impostazioni di default se non esistono
     await conn.execute(`
-      INSERT IGNORE INTO settings (id, tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio)
-      VALUES (1, 70, 180, 55, 250, 3, 24, 4, 60, 15)
+      INSERT IGNORE INTO settings (id, tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio, quick_insulin_1, quick_insulin_2, quick_carb_1, quick_carb_2)
+      VALUES (1, 70, 180, 55, 250, 3, 24, 4, 60, 15, 1, 2, 10, 20)
     `);
 
     await conn.execute(`
@@ -440,7 +461,7 @@ async function getSettings() {
   return rows[0];
 }
 
-async function updateSettings({ tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio }) {
+async function updateSettings({ tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio, quick_insulin_1, quick_insulin_2, quick_carb_1, quick_carb_2 }) {
   const p = await getPool();
   // Ulteriore controllo di sicurezza sui valori di default
   const finalTirMin = tir_min ?? 70;
@@ -452,12 +473,16 @@ async function updateSettings({ tir_min, tir_max, red_under, red_over, rapid_dur
   const finalCarbDuration = carb_duration ?? 4;
   const finalInsulinSensitivity = insulin_sensitivity ?? 60;
   const finalCarbRatio = carb_ratio ?? 15;
+  const finalQuickIns1 = quick_insulin_1 ?? 1;
+  const finalQuickIns2 = quick_insulin_2 ?? 2;
+  const finalQuickCarb1 = quick_carb_1 ?? 10;
+  const finalQuickCarb2 = quick_carb_2 ?? 20;
 
   const [result] = await p.execute(
     `UPDATE settings 
-     SET tir_min = ?, tir_max = ?, red_under = ?, red_over = ?, rapid_duration = ?, slow_duration = ?, carb_duration = ?, insulin_sensitivity = ?, carb_ratio = ?
+     SET tir_min = ?, tir_max = ?, red_under = ?, red_over = ?, rapid_duration = ?, slow_duration = ?, carb_duration = ?, insulin_sensitivity = ?, carb_ratio = ?, quick_insulin_1 = ?, quick_insulin_2 = ?, quick_carb_1 = ?, quick_carb_2 = ?
      WHERE id = 1`,
-    [finalTirMin, finalTirMax, finalRedUnder, finalRedOver, finalRapid, finalSlow, finalCarbDuration, finalInsulinSensitivity, finalCarbRatio]
+    [finalTirMin, finalTirMax, finalRedUnder, finalRedOver, finalRapid, finalSlow, finalCarbDuration, finalInsulinSensitivity, finalCarbRatio, finalQuickIns1, finalQuickIns2, finalQuickCarb1, finalQuickCarb2]
   );
   return result.affectedRows > 0;
 }

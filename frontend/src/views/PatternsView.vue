@@ -3,13 +3,21 @@
     <!-- Header -->
     <div class="card bg-base-200 shadow-sm border border-base-content/10">
       <div class="card-body p-6">
-        <div class="flex items-center gap-4">
-          <div class="p-3 bg-accent/10 rounded-2xl">
-            <i class="fi fi-sr-brain text-accent text-2xl leading-none"></i>
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div class="flex items-center gap-4">
+            <div class="p-3 bg-accent/10 rounded-2xl">
+              <i class="fi fi-sr-brain text-accent text-2xl leading-none"></i>
+            </div>
+            <div>
+              <h1 class="text-3xl font-black uppercase tracking-tight leading-none italic">Pattern Intelligenti</h1>
+              <p class="text-xs font-black opacity-30 uppercase tracking-[0.2em] mt-2">Analisi Comportamentale v1.0</p>
+            </div>
           </div>
-          <div>
-            <h1 class="text-3xl font-black uppercase tracking-tight leading-none italic">Pattern Intelligenti</h1>
-            <p class="text-xs font-black opacity-30 uppercase tracking-[0.2em] mt-2">Analisi Comportamentale v1.0</p>
+
+          <div class="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.2em] opacity-50">
+            <span class="badge badge-ghost">{{ patternsCount }} pattern</span>
+            <span class="badge badge-ghost">{{ historyDataCount }} letture</span>
+            <span class="badge badge-ghost">{{ notesCount }} note</span>
           </div>
         </div>
       </div>
@@ -28,11 +36,13 @@
       <p class="text-xs uppercase tracking-widest max-w-xs text-center leading-relaxed">
         Carica più dati o aggiungi note (es. "Pizza") per permettere al sistema di analizzare le tue risposte glicemiche.
       </p>
+      <p class="text-[10px] uppercase tracking-[0.2em] opacity-40">
+        Dati disponibili: {{ historyDataCount }} letture, {{ notesCount }} note
+      </p>
     </div>
 
     <!-- Patterns List -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      
       <div v-for="p in store.patterns" :key="p.id" class="card bg-base-200 shadow-xl border border-base-content/5 overflow-hidden">
         <div class="card-body p-6 gap-4">
           <div class="flex items-center justify-between">
@@ -48,7 +58,7 @@
           </p>
           <div class="bg-base-300/30 p-4 rounded-2xl flex flex-col gap-3">
             <div class="flex items-center justify-between text-xs font-black uppercase opacity-40">
-              <span>Affidabilità (Coerenza)</span>
+              <span>Affidabilità</span>
               <span>{{ p.confidence }}%</span>
             </div>
             <div class="w-full bg-base-content/5 h-2 rounded-full overflow-hidden">
@@ -77,10 +87,10 @@ import { useGlucoseStore } from '../stores/glucose'
 
 const store = useGlucoseStore()
 
-const hasPatterns = computed(() => {
-  if (!store.patterns) return false
-  return !!(store.patterns.pizza || store.patterns.night || store.patterns.dawn)
-})
+const hasPatterns = computed(() => Array.isArray(store.patterns) && store.patterns.length > 0)
+const patternsCount = computed(() => Array.isArray(store.patterns) ? store.patterns.length : 0)
+const historyDataCount = computed(() => Array.isArray(store.historyReadings) ? store.historyReadings.length : 0)
+const notesCount = computed(() => Array.isArray(store.historyNotes) ? store.historyNotes.length : 0)
 
 onMounted(async () => {
   // Carichiamo 3 giorni di dati per un'analisi reale dei pattern

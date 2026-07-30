@@ -54,7 +54,12 @@ export const useGlucoseStore = defineStore('glucose', () => {
     slow_duration: 24,
     carb_duration: 4,
     insulin_sensitivity: 60,
-    carb_ratio: 15
+    carb_ratio: 15,
+    // Quick presets: two editable for insulin and carbs
+    quick_insulin_1: 1,
+    quick_insulin_2: 2,
+    quick_carb_1: 10,
+    quick_carb_2: 20
   }
 
   async function resetSettings() {
@@ -243,41 +248,53 @@ export const useGlucoseStore = defineStore('glucose', () => {
     const discoveredPatterns = []
 
     // 1. ANALISI PER FASCE ORARIE (Sovrapposizione giorni)
-    // Dividiamo il giorno in 24 ore e analizziamo la tendenza media
-    const hourlyTrends = Array.from({ length: 24 }, () => ({ slopes: [], values: [] }))
+    // Raggruppiamo l'ora in finestre di 2 ore per evitare pattern troppo simili tra ore vicine
+    const hourlyTrends = Array.from({ length: 12 }, () => ({ slopes: [], values: [], samples: [] }))
     
-    // Raggruppiamo i dati per ora del giorno
+    // Raggruppiamo i dati per fascia oraria di 2 ore
     allHistoryReadings.forEach((r, idx) => {
       if (idx === 0) return
       const date = new Date(r.timestamp)
       const hour = date.getHours()
+      const bucketIndex = Math.floor(hour / 2)
       const prevG = allHistoryReadings[idx-1].glucose
       const currentG = r.glucose
       const dt = (date.getTime() - new Date(allHistoryReadings[idx-1].timestamp).getTime()) / 60000
-      if (dt > 0 && dt < 15) { // Solo se letture consecutive vicine
+      if (dt > 0 && dt < 15 && bucketIndex >= 0 && bucketIndex < hourlyTrends.length) { // Solo se letture consecutive vicine
         const slope = (currentG - prevG) / dt
-        hourlyTrends[hour].slopes.push(slope)
-        hourlyTrends[hour].values.push(currentG)
+        hourlyTrends[bucketIndex].slopes.push(slope)
+        hourlyTrends[bucketIndex].values.push(currentG)
+        hourlyTrends[bucketIndex].samples.push({ slope, timestamp: date.getTime() })
       }
     })
 
-    hourlyTrends.forEach((data, hour) => {
+    hourlyTrends.forEach((data, bucketIndex) => {
       if (data.slopes.length < 10) return
       const avgSlope = data.slopes.reduce((a, b) => a + b, 0) / data.slopes.length
       const consistency = data.slopes.filter(s => (avgSlope > 0 ? s > 0 : s < 0)).length / data.slopes.length
 
       // Se c'è una pendenza significativa e coerente (> 60% delle volte)
-      if (Math.abs(avgSlope) > 0.3 && consistency > 0.6) {
+      if (Math.abs(avgSlope) > 0.45 && consistency > 0.65) {
         const type = avgSlope > 0 ? 'Salita Ricorrente' : 'Discesa Ricorrente'
-        const timeStr = `${hour.toString().padStart(2, '0')}:00`
+        const startHour = bucketIndex * 2
+        const endHour = startHour + 2
+        const timeStr = `${startHour.toString().padStart(2, '0')}-${endHour.toString().padStart(2, '0')}`
+        const frequencyWindow = (days) => {
+          const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000)
+          return data.samples.filter(sample => sample.timestamp >= cutoff && (avgSlope > 0 ? sample.slope > 0 : sample.slope < 0)).length
+        }
+
         discoveredPatterns.push({
-          id: `hour-${hour}`,
-          title: `${type} alle ${timeStr}`,
-          description: `Ogni giorno intorno alle ${timeStr}, la tua glicemia tende a ${avgSlope > 0 ? 'salire' : 'scendere'} con una velocità media di ${Math.abs(avgSlope).toFixed(2)} mg/dL al minuto.`,
+          id: `hour-${bucketIndex}`,
+          title: `${type} tra le ${timeStr}`,
+          description: `Nella fascia ${timeStr}, la tua glicemia tende a ${avgSlope > 0 ? 'salire' : 'scendere'} con una velocità media di ${Math.abs(avgSlope).toFixed(2)} mg/dL al minuto.`,
           icon: avgSlope > 0 ? 'fi-sr-trending-up' : 'fi-sr-trending-down',
           color: avgSlope > 0 ? 'warning' : 'info',
           intensity: Math.min(100, Math.abs(avgSlope) * 50),
-          confidence: Math.round(consistency * 100)
+          confidence: Math.round(consistency * 100),
+          frequency15: frequencyWindow(15),
+          frequency30: frequencyWindow(30),
+          timeHour: startHour
         })
       }
     })
@@ -317,6 +334,11 @@ export const useGlucoseStore = defineStore('glucose', () => {
       if (validOccurrences >= 2) {
         const avgImpact = totalRise / validOccurrences
         if (Math.abs(avgImpact) > 20) {
+          const frequencyWindow = (days) => {
+            const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000)
+            return occurrences.filter(occ => new Date(occ.timestamp).getTime() >= cutoff).length
+          }
+
           discoveredPatterns.push({
             id: `note-${noteText.replace(/\s+/g, '-')}`,
             title: `Effetto "${noteText.toUpperCase()}"`,
@@ -324,13 +346,20 @@ export const useGlucoseStore = defineStore('glucose', () => {
             icon: 'fi-sr- assessment',
             color: avgImpact > 0 ? 'error' : 'success',
             intensity: Math.min(100, Math.abs(avgImpact)),
-            confidence: Math.round((validOccurrences / occurrences.length) * 100)
+            confidence: Math.round((validOccurrences / occurrences.length) * 100),
+            frequency15: frequencyWindow(15),
+            frequency30: frequencyWindow(30)
           })
         }
       }
     })
 
-    return discoveredPatterns.sort((a, b) => b.confidence - a.confidence)
+    return discoveredPatterns.sort((a, b) => {
+      const aHour = a.timeHour ?? 24
+      const bHour = b.timeHour ?? 24
+      if (aHour !== bHour) return aHour - bHour
+      return b.confidence - a.confidence
+    })
   })
 
   // Colore testo in base al valore mg/dL usando i target delle impostazioni
@@ -479,6 +508,19 @@ export const useGlucoseStore = defineStore('glucose', () => {
     }
   }
 
+  // ── Theme Management (moved to store) ──────────────────────────────────────
+  const themes = ["light","dark","retro","forest","wireframe","coffee"]
+  const theme = ref(localStorage.getItem('theme') || 'dark')
+
+  function setTheme(t) {
+    theme.value = t
+    localStorage.setItem('theme', t)
+    try { document.documentElement.setAttribute('data-theme', t) } catch (e) {}
+  }
+
+  // Initialize document theme on store creation
+  try { document.documentElement.setAttribute('data-theme', theme.value) } catch (e) {}
+
   async function fetchAll() {
     loading.value = true
     try {
@@ -600,6 +642,8 @@ export const useGlucoseStore = defineStore('glucose', () => {
     addInsulin, removeInsulin, editInsulin,
     addCarb, removeCarb, editCarb,
     addNote, removeNote, editNote,
-    fetchHistory, fetchLongHistory, fetchSettings, updateSettings, resetSettings, getStatusColor
+    fetchHistory, fetchLongHistory, fetchSettings, updateSettings, resetSettings, getStatusColor,
+    // Theme API
+    themes, theme, setTheme
   }
 })
