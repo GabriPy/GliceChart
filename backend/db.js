@@ -281,6 +281,30 @@ async function getInsulinByDate(date) {
   }));
 }
 
+// Recupera insuline che si sovrappongono a una data specifica (YYYY-MM-DD)
+async function getInsulinOverlappingDate(date) {
+  const p = await getPool();
+  const [rows] = await p.execute(
+    `SELECT ir.id, ir.timestamp, ir.type, ir.units
+     FROM insulin_records ir
+     CROSS JOIN settings s
+     WHERE ir.timestamp < DATE_ADD(?, INTERVAL 1 DAY)
+       AND DATE_ADD(
+         ir.timestamp,
+         INTERVAL CASE
+           WHEN ir.type = 'rapid' THEN COALESCE(s.rapid_duration, 3)
+           ELSE COALESCE(s.slow_duration, 24)
+         END HOUR
+       ) > ?
+     ORDER BY ir.timestamp ASC`,
+    [date, date]
+  );
+  return rows.map(r => ({
+    ...r,
+    timestamp: new Date(r.timestamp).toISOString(),
+  }));
+}
+
 // ── Carboidrati (CHO) ────────────────────────────────────────────────────────
 async function insertCarb({ timestamp, amount }) {
   const p = await getPool();
@@ -449,6 +473,7 @@ module.exports = {
   updateInsulin,
   getReadingsByDate,
   getInsulinByDate,
+  getInsulinOverlappingDate,
   insertCarb,
   getCarbsByMinutes,
   deleteCarb,

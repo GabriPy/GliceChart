@@ -289,7 +289,7 @@
             :disabled="cartTotal <= 0"
             @click="sendToCarbInput"
           >
-            Inserisci nel CHO
+            Registra CHO
           </button>
         </div>
       </div>
@@ -303,12 +303,10 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useGlucoseStore } from '../stores/glucose'
 import axios from 'axios'
 
 const store = useGlucoseStore()
-const router = useRouter()
 
 const foods = ref([])
 const foodsLoading = ref(false)
@@ -453,10 +451,10 @@ function openCart() {
 async function sendToCarbInput() {
   const total = Math.round(cartTotal.value)
   if (total <= 0) return
-  store.carbDraftAmount = total
+  await store.addCarb(total)
+  if (store.error) return
   clearCart()
   if (cartDialog.value) cartDialog.value.close()
-  await router.push('/')
 }
 </script>
 

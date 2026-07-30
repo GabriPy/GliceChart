@@ -65,6 +65,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
   // Dati storici (Calendario)
   const historyReadings = ref([])
   const historyInsulin  = ref([])
+  const historyChartInsulin = ref([])
   const historyCarbs    = ref([])
   const historyNotes    = ref([])
   const historyLoading  = ref(false)
@@ -556,6 +557,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       ])
       historyReadings.value = rData
       historyInsulin.value = iData
+      historyChartInsulin.value = iData
       historyCarbs.value = cData
       historyNotes.value = nData
       error.value = null
@@ -569,14 +571,16 @@ export const useGlucoseStore = defineStore('glucose', () => {
   async function fetchHistory(date) {
     historyLoading.value = true
     try {
-      const [{ data: rData }, { data: iData }, { data: cData }, { data: nData }] = await Promise.all([
+      const [{ data: rData }, { data: iData }, { data: iChartData }, { data: cData }, { data: nData }] = await Promise.all([
         axios.get('/api/history/readings', { params: { date } }),
         axios.get('/api/history/insulin', { params: { date } }),
+        axios.get('/api/history/insulin-overlap', { params: { date } }),
         axios.get('/api/history/carbs', { params: { date } }),
         axios.get('/api/history/notes', { params: { date } })
       ])
       historyReadings.value = rData
       historyInsulin.value = iData
+      historyChartInsulin.value = iChartData
       historyCarbs.value = cData
       historyNotes.value = nData
       error.value = null
@@ -590,7 +594,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
   return {
     current, readings, insulinRecords, carbRecords, notes, selectedRange, carbDraftAmount, loading, chartLoading, error, lastUpdated,
     settings,
-    historyReadings, historyInsulin, historyCarbs, historyNotes, historyLoading,
+    historyReadings, historyInsulin, historyChartInsulin, historyCarbs, historyNotes, historyLoading,
     glucoseColor, minutesAgo, stats, historyStats, iob, cob, prediction, patterns,
     fetchCurrent, fetchReadings, fetchAll, setRange, syncNow, 
     addInsulin, removeInsulin, editInsulin,

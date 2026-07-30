@@ -11,8 +11,8 @@ Dashboard personale per monitoraggio glicemico, con integrazione Gluroo/Nightsco
 ## Avvio Rapido (Docker)
 
 ```bash
-cp .env.example .env
-# Modifica .env con le credenziali Gluroo
+cp .docker.env.example .docker.env
+# Modifica .docker.env con le credenziali Gluroo e MySQL
 docker compose up -d
 ```
 

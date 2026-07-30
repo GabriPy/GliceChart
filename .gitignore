@@ -3,10 +3,10 @@ dist/
 build/
 *.local
 
-.env
+.docker.env
 .env.local
 .env.*.local
-backend/.env
+backend/.backend.env
 
 npm-debug.log*
 yarn-debug.log*

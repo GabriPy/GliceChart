@@ -42,7 +42,7 @@ async function fetchLatestReadings() {
   const token  = process.env.GLUROO_API_SECRET_TOKEN;
   const secret = process.env.GLUROO_API_SECRET_HEADER;
 
-  if (!token || !secret) throw new Error('Credenziali Gluroo mancanti nel .env');
+  if (!token || !secret) throw new Error('Credenziali Gluroo mancanti nel file di configurazione del backend');
 
   const { data } = await axios.get(`${BASE_URL}/api/v1/entries/sgv.json`, {
     params:  { count: 288 },

@@ -39,7 +39,7 @@
     <div class="grid grid-cols-1">
       <GlucoseChart 
         :readings="store.historyReadings" 
-        :insulin="store.historyInsulin"
+        :insulin="store.historyChartInsulin"
         :carbs="store.historyCarbs"
         :notes="store.historyNotes"
         :title="`Andamento del ${formatDate(selectedDate)}`"
@@ -212,6 +212,11 @@
       <DailyStats :stats="store.historyStats" />
     </div>
 
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <StatsChart title="Fasce Orarie" type="bar" :readings="store.historyReadings" />
+      <StatsChart title="Percentuale Range" type="doughnut" :readings="store.historyReadings" />
+    </div>
+
     <!-- Modal Modifica / Aggiunta -->
     <dialog id="edit_modal" class="modal">
       <div class="modal-box bg-base-200 border border-base-content/10 shadow-2xl rounded-3xl p-6">
@@ -301,6 +306,7 @@ import { ref, onMounted, computed, reactive, watch } from 'vue'
 import { useGlucoseStore } from '../stores/glucose'
 import GlucoseChart from '../components/GlucoseChart.vue'
 import DailyStats from '../components/DailyStats.vue'
+import StatsChart from '../components/StatsChart.vue'
 
 const store = useGlucoseStore()
 

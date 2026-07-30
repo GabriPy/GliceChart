@@ -87,7 +87,7 @@ sudo ufw reload
 ```
 
 #### E. DB_HOST su Linux/Debian
-Nel `.env`, su Docker Engine Linux **non esiste `host.docker.internal` di default**. Tuttavia il `docker-compose.yml` di questo progetto ha già `extra_hosts: host.docker.internal:host-gateway` che lo crea automaticamente.
+Nel `.docker.env`, su Docker Engine Linux **non esiste `host.docker.internal` di default**. Tuttavia il `docker-compose.yml` di questo progetto ha già `extra_hosts: host.docker.internal:host-gateway` che lo crea automaticamente.
 
 👉 Quindi puoi usare **entrambe** queste opzioni (scegline una):
 ```bash
@@ -122,7 +122,7 @@ FLUSH PRIVILEGES;
 
 #### DB_HOST
 ```bash
-DB_HOST=host.docker.internal   # Già impostato di default in .env.example
+DB_HOST=host.docker.internal   # Già impostato di default in .docker.env.example
 ```
 
 ---
@@ -131,8 +131,8 @@ DB_HOST=host.docker.internal   # Già impostato di default in .env.example
 ```bash
 cd /percorso/della/cartella/glicechart
 
-cp .env.example .env
-# Modifica .env con:
+cp .docker.env.example .docker.env
+# Modifica .docker.env con:
 #   DB_HOST (come sopra)
 #   DB_NAME, DB_USER, DB_PASSWORD = credenziali REALI del tuo MySQL esistente
 #   GLUROO_API_SECRET_TOKEN e GLUROO_API_SECRET_HEADER = obbligatori
@@ -163,7 +163,7 @@ FLUSH PRIVILEGES;
 
 ### 2. Variabili d'ambiente
 
-Crea `backend/.env`:
+Crea `backend/.backend.env`:
 
 ```bash
 # Database

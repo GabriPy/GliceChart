@@ -1,10 +1,10 @@
 // server.js
-require('dotenv').config();
+const path    = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.backend.env') });
 
 const express = require('express');
 const cors    = require('cors');
 const cron    = require('node-cron');
-const path    = require('path');
 
 const { 
   getPool, 
@@ -17,6 +17,7 @@ const {
   updateInsulin,
   getReadingsByDate,
   getInsulinByDate,
+  getInsulinOverlappingDate,
   insertCarb,
   getCarbsByMinutes,
   deleteCarb,
@@ -151,6 +152,17 @@ app.get('/api/history/insulin', async (req, res) => {
   if (!date) return res.status(400).json({ error: 'Data mancante' });
   try {
     const rows = await getInsulinByDate(date);
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/history/insulin-overlap', async (req, res) => {
+  const date = req.query.date; // YYYY-MM-DD
+  if (!date) return res.status(400).json({ error: 'Data mancante' });
+  try {
+    const rows = await getInsulinOverlappingDate(date);
     res.json(rows);
   } catch (e) {
     res.status(500).json({ error: e.message });

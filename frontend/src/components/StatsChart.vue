@@ -23,7 +23,8 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip,
 const props = defineProps({
   title: { type: String, default: 'Statistiche' },
   type: { type: String, default: 'bar' },
-  data: { type: Object, default: null }
+  data: { type: Object, default: null },
+  readings: { type: Array, default: null }
 })
 
 const store = useGlucoseStore()
@@ -40,7 +41,7 @@ const chartData = computed(() => {
   if (props.data) return props.data
   
   // Dati di esempio per distribuzione range o fasce orarie
-  const readings = store.readings
+  const readings = props.readings || store.readings
   if (!readings.length) return { datasets: [] }
   
   // Se il titolo contiene "Fasce Orarie" o "Hourly", calcola dati orari per percentuali in range

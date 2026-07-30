@@ -179,13 +179,6 @@ const resetZoom = () => {
 }
 
 const chartOptions = computed(() => {
-  console.log('GlucoseChart chartOptions:', {
-    displayReadings: displayReadings.value,
-    propsReadings: props.readings,
-    storeReadings: store.readings,
-    readingTimestamps: displayReadings.value.map(r => new Date(r.timestamp)),
-  })
-  
   const maxReading = displayReadings.value.length > 0 
     ? Math.max(...displayReadings.value.map(r => r.glucose)) 
     : 300
@@ -201,7 +194,6 @@ const chartOptions = computed(() => {
     const endDate = new Date(year, month - 1, day, 23, 59, 59, 999)
     xMin = startDate.getTime()
     xMax = endDate.getTime()
-    console.log('fullDay mode:', { propsDate: props.date, startDate, endDate, xMin, xMax })
   } else {
     // xMax è ora corrente per mostrare il gap se necessario
     xMax = nowTs
@@ -450,6 +442,12 @@ const chartOptions = computed(() => {
         pan: {
           enabled: true,
           mode: 'x',
+        },
+        limits: {
+          x: {
+            min: xMin,
+            max: xMax
+          }
         },
         zoom: {
           wheel: {
