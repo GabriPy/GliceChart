@@ -1,10 +1,24 @@
 services:
-  app:
+  glicechart:
+    container_name: glicechart
     build: .
     restart: unless-stopped
+    image: glicechart-app:latest
+    pull_policy: never
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    env_file:
-      - ./.docker.env
+    environment:
+      TZ: Europe/Rome
+      DB_HOST: ${DB_HOST:-host.docker.internal}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_USER: ${DB_USER:-glucoview}
+      DB_PASSWORD: ${DB_PASSWORD:-glucoview}
+      DB_NAME: ${DB_NAME:-glucoview}
+      PORT: 3001
+      POLL_INTERVAL_MINUTES: ${POLL_INTERVAL_MINUTES:-5}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-}
+      GLUROO_BASE_URL: ${GLUROO_BASE_URL:-https://aaa1.ns.gluroo.com}
+      GLUROO_API_SECRET_TOKEN: ${GLUROO_API_SECRET_TOKEN:-}
+      GLUROO_API_SECRET_HEADER: ${GLUROO_API_SECRET_HEADER:-}
     ports:
-      - "3001:3001"
+      - "${APP_PORT:-3001}:3001"
