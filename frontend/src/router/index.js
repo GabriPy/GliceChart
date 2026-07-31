@@ -1,12 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import CalendarView from '../views/CalendarView.vue'
-import SettingsView from '../views/SettingsView.vue'
-import PeriodicSummaryView from '../views/PeriodicSummaryView.vue'
-import DietometerView from '../views/DietometerView.vue'
-import AboutView from '../views/AboutView.vue'
-import PredictionView from '../views/PredictionView.vue'
-import PatternsView from '../views/PatternsView.vue'
+
+// Lazy loading delle views per migliorare performance
+const HomeView = () => import('../views/HomeView.vue')
+const CalendarView = () => import('../views/CalendarView.vue')
+const SettingsView = () => import('../views/SettingsView.vue')
+const PeriodicSummaryView = () => import('../views/PeriodicSummaryView.vue')
+const DietometerView = () => import('../views/DietometerView.vue')
+const AboutView = () => import('../views/AboutView.vue')
+const PredictionView = () => import('../views/PredictionView.vue')
+const PatternsView = () => import('../views/PatternsView.vue')
 
 const router = createRouter({
   history: createWebHistory(),

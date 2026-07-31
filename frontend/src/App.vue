@@ -5,14 +5,24 @@
 
     <div class="drawer-content flex flex-col min-w-0">
 
-      <!-- Background Decor (subtle gradient/glow) -->
-      <div class="fixed inset-0 overflow-hidden pointer-events-none opacity-20">
+      <!-- Background Decor (subtle gradient/glow) - disabilitato su mobile per performance -->
+      <div class="hidden lg:block fixed inset-0 overflow-hidden pointer-events-none opacity-20">
         <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full"></div>
         <div class="absolute top-[40%] -right-[10%] w-[30%] h-[50%] bg-secondary/10 blur-[100px] rounded-full"></div>
       </div>
 
-      <!-- Header removed on desktop; mobile keeps the drawer toggle via the sidebar / drawer overlay -->
-      <div class="hidden lg:block h-0"></div>
+      <!-- Header con hamburger menu per mobile -->
+      <div class="lg:hidden flex items-center justify-between p-4">
+        <label for="my-drawer" class="btn btn-square btn-ghost btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </label>
+        <div class="flex items-center gap-2">
+          <div class="flex items-center justify-center rounded-xl border border-primary/20 bg-primary/15 w-8 h-8 p-1.5">
+            <img src="./assets/favicon.png" alt="logo" class="object-contain w-5 h-5" />
+          </div>
+          <span class="text-sm font-black tracking-tight uppercase italic">Glice<span class="text-primary">Chart</span></span>
+        </div>
+      </div>
 
       <!-- Main Content Area -->
       <main class="flex-1 max-w-6xl mx-auto w-full p-4 md:p-6 space-y-4 relative">

@@ -26,3 +26,63 @@ body {
   50%       { opacity: 0.25; }
 }
 .live-dot { animation: blink 2.5s ease-in-out infinite; }
+
+/* Mobile Performance Optimizations */
+@media (max-width: 768px) {
+  /* Disabilita backdrop blur su mobile (molto pesante su Safari iOS) */
+  .backdrop-blur-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md,
+  .backdrop-blur-sm {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* Riduce o disabilita gradienti pesanti */
+  .blur-3xl,
+  .blur-2xl,
+  .blur-xl {
+    filter: none !important;
+  }
+  
+  /* Riduce ombre complesse */
+  .shadow-xl,
+  .shadow-2xl,
+  .shadow-lg {
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Riduce complessità delle transizioni */
+  * {
+    transition-duration: 0.1s !important;
+  }
+  
+  /* Disabilita animazioni non essenziali */
+  .animate-ping,
+  .animate-spin {
+    animation: none !important;
+  }
+  
+  /* Usa font di sistema per performance su mobile */
+  .font-mono-num {
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', 'Source Code Pro', monospace !important;
+  }
+  
+  /* Disabilita transizioni pagina su mobile per performance */
+  .page-enter-active,
+  .page-leave-active {
+    transition: none !important;
+  }
+  
+  .page-enter-from,
+  .page-leave-to {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  /* Riduce il rendering dei bordi complessi */
+  .rounded-3xl,
+  .rounded-2xl {
+    border-radius: 0.75rem !important;
+  }
+}

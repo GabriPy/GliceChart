@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [vue()],
     server: {
+      host: '0.0.0.0', // Permette accesso dalla rete locale
       port: 5173,
       proxy: {
         // In sviluppo locale: gira le chiamate /api al backend Node
@@ -19,6 +20,18 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
+      // Ottimizzazioni per mobile
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Separa le librerie pesanti
+            'chart-vendor': ['chart.js', 'vue-chartjs', 'chartjs-plugin-annotation', 'chartjs-plugin-zoom'],
+            'vue-vendor': ['vue', 'vue-router', 'pinia'],
+          }
+        }
+      },
+      // Riduce la dimensione del bundle
+      chunkSizeWarningLimit: 1000,
     }
   }
 })

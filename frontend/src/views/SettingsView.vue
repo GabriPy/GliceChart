@@ -159,6 +159,30 @@
           </div>
         </div>
       </div>
+
+      <!-- Export Dati -->
+      <div class="card bg-base-200 shadow-sm border border-base-content/10">
+        <div class="card-body p-6 gap-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fi fi-sr-download text-accent"></i>
+            <span class="text-xs font-black uppercase tracking-widest opacity-50">Export Dati</span>
+          </div>
+          
+          <div class="flex flex-col gap-3">
+            <p class="text-[10px] opacity-60 leading-relaxed">
+              Esporta i tuoi dati in formato CSV o PDF per condividerli con il tuo medico o per archiviazione personale.
+            </p>
+            
+            <button 
+              @click="openExportModal" 
+              class="btn btn-accent btn-sm font-black uppercase tracking-widest gap-2"
+            >
+              <i class="fi fi-sr-download"></i>
+              Apri Export Dati
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Pulsanti Azione -->
@@ -188,15 +212,20 @@
         <span>Impostazioni salvate!</span>
       </div>
     </div>
+
+    <!-- Export Modal -->
+    <ExportModal :is-open="showExportModal" @close="showExportModal = false" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useGlucoseStore } from '../stores/glucose'
+import ExportModal from '../components/ExportModal.vue'
 
 const store = useGlucoseStore()
 const saved = ref(false)
+const showExportModal = ref(false)
 
 const form = reactive({
   tir_min: 70,
@@ -270,5 +299,9 @@ async function save() {
     saved.value = true
     setTimeout(() => saved.value = false, 3000)
   }
+}
+
+function openExportModal() {
+  showExportModal.value = true
 }
 </script>

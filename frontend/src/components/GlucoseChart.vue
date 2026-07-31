@@ -72,7 +72,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS, CategoryScale, LinearScale,
@@ -82,7 +82,27 @@ import annotationPlugin from 'chartjs-plugin-annotation'
 import zoomPlugin from 'chartjs-plugin-zoom'
 import { useGlucoseStore } from '../stores/glucose'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler, annotationPlugin, zoomPlugin)
+// Rileva se siamo su mobile
+const isMobile = ref(false)
+const checkMobile = () => {
+  isMobile.value = window.innerWidth < 768
+}
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+})
+
+// Registra plugin solo se non mobile (performance)
+if (!isMobile.value) {
+  ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler, annotationPlugin, zoomPlugin)
+} else {
+  ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler)
+}
 
 const props = defineProps({
   readings: { type: Array, default: null },
@@ -119,46 +139,62 @@ function ptColor(g) {
   return '#22c55e'
 }
 
-const chartPlugins = computed(() => [
-  {
-    id: 'gradient',
-    beforeDatasetDraw: (chart) => {
-      const ctx = chart.ctx
-      const dataset = chart.data.datasets[0]
-      if (dataset && chart.chartArea) {
-        const gradient = ctx.createLinearGradient(0, chart.chartArea.top, 0, chart.chartArea.bottom)
-        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)')
-        gradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.2)')
-        gradient.addColorStop(1, 'rgba(99, 102, 241, 0.05)')
-        dataset.backgroundColor = gradient
-        
-        const lineGradient = ctx.createLinearGradient(chart.chartArea.left, 0, chart.chartArea.right, 0)
-        lineGradient.addColorStop(0, 'rgba(99, 102, 241, 0.7)')
-        lineGradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.9)')
-        lineGradient.addColorStop(1, 'rgba(99, 102, 241, 0.7)')
-        dataset.borderColor = lineGradient
+const chartPlugins = computed(() => {
+  // Su mobile, disabilita i gradienti complessi per performance
+  if (isMobile.value) {
+    return []
+  }
+
+  return [
+    {
+      id: 'gradient',
+      beforeDatasetDraw: (chart) => {
+        const ctx = chart.ctx
+        const dataset = chart.data.datasets[0]
+        if (dataset && chart.chartArea) {
+          const gradient = ctx.createLinearGradient(0, chart.chartArea.top, 0, chart.chartArea.bottom)
+          gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)')
+          gradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.2)')
+          gradient.addColorStop(1, 'rgba(99, 102, 241, 0.05)')
+          dataset.backgroundColor = gradient
+          
+          const lineGradient = ctx.createLinearGradient(chart.chartArea.left, 0, chart.chartArea.right, 0)
+          lineGradient.addColorStop(0, 'rgba(99, 102, 241, 0.7)')
+          lineGradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.9)')
+          lineGradient.addColorStop(1, 'rgba(99, 102, 241, 0.7)')
+          dataset.borderColor = lineGradient
+        }
       }
     }
-  }
-])
+  ]
+})
 
 const chartData = computed(() => {
+  // Su mobile, riduce il numero di punti per performance
+  let readings = displayReadings.value
+  if (isMobile.value && readings.length > 100) {
+    // Prende ogni n-esimo punto per ridurre il carico
+    const step = Math.ceil(readings.length / 100)
+    readings = readings.filter((_, i) => i % step === 0)
+  }
+
   return {
     datasets: [{
-      data: displayReadings.value.map(r => ({
+      data: readings.map(r => ({
         x: new Date(r.timestamp).getTime(),
         y: r.glucose
       })),
-      pointBackgroundColor: displayReadings.value.map(r => ptColor(r.glucose)),
+      pointBackgroundColor: readings.map(r => ptColor(r.glucose)),
       pointBorderColor: '#ffffff',
-      pointRadius: displayReadings.value.length > 150 ? 2.5 : 4,
-      pointHoverRadius: 8,
-      tension: 0.45,
-      fill: true,
-      borderWidth: 3,
-      pointHoverBorderWidth: 2,
+      // Radius più piccoli su mobile
+      pointRadius: isMobile.value ? (readings.length > 50 ? 1.5 : 2) : (readings.length > 150 ? 2.5 : 4),
+      pointHoverRadius: isMobile.value ? 4 : 8,
+      tension: isMobile.value ? 0.3 : 0.45,
+      fill: !isMobile.value, // Disabilita fill su mobile per performance
+      borderWidth: isMobile.value ? 2 : 3,
+      pointHoverBorderWidth: isMobile.value ? 1 : 2,
       pointHoverBorderColor: '#fff',
-      pointBorderWidth: 1,
+      pointBorderWidth: isMobile.value ? 0 : 1,
     }]
   }
 })
@@ -200,7 +236,8 @@ const chartOptions = computed(() => {
     xMin = nowTs - (store.selectedRange * 60 * 1000)
   }
 
-  const annotations = {
+  // Su mobile, usa annotations semplificate o nessuna
+  const annotations = isMobile.value ? {} : {
     rangeBox: {
       type: 'box',
       yMin: store.settings.tir_min,
@@ -229,7 +266,7 @@ const chartOptions = computed(() => {
   }
 
   const showNowLine = isToday.value && props.fullDay
-  if (showNowLine && nowTs >= xMin && nowTs <= xMax) {
+  if (showNowLine && nowTs >= xMin && nowTs <= xMax && !isMobile.value) {
     annotations.nowLine = {
       type: 'line',
       xMin: nowTs,
@@ -251,7 +288,8 @@ const chartOptions = computed(() => {
     }
   }
   
-  if (displayReadings.value.length > 0) {
+  // Su mobile, non calcolare i gap per performance
+  if (!isMobile.value && displayReadings.value.length > 0) {
     for (let i = 1; i < displayReadings.value.length; i++) {
       const prevTs = new Date(displayReadings.value[i - 1].timestamp).getTime()
       const ts = new Date(displayReadings.value[i].timestamp).getTime()
@@ -287,133 +325,136 @@ const chartOptions = computed(() => {
     }
   }
 
-  displayInsulin.value.forEach((ins, idx) => {
-    const startTime = new Date(ins.timestamp).getTime()
-    const durationHours = ins.type === 'rapid' 
-      ? store.settings.rapid_duration 
-      : store.settings.slow_duration
-    const endTime = startTime + durationHours * 60 * 60 * 1000
+  // Su mobile, non mostrare annotations per insulina e carboidrati (performance)
+  if (!isMobile.value) {
+    displayInsulin.value.forEach((ins, idx) => {
+      const startTime = new Date(ins.timestamp).getTime()
+      const durationHours = ins.type === 'rapid' 
+        ? store.settings.rapid_duration 
+        : store.settings.slow_duration
+      const endTime = startTime + durationHours * 60 * 60 * 1000
 
-    if (endTime < xMin || startTime > xMax) return
+      if (endTime < xMin || startTime > xMax) return
 
-    const color = ins.type === 'rapid' ? '#6366f1' : '#ec4899'
-    
-    // Vertical line at injection time with label
-    if (startTime >= xMin && startTime <= xMax) {
-      annotations[`insulin-line-${idx}`] = {
+      const color = ins.type === 'rapid' ? '#6366f1' : '#ec4899'
+      
+      // Vertical line at injection time with label
+      if (startTime >= xMin && startTime <= xMax) {
+        annotations[`insulin-line-${idx}`] = {
+          type: 'line',
+          xMin: startTime,
+          xMax: startTime,
+          borderColor: color,
+          borderWidth: 2,
+          borderDash: [4, 5],
+          label: {
+            display: true,
+            content: `${ins.units.toString().replace(',', '.')}U`,
+            position: 'start',
+            backgroundColor: color,
+            color: 'white',
+            font: { size: 10, weight: 'bold' },
+            padding: 5,
+            borderRadius: 10
+          }
+        }
+      }
+
+      // Horizontal "tacchetta" at the bottom of the chart
+      annotations[`insulin-bottom-line-${idx}`] = {
         type: 'line',
-        xMin: startTime,
-        xMax: startTime,
+        xMin: Math.max(xMin, startTime),
+        xMax: Math.min(xMax, endTime),
+        yMin: 40,
+        yMax: 40,
         borderColor: color,
-        borderWidth: 2,
-        borderDash: [4, 5],
-        label: {
+        borderWidth: 4,
+      }
+    })
+
+    displayCarbs.value.forEach((carb, idx) => {
+      const carbTime = new Date(carb.timestamp).getTime()
+      if (carbTime < xMin || carbTime > xMax) return
+
+      let yValue = 100
+      if (displayReadings.value.length > 0) {
+        let closestIdx = 0
+        let minDiff = Infinity
+        displayReadings.value.forEach((r, i) => {
+          const diff = Math.abs(new Date(r.timestamp).getTime() - carbTime)
+          if (diff < minDiff) {
+            minDiff = diff
+            closestIdx = i
+          }
+        })
+        yValue = displayReadings.value[closestIdx].glucose
+      }
+
+      annotations[`carb-${idx}`] = {
+        type: 'point',
+        xValue: carbTime,
+        yValue: yValue,
+        backgroundColor: 'rgba(217, 119, 6, 0.95)',
+        radius: 10,
+        borderWidth: 3,
+          borderColor: 'white',
+          label: {
           display: true,
-          content: `${ins.units.toString().replace(',', '.')}U`,
-          position: 'start',
-          backgroundColor: color,
-          color: 'white',
+          content: `${carb.amount}g`,
+          position: 'top',
+          color: '#d97706',
+          font: { size: 11, weight: 'bold' },
+          yAdjust: -18
+        }
+      }
+    })
+
+    displayNotes.value.forEach((note, idx) => {
+      const noteTime = new Date(note.timestamp).getTime()
+      if (noteTime < xMin || noteTime > xMax) return
+
+      let yValue = 110
+      if (displayReadings.value.length > 0) {
+        let closestIdx = 0
+        let minDiff = Infinity
+        displayReadings.value.forEach((r, i) => {
+          const diff = Math.abs(new Date(r.timestamp).getTime() - noteTime)
+          if (diff < minDiff) {
+            minDiff = diff
+            closestIdx = i
+          }
+        })
+        yValue = displayReadings.value[closestIdx].glucose
+      }
+
+      const label = String(note.text || '').trim()
+      const shortLabel = label.length > 18 ? `${label.slice(0, 18)}…` : label
+
+      annotations[`note-${idx}`] = {
+        type: 'point',
+        xValue: noteTime,
+        yValue: yValue,
+        backgroundColor: 'rgba(14, 165, 233, 0.95)',
+        radius: 9,
+        borderWidth: 3,
+        borderColor: 'white',
+        label: {
+          display: !!shortLabel,
+          content: shortLabel,
+          position: 'top',
+          color: '#0ea5e9',
           font: { size: 10, weight: 'bold' },
-          padding: 5,
-          borderRadius: 10
+          yAdjust: -17
         }
       }
-    }
-
-    // Horizontal "tacchetta" at the bottom of the chart
-    annotations[`insulin-bottom-line-${idx}`] = {
-      type: 'line',
-      xMin: Math.max(xMin, startTime),
-      xMax: Math.min(xMax, endTime),
-      yMin: 40,
-      yMax: 40,
-      borderColor: color,
-      borderWidth: 4,
-    }
-  })
-
-  displayCarbs.value.forEach((carb, idx) => {
-    const carbTime = new Date(carb.timestamp).getTime()
-    if (carbTime < xMin || carbTime > xMax) return
-
-    let yValue = 100
-    if (displayReadings.value.length > 0) {
-      let closestIdx = 0
-      let minDiff = Infinity
-      displayReadings.value.forEach((r, i) => {
-        const diff = Math.abs(new Date(r.timestamp).getTime() - carbTime)
-        if (diff < minDiff) {
-          minDiff = diff
-          closestIdx = i
-        }
-      })
-      yValue = displayReadings.value[closestIdx].glucose
-    }
-
-    annotations[`carb-${idx}`] = {
-      type: 'point',
-      xValue: carbTime,
-      yValue: yValue,
-      backgroundColor: 'rgba(217, 119, 6, 0.95)',
-      radius: 10,
-      borderWidth: 3,
-      borderColor: 'white',
-      label: {
-        display: true,
-        content: `${carb.amount}g`,
-        position: 'top',
-        color: '#d97706',
-        font: { size: 11, weight: 'bold' },
-        yAdjust: -18
-      }
-    }
-  })
-
-  displayNotes.value.forEach((note, idx) => {
-    const noteTime = new Date(note.timestamp).getTime()
-    if (noteTime < xMin || noteTime > xMax) return
-
-    let yValue = 110
-    if (displayReadings.value.length > 0) {
-      let closestIdx = 0
-      let minDiff = Infinity
-      displayReadings.value.forEach((r, i) => {
-        const diff = Math.abs(new Date(r.timestamp).getTime() - noteTime)
-        if (diff < minDiff) {
-          minDiff = diff
-          closestIdx = i
-        }
-      })
-      yValue = displayReadings.value[closestIdx].glucose
-    }
-
-    const label = String(note.text || '').trim()
-    const shortLabel = label.length > 18 ? `${label.slice(0, 18)}…` : label
-
-    annotations[`note-${idx}`] = {
-      type: 'point',
-      xValue: noteTime,
-      yValue: yValue,
-      backgroundColor: 'rgba(14, 165, 233, 0.95)',
-      radius: 9,
-      borderWidth: 3,
-      borderColor: 'white',
-      label: {
-        display: !!shortLabel,
-        content: shortLabel,
-        position: 'top',
-        color: '#0ea5e9',
-        font: { size: 10, weight: 'bold' },
-        yAdjust: -17
-      }
-    }
-  })
+    })
+  }
 
   return {
     responsive: true,
     maintainAspectRatio: false,
     animation: {
-      duration: 1000,
+      duration: isMobile.value ? 300 : 1000,
       easing: 'easeOutQuart'
     },
     interaction: { intersect: false, mode: 'nearest', axis: 'x' },
@@ -423,8 +464,8 @@ const chartOptions = computed(() => {
         backgroundColor: 'rgba(15, 23, 42, 0.98)',
         titleColor: '#94a3b8',
         bodyColor: '#f1f5f9',
-        padding: 14,
-        cornerRadius: 16,
+        padding: isMobile.value ? 10 : 14,
+        cornerRadius: isMobile.value ? 12 : 16,
         titleFont: { weight: '700' },
         bodyFont: { weight: '500' },
         callbacks: { 
@@ -437,27 +478,6 @@ const chartOptions = computed(() => {
       },
       annotation: {
         annotations: annotations
-      },
-      zoom: {
-        pan: {
-          enabled: true,
-          mode: 'x',
-        },
-        limits: {
-          x: {
-            min: xMin,
-            max: xMax
-          }
-        },
-        zoom: {
-          wheel: {
-            enabled: true,
-          },
-          pinch: {
-            enabled: true
-          },
-          mode: 'x',
-        }
       }
     },
     scales: {
@@ -467,8 +487,8 @@ const chartOptions = computed(() => {
         max: xMax,
         ticks: { 
           color: '#64748b', 
-          maxTicksLimit: 8, 
-          font: { family: 'DM Mono', size: 11, weight: '500' },
+          maxTicksLimit: isMobile.value ? 6 : 8, 
+          font: { family: 'DM Mono', size: isMobile.value ? 10 : 11, weight: '500' },
           callback: (value) => {
             return new Date(value).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
           }

@@ -183,11 +183,13 @@ async function saveQuickCarbs() {
   }
 }
 
-// ── Auto-refresh ogni 60s ─────────────────────────────────────────────────────
+// ── Auto-refresh: 60s su desktop, 120s su mobile per performance ─────────────────────
 let interval = null
 onMounted(async () => {
   await store.fetchAll()
-  interval = setInterval(() => store.fetchAll(), 60_000)
+  // Su mobile usa intervallo più lungo per risparmiare batteria e risorse
+  const refreshInterval = window.innerWidth < 768 ? 120_000 : 60_000
+  interval = setInterval(() => store.fetchAll(), refreshInterval)
 })
 onUnmounted(() => clearInterval(interval))
 </script>

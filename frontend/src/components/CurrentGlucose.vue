@@ -11,7 +11,7 @@
       <!-- Stato Live -->
       <div class="flex items-center gap-2 mb-2">
         <div class="relative flex h-2 w-2">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60"></span>
+          <span class="hidden lg:block animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60"></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
         </div>
         <span class="text-[11px] uppercase font-semibold tracking-[0.2em] opacity-50">Live Monitoring</span>
