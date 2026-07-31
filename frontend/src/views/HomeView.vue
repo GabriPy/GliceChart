@@ -67,7 +67,7 @@
             
 
             <button
-              class="btn btn-primary rounded-2xl font-black uppercase tracking-widest text-[10px] ml-auto"
+              class="btn btn-primary rounded-2xl font-black uppercase tracking-widest text-[10px] mx-auto"
               :disabled="savingInsulin || quickInsulinUnits <= 0"
               @click="saveQuickInsulin"
             >
@@ -107,7 +107,7 @@
 
           <div class="flex items-center gap-3 mt-2">
             <button
-              class="btn btn-accent rounded-2xl font-black uppercase tracking-widest text-[10px] ml-auto"
+              class="btn btn-accent rounded-2xl font-black uppercase tracking-widest text-[10px] mx-auto"
               :disabled="savingCarbs || quickCarbs <= 0"
               @click="saveQuickCarbs"
             >
