@@ -55,7 +55,12 @@
           </label>
         </div>
         
-        <div v-if="useDateRange" class="grid grid-cols-2 gap-4">
+        <label class="label">
+          <span class="label-text-alt text-xs opacity-60">
+            * Se non selezioni un periodo, verranno esportati gli ultimi 30 giorni
+          </span>
+        </label>
+        <div v-if="useDateRange" class="grid grid-cols-2 gap-4 mt-2">
           <div class="form-control">
             <label class="label">
               <span class="label-text text-xs">Data inizio</span>
@@ -121,6 +126,7 @@ import { ref, computed, watch } from 'vue'
 import { useGlucoseStore } from '../stores/glucose'
 import ExportService from '../utils/exportService'
 import { Download } from 'lucide-vue-next'
+import axios from 'axios'
 
 const props = defineProps({
   isOpen: {
@@ -183,32 +189,58 @@ const handleExport = async () => {
   
   try {
     const range = useDateRange.value ? dateRange.value : null
+
+    let readings = store.readings
+    let insulin = store.insulinRecords
+    let carbs = store.carbRecords
+    let notes = store.notes
+
+    let fetchRange = 43200 // Default 30 giorni (in minuti)
+    if (useDateRange.value && dateRange.value.start && dateRange.value.end) {
+      const startMs = new Date(dateRange.value.start).setHours(0, 0, 0, 0)
+      const endMs = new Date(dateRange.value.end).setHours(23, 59, 59, 999)
+      const diffMs = endMs - startMs
+      fetchRange = Math.max(180, Math.ceil(diffMs / (60 * 1000)))
+    }
+
+    if (exportType.value !== 'settings') {
+      const [{ data: rData }, { data: iData }, { data: cData }, { data: nData }] = await Promise.all([
+        axios.get('/api/readings', { params: { range: fetchRange } }),
+        axios.get('/api/insulin', { params: { range: fetchRange } }),
+        axios.get('/api/carbs', { params: { range: fetchRange } }),
+        axios.get('/api/notes', { params: { range: fetchRange } })
+      ])
+      readings = rData
+      insulin = iData
+      carbs = cData
+      notes = nData
+    }
     
     switch (exportType.value) {
       case 'complete':
         ExportService.exportCompleteReport({
-          readings: store.readings,
-          insulin: store.insulinRecords,
-          carbs: store.carbRecords,
-          notes: store.notes,
+          readings,
+          insulin,
+          carbs,
+          notes,
           settings: store.settings
         }, format.value, range)
         break
         
       case 'glucose':
-        ExportService.exportGlucoseReadings(store.readings, format.value, range)
+        ExportService.exportGlucoseReadings(readings, format.value, range, store.settings)
         break
         
       case 'insulin':
-        ExportService.exportInsulin(store.insulinRecords, format.value, range)
+        ExportService.exportInsulin(insulin, format.value, range)
         break
         
       case 'carbs':
-        ExportService.exportCarbs(store.carbRecords, format.value, range)
+        ExportService.exportCarbs(carbs, format.value, range)
         break
         
       case 'notes':
-        ExportService.exportNotes(store.notes, format.value, range)
+        ExportService.exportNotes(notes, format.value, range)
         break
         
       case 'settings':
