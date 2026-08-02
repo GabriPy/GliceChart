@@ -9,9 +9,9 @@ async function getPool() {
     pool = mysql.createPool({
       host:     process.env.DB_HOST     || 'localhost',
       port:     parseInt(process.env.DB_PORT || '3306'),
-      user:     process.env.DB_USER     || 'glucoview',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_NAME     || 'glucoview',
+      user:     process.env.DB_USER     || 'glicechart',
+      password: process.env.DB_PASSWORD || 'glicechart',
+      database: process.env.DB_NAME     || 'glicechart',
       waitForConnections: true,
       connectionLimit: 10,
     });
