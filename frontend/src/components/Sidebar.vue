@@ -6,7 +6,7 @@
         <div class="flex items-center justify-center rounded-2xl border border-primary/20 bg-primary/15 shadow-sm w-11 h-11 p-2">
           <img :src="favicon" alt="logo" class="object-contain w-7 h-7" />
         </div>
-        <span class="text-lg font-black tracking-tight uppercase italic">Glice<span class="text-primary">Chart</span></span>
+        <span class="text-lg font-display font-bold tracking-tight uppercase">Glice<span class="text-primary">Chart</span></span>
       </div>
 
       <div v-else class="flex items-center justify-center">
@@ -93,6 +93,18 @@
       </router-link>
 
       <router-link 
+        to="/sensors" 
+        class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
+        :class="$route.path === '/sensors' ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' : 'hover:bg-base-300 opacity-60 hover:opacity-100'"
+        @click="$emit('close-drawer')"
+      >
+        <div class="tooltip" :data-tip="'Storico Sensori'">
+          <Microchip class="w-5 h-5" />
+        </div>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">Storico Sensori</span>
+      </router-link>
+
+      <router-link 
         to="/about" 
         class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
         :class="$route.path === '/about' ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' : 'hover:bg-base-300 opacity-60 hover:opacity-100'"
@@ -169,7 +181,8 @@ import {
   RefreshCw,
   Palette,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Microchip
 } from 'lucide-vue-next'
 import favicon from '../assets/favicon.png'
 

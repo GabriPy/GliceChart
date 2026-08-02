@@ -25,6 +25,10 @@ const {
   getCarbsByDate,
   getDietFoods,
   insertDietFood,
+  insertSensor,
+  getSensors,
+  endSensor,
+  deleteSensor,
   insertNote,
   deleteNote,
   updateNote,
@@ -324,6 +328,63 @@ app.post('/api/diet/foods', async (req, res) => {
     if (String(e.message || '').includes('uq_name')) {
       return res.status(409).json({ error: 'Nome già esistente' });
     }
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Sensori ────────────────────────────────────────────────────────────────
+
+app.get('/api/sensors', async (req, res) => {
+  try {
+    const rows = await getSensors();
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/sensors', async (req, res) => {
+  const { serial_number, lot_number, start_date } = req.body || {};
+  const finalSerial = String(serial_number || '').trim();
+  const finalLot = lot_number ? String(lot_number).trim() : null;
+  const finalStartDate = start_date || new Date().toISOString();
+
+  if (!finalSerial) return res.status(400).json({ error: 'Numero seriale mancante' });
+  if (Number.isNaN(new Date(finalStartDate).getTime())) return res.status(400).json({ error: 'Data non valida' });
+
+  try {
+    const id = await insertSensor({ 
+      serial_number: finalSerial, 
+      lot_number: finalLot, 
+      start_date: finalStartDate 
+    });
+    res.json({ ok: true, id });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.put('/api/sensors/:id/end', async (req, res) => {
+  const { actual_end_date, early_end_note } = req.body || {};
+  const finalEndDate = actual_end_date || new Date().toISOString();
+  const finalNote = early_end_note ? String(early_end_note).trim() : null;
+
+  if (Number.isNaN(new Date(finalEndDate).getTime())) return res.status(400).json({ error: 'Data non valida' });
+
+  try {
+    const ok = await endSensor(req.params.id, { actual_end_date: finalEndDate, early_end_note: finalNote });
+    if (!ok) return res.status(404).json({ error: 'Sensore non trovato o già terminato' });
+    res.json({ ok });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.delete('/api/sensors/:id', async (req, res) => {
+  try {
+    const ok = await deleteSensor(req.params.id);
+    res.json({ ok });
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });

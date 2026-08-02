@@ -67,7 +67,10 @@
             
 
             <button
-              class="btn btn-primary rounded-2xl font-black uppercase tracking-widest text-[10px] mx-auto"
+              class="btn rounded-2xl font-black uppercase tracking-widest text-[10px] mx-auto border-0"
+              :class="quickInsulinType === 'rapid'
+                ? 'btn-primary'
+                : 'bg-secondary text-secondary-content hover:bg-secondary'"
               :disabled="savingInsulin || quickInsulinUnits <= 0"
               @click="saveQuickInsulin"
             >

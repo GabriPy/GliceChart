@@ -12,6 +12,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
   const allInsulin   = ref([]) // Dati completi (24h) per IOB
   const allCarbs     = ref([])   // Dati completi (24h) per COB
   const notes        = ref([])
+  const sensors      = ref([])
   const selectedRange = ref(180)
   const carbDraftAmount = ref(0)
   const loading      = ref(false)
@@ -588,6 +589,60 @@ export const useGlucoseStore = defineStore('glucose', () => {
     }
   }
 
+  // ── Sensori ───────────────────────────────────────────────────────────────
+  async function fetchSensors() {
+    try {
+      const { data } = await axios.get('/api/sensors')
+      sensors.value = data
+      error.value = null
+    } catch {
+      error.value = 'Errore caricamento sensori'
+    }
+  }
+
+  async function addSensor(serial_number, lot_number, start_date) {
+    loading.value = true
+    try {
+      await axios.post('/api/sensors', {
+        serial_number,
+        lot_number,
+        start_date: start_date || new Date().toISOString()
+      })
+      await fetchSensors()
+    } catch {
+      error.value = 'Errore aggiunta sensore'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function endSensor(id, actual_end_date, early_end_note) {
+    loading.value = true
+    try {
+      await axios.put(`/api/sensors/${id}/end`, {
+        actual_end_date: actual_end_date || new Date().toISOString(),
+        early_end_note
+      })
+      await fetchSensors()
+    } catch {
+      error.value = 'Errore terminazione sensore'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function deleteSensor(id) {
+    loading.value = true
+    try {
+      await axios.delete(`/api/sensors/${id}`)
+      await fetchSensors()
+    } catch {
+      error.value = 'Errore eliminazione sensore'
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function fetchLongHistory(minutes = 4320) { // Default 3 giorni
     historyLoading.value = true
     try {
@@ -634,7 +689,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
   }
 
   return {
-    current, readings, insulinRecords, carbRecords, notes, selectedRange, carbDraftAmount, loading, chartLoading, error, lastUpdated,
+    current, readings, insulinRecords, carbRecords, notes, sensors, selectedRange, carbDraftAmount, loading, chartLoading, error, lastUpdated,
     settings,
     historyReadings, historyInsulin, historyChartInsulin, historyCarbs, historyNotes, historyLoading,
     glucoseColor, minutesAgo, stats, historyStats, iob, cob, prediction, patterns,
@@ -642,6 +697,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     addInsulin, removeInsulin, editInsulin,
     addCarb, removeCarb, editCarb,
     addNote, removeNote, editNote,
+    fetchSensors, addSensor, endSensor, deleteSensor,
     fetchHistory, fetchLongHistory, fetchSettings, updateSettings, resetSettings, getStatusColor,
     // Theme API
     themes, theme, setTheme

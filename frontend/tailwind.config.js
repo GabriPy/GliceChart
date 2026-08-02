@@ -4,7 +4,14 @@ import daisyui from 'daisyui'
 export default {
   content: ['./index.html', './src/**/*.{vue,js}'],
   darkMode: 'class',
-  theme: { extend: {} },
+  theme: { 
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Poppins', 'system-ui', 'sans-serif'],
+      }
+    } 
+  },
   plugins: [daisyui],
   daisyui: {
     themes: [

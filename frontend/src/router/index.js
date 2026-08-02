@@ -9,6 +9,7 @@ const DietometerView = () => import('../views/DietometerView.vue')
 const AboutView = () => import('../views/AboutView.vue')
 const PredictionView = () => import('../views/PredictionView.vue')
 const PatternsView = () => import('../views/PatternsView.vue')
+const SensorsView = () => import('../views/SensorsView.vue')
 
 const router = createRouter({
   history: createWebHistory(),
@@ -47,6 +48,11 @@ const router = createRouter({
       path: '/settings',
       name: 'settings',
       component: SettingsView
+    },
+    {
+      path: '/sensors',
+      name: 'sensors',
+      component: SensorsView
     },
     {
       path: '/about',

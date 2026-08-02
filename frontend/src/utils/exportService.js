@@ -57,7 +57,9 @@ class ExportService {
       columns = null,
       pageSize = 'a4',
       orientation = 'portrait',
-      styles = {}
+      styles = {},
+      subtitle = 'Esportazione dati',
+      dateRange = null
     } = options
 
     const pdfData = transform ? data.map(transform) : data
@@ -68,36 +70,51 @@ class ExportService {
       format: pageSize
     })
 
-    // Header
-    doc.setFontSize(18)
-    doc.setTextColor(40, 40, 40)
-    doc.text(title, 14, 20)
+    const headerBottom = this.drawPdfHeader(doc, {
+      title,
+      subtitle,
+      count: pdfData.length,
+      dateRange
+    })
 
-    // Data report
-    doc.setFontSize(10)
-    doc.setTextColor(100, 100, 100)
-    doc.text(`Generato: ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}`, 14, 28)
-    doc.text(`Totale record: ${data.length}`, 14, 34)
+    if (pdfData.length === 0) {
+      doc.setFillColor(248, 250, 252)
+      doc.roundedRect(14, headerBottom + 6, 182, 28, 6, 6, 'F')
+      doc.setFontSize(12)
+      doc.setTextColor(55, 65, 81)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Nessun dato nel periodo selezionato', 20, headerBottom + 20)
+      doc.setFontSize(9)
+      doc.setTextColor(120, 120, 120)
+      doc.setFont('helvetica', 'normal')
+      doc.text('Prova ad ampliare il periodo o verifica che siano presenti record da esportare.', 20, headerBottom + 27)
+      this.drawPdfFooter(doc, 'GliceChart Export')
+      doc.save(`${filename}_${this.getTimestamp()}.pdf`)
+      return
+    }
 
     // Table
     const tableConfig = {
-      startY: 40,
+      startY: headerBottom + 8,
       head: headers || this.extractHeaders(pdfData),
       body: pdfData,
       styles: {
         fontSize: 9,
         cellPadding: 3,
+        textColor: [31, 41, 55],
+        lineWidth: 0.1,
+        lineColor: [229, 231, 235],
         ...styles
       },
       headStyles: {
-        fillColor: [99, 102, 241],
+        fillColor: [18, 18, 18],
         textColor: 255,
         fontStyle: 'bold'
       },
       alternateRowStyles: {
-        fillColor: [245, 245, 245]
+        fillColor: [248, 250, 252]
       },
-      margin: { top: 40, right: 14, bottom: 20, left: 14 }
+      margin: { top: headerBottom + 8, right: 14, bottom: 20, left: 14 }
     }
 
     if (columns) {
@@ -106,18 +123,7 @@ class ExportService {
 
     doc.autoTable(tableConfig)
 
-    // Footer
-    const pageCount = doc.internal.getNumberOfPages()
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i)
-      doc.setFontSize(8)
-      doc.setTextColor(150, 150, 150)
-      doc.text(
-        `Pagina ${i} di ${pageCount} - GliceChart Report`,
-        14,
-        doc.internal.pageSize.height - 10
-      )
-    }
+    this.drawPdfFooter(doc, `GliceChart - ${title}`)
 
     doc.save(`${filename}_${this.getTimestamp()}.pdf`)
   }
@@ -129,7 +135,8 @@ class ExportService {
    * @param {Object} dateRange - Range date { start, end }
    */
   static exportGlucoseReadings(readings, format = 'csv', dateRange = null) {
-    const filteredReadings = this.filterByDateRange(readings, dateRange)
+    const effectiveRange = this.getEffectiveDateRange(dateRange)
+    const filteredReadings = this.filterByDateRange(readings, effectiveRange)
     
     const transform = (r) => ({
       'Data/Ora': new Date(r.timestamp).toLocaleString('it-IT'),
@@ -149,7 +156,9 @@ class ExportService {
       this.exportToPDF(filteredReadings, 'glicemia', {
         title: 'Report Glicemia',
         headers,
-        transform
+        transform,
+        subtitle: 'Andamento glicemico esportato',
+        dateRange: effectiveRange
       })
     }
   }
@@ -161,7 +170,8 @@ class ExportService {
    * @param {Object} dateRange - Range date { start, end }
    */
   static exportInsulin(insulin, format = 'csv', dateRange = null) {
-    const filteredInsulin = this.filterByDateRange(insulin, dateRange)
+    const effectiveRange = this.getEffectiveDateRange(dateRange)
+    const filteredInsulin = this.filterByDateRange(insulin, effectiveRange)
     
     const transform = (i) => ({
       'Data/Ora': new Date(i.timestamp).toLocaleString('it-IT'),
@@ -180,7 +190,9 @@ class ExportService {
       this.exportToPDF(filteredInsulin, 'insulina', {
         title: 'Report Insulina',
         headers,
-        transform
+        transform,
+        subtitle: 'Somministrazioni registrate',
+        dateRange: effectiveRange
       })
     }
   }
@@ -192,7 +204,8 @@ class ExportService {
    * @param {Object} dateRange - Range date { start, end }
    */
   static exportCarbs(carbs, format = 'csv', dateRange = null) {
-    const filteredCarbs = this.filterByDateRange(carbs, dateRange)
+    const effectiveRange = this.getEffectiveDateRange(dateRange)
+    const filteredCarbs = this.filterByDateRange(carbs, effectiveRange)
     
     const transform = (c) => ({
       'Data/Ora': new Date(c.timestamp).toLocaleString('it-IT'),
@@ -210,7 +223,9 @@ class ExportService {
       this.exportToPDF(filteredCarbs, 'carboidrati', {
         title: 'Report Carboidrati',
         headers,
-        transform
+        transform,
+        subtitle: 'Carboidrati registrati',
+        dateRange: effectiveRange
       })
     }
   }
@@ -222,7 +237,8 @@ class ExportService {
    * @param {Object} dateRange - Range date { start, end }
    */
   static exportNotes(notes, format = 'csv', dateRange = null) {
-    const filteredNotes = this.filterByDateRange(notes, dateRange)
+    const effectiveRange = this.getEffectiveDateRange(dateRange)
+    const filteredNotes = this.filterByDateRange(notes, effectiveRange)
     
     const transform = (n) => ({
       'Data/Ora': new Date(n.timestamp).toLocaleString('it-IT'),
@@ -240,7 +256,9 @@ class ExportService {
       this.exportToPDF(filteredNotes, 'note', {
         title: 'Report Note',
         headers,
-        transform
+        transform,
+        subtitle: 'Note registrate',
+        dateRange: effectiveRange
       })
     }
   }
@@ -253,16 +271,17 @@ class ExportService {
    */
   static exportCompleteReport(data, format = 'pdf', dateRange = null) {
     const { readings, insulin, carbs, notes, settings } = data
+    const effectiveRange = this.getEffectiveDateRange(dateRange)
     
     if (format === 'csv') {
       // Per CSV, crea file separati
-      this.exportGlucoseReadings(readings, 'csv', dateRange)
-      this.exportInsulin(insulin, 'csv', dateRange)
-      this.exportCarbs(carbs, 'csv', dateRange)
-      this.exportNotes(notes, 'csv', dateRange)
+      this.exportGlucoseReadings(readings, 'csv', effectiveRange)
+      this.exportInsulin(insulin, 'csv', effectiveRange)
+      this.exportCarbs(carbs, 'csv', effectiveRange)
+      this.exportNotes(notes, 'csv', effectiveRange)
     } else {
       // Per PDF, crea un report multi-sezione
-      this.exportCompletePDF(data, dateRange)
+      this.exportCompletePDF(data, effectiveRange)
     }
   }
 
@@ -273,55 +292,83 @@ class ExportService {
    */
   static exportCompletePDF(data, dateRange = null) {
     const { readings, insulin, carbs, notes, settings } = data
+    const effectiveRange = this.getEffectiveDateRange(dateRange)
+    const filteredReadings = this.filterByDateRange(readings, effectiveRange)
+    const filteredInsulin = this.filterByDateRange(insulin, effectiveRange)
+    const filteredCarbs = this.filterByDateRange(carbs, effectiveRange)
+    const filteredNotes = this.filterByDateRange(notes, effectiveRange)
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
-    let yPos = 20
+    let yPos = 0
     const pageHeight = doc.internal.pageSize.height
     const margin = 14
+    yPos = this.drawPdfHeader(doc, {
+      title: 'GliceChart',
+      subtitle: 'Report completo in stile dashboard',
+      count: filteredReadings.length,
+      dateRange: effectiveRange
+    }) + 6
 
-    // Header principale
-    doc.setFontSize(20)
-    doc.setTextColor(40, 40, 40)
-    doc.text('GliceChart - Report Completo', margin, yPos)
-    yPos += 10
+    // Card statistiche visive
+    if (filteredReadings.length > 0) {
+      const stats = this.calculateGlucoseStats(filteredReadings, settings)
+      yPos = this.ensurePageSpace(doc, yPos, 34)
 
-    doc.setFontSize(10)
-    doc.setTextColor(100, 100, 100)
-    doc.text(`Generato: ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}`, margin, yPos)
-    yPos += 6
-
-    if (dateRange) {
-      doc.text(`Periodo: ${dateRange.start} - ${dateRange.end}`, margin, yPos)
-      yPos += 6
-    }
-
-    // Statistiche generali
-    yPos += 10
-    doc.setFontSize(14)
-    doc.setTextColor(99, 102, 241)
-    doc.text('Statistiche Generali', margin, yPos)
-    yPos += 8
-
-    doc.setFontSize(10)
-    doc.setTextColor(60, 60, 60)
-    
-    if (readings.length > 0) {
-      const avgGlucose = Math.round(readings.reduce((sum, r) => sum + r.glucose, 0) / readings.length)
-      const minGlucose = Math.min(...readings.map(r => r.glucose))
-      const maxGlucose = Math.max(...readings.map(r => r.glucose))
+      // Card 1: Media Glicemia
+      this.drawStatCard(doc, margin, yPos, 40, 25, stats.avgGlucose, 'mg/dL', 'Media Glicemia', [99, 102, 241])
       
-      doc.text(`Media glicemia: ${avgGlucose} mg/dL`, margin, yPos)
-      yPos += 6
-      doc.text(`Min/Max: ${minGlucose} / ${maxGlucose} mg/dL`, margin, yPos)
-      yPos += 6
+      // Card 2: TIR
+      this.drawStatCard(doc, margin + 45, yPos, 40, 25, `${stats.tir}%`, '', 'Time in Range', [34, 197, 94])
+      
+      // Card 3: Min/Max
+      this.drawStatCard(doc, margin + 90, yPos, 40, 25, `${stats.minGlucose}/${stats.maxGlucose}`, 'mg/dL', 'Min / Max', [249, 115, 22])
+      
+      // Card 4: Record totali
+      this.drawStatCard(doc, margin + 135, yPos, 40, 25, filteredReadings.length, '', 'Totale Letture', [107, 114, 128])
+      
+      yPos += 35
+      yPos = this.ensurePageSpace(doc, yPos, 56)
+      yPos = this.drawTimeInRangeSection(doc, margin, yPos, filteredReadings, settings)
+
+      yPos = this.ensurePageSpace(doc, yPos, 58)
+      yPos = this.drawHourlyDistribution(doc, margin, yPos, filteredReadings, settings)
+
+      yPos = this.ensurePageSpace(doc, yPos, 36)
+      yPos = this.drawSummaryIcons(doc, margin, yPos, filteredReadings, filteredInsulin, filteredCarbs, filteredNotes)
+    } else {
+      doc.setFillColor(248, 250, 252)
+      doc.roundedRect(margin, yPos, 182, 30, 6, 6, 'F')
+      doc.setFontSize(12)
+      doc.setTextColor(55, 65, 81)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Nessuna lettura glicemica negli ultimi 30 giorni', margin + 6, yPos + 14)
+      doc.setFontSize(9)
+      doc.setTextColor(120, 120, 120)
+      doc.setFont('helvetica', 'normal')
+      doc.text('Le tabelle sottostanti mostreranno solo i dati presenti nel periodo effettivo di export.', margin + 6, yPos + 21)
+      yPos += 40
     }
 
-    doc.text(`Totale insulina: ${insulin.length} record`, margin, yPos)
-    yPos += 6
-    doc.text(`Totale carboidrati: ${carbs.length} record`, margin, yPos)
-    yPos += 6
-    doc.text(`Totale note: ${notes.length} record`, margin, yPos)
-    yPos += 10
+    yPos = this.ensurePageSpace(doc, yPos, 20)
+    doc.setFontSize(12)
+    doc.setTextColor(24, 24, 27)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Riepilogo Dati Esportati', margin, yPos)
+    yPos += 7
+
+    doc.setFontSize(9)
+    doc.setTextColor(82, 82, 91)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Letture glicemia: ${filteredReadings.length}`, margin, yPos)
+    yPos += 5
+    doc.text(`Insulina: ${filteredInsulin.length} record`, margin, yPos)
+    yPos += 5
+    doc.text(`Carboidrati: ${filteredCarbs.length} record`, margin, yPos)
+    yPos += 5
+    doc.text(`Note: ${filteredNotes.length} record`, margin, yPos)
+
+    doc.addPage()
+    yPos = 20
 
     // Funzione helper per aggiungere tabella
     const addTable = (title, tableData, headers, transform) => {
@@ -331,12 +378,12 @@ class ExportService {
       }
 
       doc.setFontSize(14)
-      doc.setTextColor(99, 102, 241)
+      doc.setTextColor(18, 18, 18)
+      doc.setFont('helvetica', 'bold')
       doc.text(title, margin, yPos)
       yPos += 8
 
-      const transformedData = transform ? tableData.map(transform) : tableData
-      const filteredData = dateRange ? this.filterByDateRange(transformedData, dateRange) : transformedData
+      const filteredData = transform ? tableData.map(transform) : tableData
 
       if (filteredData.length === 0) {
         doc.setFontSize(10)
@@ -350,53 +397,122 @@ class ExportService {
         startY: yPos,
         head: headers,
         body: filteredData,
-        styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
-        alternateRowStyles: { fillColor: [245, 245, 245] },
+        styles: { 
+          fontSize: 8, 
+          cellPadding: 3,
+          lineWidth: 0.1,
+          lineColor: [228, 228, 231],
+          textColor: [39, 39, 42]
+        },
+        headStyles: { 
+          fillColor: [18, 18, 18],
+          textColor: 255, 
+          fontStyle: 'bold',
+          lineWidth: 0.2,
+          lineColor: [39, 39, 42]
+        },
+        alternateRowStyles: { 
+          fillColor: [248, 250, 252] 
+        },
         margin: { top: yPos, right: margin, bottom: 15, left: margin },
-        pageBreak: 'auto'
+        pageBreak: 'auto',
+        theme: 'grid'
       })
 
       yPos = doc.lastAutoTable.finalY + 10
     }
 
     // Aggiungi tabelle
-    addTable('Glicemia', readings, ['Data/Ora', 'Glicemia', 'Trend'], (r) => [
+    addTable('Glicemia', filteredReadings, ['Data/Ora', 'Glicemia', 'Trend'], (r) => [
       new Date(r.timestamp).toLocaleString('it-IT'),
       r.glucose,
       r.trend
     ])
 
-    addTable('Insulina', insulin, ['Data/Ora', 'Tipo', 'Unità'], (i) => [
+    addTable('Insulina', filteredInsulin, ['Data/Ora', 'Tipo', 'Unità'], (i) => [
       new Date(i.timestamp).toLocaleString('it-IT'),
       i.type === 'rapid' ? 'Rapida' : 'Lenta',
       i.units
     ])
 
-    addTable('Carboidrati', carbs, ['Data/Ora', 'Grammi'], (c) => [
+    addTable('Carboidrati', filteredCarbs, ['Data/Ora', 'Grammi'], (c) => [
       new Date(c.timestamp).toLocaleString('it-IT'),
       c.amount
     ])
 
-    addTable('Note', notes, ['Data/Ora', 'Nota'], (n) => [
+    addTable('Note', filteredNotes, ['Data/Ora', 'Nota'], (n) => [
       new Date(n.timestamp).toLocaleString('it-IT'),
       n.text
     ])
 
-    // Footer su tutte le pagine
-    const pageCount = doc.internal.getNumberOfPages()
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i)
-      doc.setFontSize(8)
-      doc.setTextColor(150, 150, 150)
-      doc.text(
-        `Pagina ${i} di ${pageCount} - GliceChart Report Completo`,
-        margin,
-        pageHeight - 10
-      )
-    }
+    this.drawPdfFooter(doc, 'GliceChart - Report Completo')
 
     doc.save(`glicechart_report_completo_${this.getTimestamp()}.pdf`)
+  }
+
+  static drawPdfHeader(doc, { title, subtitle, count, dateRange = null }) {
+    const pageWidth = doc.internal.pageSize.width
+    const margin = 14
+    const effectiveRange = dateRange ? this.getEffectiveDateRange(dateRange) : null
+
+    doc.setFillColor(18, 18, 18)
+    doc.rect(0, 0, pageWidth, 34, 'F')
+
+    doc.setFillColor(29, 185, 84)
+    doc.roundedRect(margin, 10, 18, 12, 4, 4, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('GC', margin + 9, 17.5, { align: 'center' })
+
+    doc.setFontSize(20)
+    doc.setFont('helvetica', 'bold')
+    doc.text(String(title), margin + 24, 16)
+
+    doc.setFontSize(9)
+    doc.setTextColor(212, 212, 216)
+    doc.setFont('helvetica', 'normal')
+    doc.text(String(subtitle), margin + 24, 23)
+    doc.text(`Generato il ${new Date().toLocaleDateString('it-IT')} alle ${new Date().toLocaleTimeString('it-IT')}`, margin + 24, 29)
+
+    doc.setFillColor(255, 255, 255)
+    doc.setTextColor(18, 18, 18)
+    doc.roundedRect(pageWidth - 62, 9, 48, 9, 4, 4, 'F')
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`${count} record`, pageWidth - 38, 14.9, { align: 'center' })
+
+    if (effectiveRange) {
+      doc.setFillColor(39, 39, 42)
+      doc.setTextColor(250, 250, 250)
+      doc.roundedRect(pageWidth - 92, 21, 78, 9, 4, 4, 'F')
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.text(this.formatDateRangeLabel(effectiveRange), pageWidth - 53, 26.8, { align: 'center' })
+    }
+
+    return 38
+  }
+
+  static drawPdfFooter(doc, label) {
+    const pageCount = doc.internal.getNumberOfPages()
+    const pageWidth = doc.internal.pageSize.width
+    const pageHeight = doc.internal.pageSize.height
+    const margin = 14
+
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i)
+      doc.setFillColor(250, 250, 250)
+      doc.rect(0, pageHeight - 12, pageWidth, 12, 'F')
+      doc.setDrawColor(229, 231, 235)
+      doc.line(0, pageHeight - 12, pageWidth, pageHeight - 12)
+
+      doc.setFontSize(7)
+      doc.setTextColor(113, 113, 122)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Pagina ${i} di ${pageCount}`, margin, pageHeight - 5)
+      doc.text(String(label), pageWidth - margin, pageHeight - 5, { align: 'right' })
+    }
   }
 
   /**
@@ -405,49 +521,56 @@ class ExportService {
    * @param {string} format - 'csv' o 'pdf'
    */
   static exportSettings(settings, format = 'csv') {
-    const transform = (s) => ({
-      'Parametro': 'TIR Minimo',
-      'Valore': s.tir_min
-    }, {
-      'Parametro': 'TIR Massimo',
-      'Valore': s.tir_max
-    }, {
-      'Parametro': 'Soglia Rossa Sotto',
-      'Valore': s.red_under
-    }, {
-      'Parametro': 'Soglia Rossa Sopra',
-      'Valore': s.red_over
-    }, {
-      'Parametro': 'Durata Insulina Rapida (ore)',
-      'Valore': s.rapid_duration
-    }, {
-      'Parametro': 'Durata Insulina Lenta (ore)',
-      'Valore': s.slow_duration
-    }, {
-      'Parametro': 'Durata Carboidrati (ore)',
-      'Valore': s.carb_duration
-    }, {
-      'Parametro': 'Sensibilità Insulina',
-      'Valore': s.insulin_sensitivity
-    }, {
-      'Parametro': 'Ratio Carboidrati',
-      'Valore': s.carb_ratio
-    })
+    const settingsRows = [
+      { 'Parametro': 'TIR Minimo', 'Valore': settings.tir_min },
+      { 'Parametro': 'TIR Massimo', 'Valore': settings.tir_max },
+      { 'Parametro': 'Soglia Rossa Sotto', 'Valore': settings.red_under },
+      { 'Parametro': 'Soglia Rossa Sopra', 'Valore': settings.red_over },
+      { 'Parametro': 'Durata Insulina Rapida (ore)', 'Valore': settings.rapid_duration },
+      { 'Parametro': 'Durata Insulina Lenta (ore)', 'Valore': settings.slow_duration },
+      { 'Parametro': 'Durata Carboidrati (ore)', 'Valore': settings.carb_duration },
+      { 'Parametro': 'Sensibilità Insulina', 'Valore': settings.insulin_sensitivity },
+      { 'Parametro': 'Ratio Carboidrati', 'Valore': settings.carb_ratio }
+    ]
 
     const headers = ['Parametro', 'Valore']
 
     if (format === 'csv') {
-      this.exportToCSV([settings], 'impostazioni', {
-        headers,
-        transform: () => transform(settings)
-      })
+      this.exportToCSV(settingsRows, 'impostazioni', { headers })
     } else {
-      this.exportToPDF([settings], 'impostazioni', {
+      this.exportToPDF(settingsRows, 'impostazioni', {
         title: 'Report Impostazioni',
         headers,
-        transform: () => transform(settings)
+        subtitle: 'Configurazione corrente dell\'app'
       })
     }
+  }
+
+  static getDefaultLast30DaysRange() {
+    const end = new Date()
+    const start = new Date()
+    start.setDate(end.getDate() - 30)
+
+    return {
+      start: start.toISOString().split('T')[0],
+      end: end.toISOString().split('T')[0]
+    }
+  }
+
+  static getEffectiveDateRange(dateRange) {
+    if (dateRange?.start && dateRange?.end) {
+      return dateRange
+    }
+
+    return this.getDefaultLast30DaysRange()
+  }
+
+  static formatDateRangeLabel(dateRange) {
+    if (!dateRange?.start || !dateRange?.end) return 'Ultimi 30 giorni'
+
+    const start = new Date(dateRange.start).toLocaleDateString('it-IT')
+    const end = new Date(dateRange.end).toLocaleDateString('it-IT')
+    return `${start} - ${end}`
   }
 
   /**
@@ -484,6 +607,436 @@ class ExportService {
   static getTimestamp() {
     const now = new Date()
     return now.toISOString().slice(0, 10).replace(/-/g, '_')
+  }
+
+  static ensurePageSpace(doc, yPos, requiredHeight, topMargin = 20) {
+    const pageHeight = doc.internal.pageSize.height
+    if (yPos + requiredHeight > pageHeight - 20) {
+      doc.addPage()
+      return topMargin
+    }
+
+    return yPos
+  }
+
+  static calculateGlucoseStats(readings, settings) {
+    const tirMin = settings?.tir_min || 70
+    const tirMax = settings?.tir_max || 180
+    const lowCount = readings.filter(r => r.glucose < tirMin).length
+    const inRangeCount = readings.filter(r => r.glucose >= tirMin && r.glucose <= tirMax).length
+    const highCount = readings.filter(r => r.glucose > tirMax).length
+
+    return {
+      avgGlucose: Math.round(readings.reduce((sum, r) => sum + Number(r.glucose || 0), 0) / readings.length),
+      minGlucose: Math.min(...readings.map(r => Number(r.glucose || 0))),
+      maxGlucose: Math.max(...readings.map(r => Number(r.glucose || 0))),
+      tir: Math.round((inRangeCount / readings.length) * 100),
+      lowCount,
+      inRangeCount,
+      highCount,
+      lowPercentage: Math.round((lowCount / readings.length) * 100),
+      inRangePercentage: Math.round((inRangeCount / readings.length) * 100),
+      highPercentage: Math.round((highCount / readings.length) * 100),
+      tirMin,
+      tirMax
+    }
+  }
+
+  /**
+   * Disegna una card statistica nel PDF
+   * @param {Object} doc - Documento jsPDF
+   * @param {number} x - Posizione X
+   * @param {number} y - Posizione Y
+   * @param {number} width - Larghezza card
+   * @param {number} height - Altezza card
+   * @param {string} value - Valore principale
+   * @param {string} unit - Unità di misura
+   * @param {string} label - Etichetta
+   * @param {Array} color - Colore [R, G, B]
+   */
+  static drawStatCard(doc, x, y, width, height, value, unit, label, color) {
+    doc.setFillColor(24, 24, 27)
+    doc.roundedRect(x, y, width, height, 3, 3, 'F')
+    
+    doc.setFillColor(color[0], color[1], color[2])
+    doc.roundedRect(x + 3, y + 3, 3, height - 6, 1.5, 1.5, 'F')
+    
+    doc.setFontSize(7)
+    doc.setTextColor(161, 161, 170)
+    doc.setFont('helvetica', 'normal')
+    doc.text(String(label), x + 9, y + 9)
+    
+    doc.setFontSize(16)
+    doc.setTextColor(250, 250, 250)
+    doc.setFont('helvetica', 'bold')
+    doc.text(String(value), x + 9, y + 18)
+    
+    if (unit) {
+      doc.setFontSize(8)
+      doc.setTextColor(color[0], color[1], color[2])
+      doc.setFont('helvetica', 'normal')
+      doc.text(String(unit), x + width - 4, y + 18, { align: 'right' })
+    }
+  }
+
+  static drawTimeInRangeSection(doc, x, y, readings, settings) {
+    const stats = this.calculateGlucoseStats(readings, settings)
+
+    doc.setFontSize(12)
+    doc.setTextColor(24, 24, 27)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Time In Range', x, y)
+    y += 6
+
+    doc.setFillColor(18, 18, 18)
+    doc.roundedRect(x, y, 182, 42, 6, 6, 'F')
+
+    doc.setFillColor(29, 185, 84)
+    doc.roundedRect(x + 4, y + 4, 44, 34, 5, 5, 'F')
+    doc.setFontSize(20)
+    doc.setTextColor(255, 255, 255)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`${stats.tir}%`, x + 26, y + 18, { align: 'center' })
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    doc.text('nel target', x + 26, y + 25, { align: 'center' })
+    doc.text(`${stats.inRangeCount}/${readings.length} letture`, x + 26, y + 31, { align: 'center' })
+
+    const rows = [
+      { label: `Bassi < ${stats.tirMin}`, percentage: stats.lowPercentage, count: stats.lowCount, color: [239, 68, 68] },
+      { label: `In range ${stats.tirMin}-${stats.tirMax}`, percentage: stats.inRangePercentage, count: stats.inRangeCount, color: [34, 197, 94] },
+      { label: `Alti > ${stats.tirMax}`, percentage: stats.highPercentage, count: stats.highCount, color: [249, 115, 22] }
+    ]
+
+    rows.forEach((row, index) => {
+      const rowY = y + 8 + index * 10
+      const barX = x + 60
+      const barWidth = 92
+
+      doc.setFontSize(7)
+      doc.setTextColor(244, 244, 245)
+      doc.setFont('helvetica', 'bold')
+      doc.text(row.label, barX, rowY)
+      doc.text(`${row.percentage}%`, x + 170, rowY, { align: 'right' })
+
+      doc.setFillColor(63, 63, 70)
+      doc.roundedRect(barX, rowY + 2, barWidth, 3.5, 1.5, 1.5, 'F')
+
+      const filledWidth = Math.max(2, (barWidth * row.percentage) / 100)
+      doc.setFillColor(row.color[0], row.color[1], row.color[2])
+      doc.roundedRect(barX, rowY + 2, filledWidth, 3.5, 1.5, 1.5, 'F')
+
+      doc.setFontSize(6)
+      doc.setTextColor(161, 161, 170)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`${row.count} letture`, x + 170, rowY + 5.8, { align: 'right' })
+    })
+
+    return y + 50
+  }
+
+  /**
+   * Disegna grafico distribuzione glicemia
+   * @param {Object} doc - Documento jsPDF
+   * @param {number} x - Posizione X
+   * @param {number} y - Posizione Y
+   * @param {Array} readings - Letture glicemiche
+   * @param {Object} settings - Impostazioni
+   * @returns {number} Nuova posizione Y
+   */
+  static drawDistributionChart(doc, x, y, readings, settings) {
+    const tirMin = settings?.tir_min || 70
+    const tirMax = settings?.tir_max || 180
+    
+    // Calcola distribuzione
+    const ranges = [
+      { label: 'Basso (<70)', min: 0, max: tirMin - 1, color: [239, 68, 68] },
+      { label: 'Target (70-180)', min: tirMin, max: tirMax, color: [34, 197, 94] },
+      { label: 'Alto (>180)', min: tirMax + 1, max: 400, color: [249, 115, 22] }
+    ]
+    
+    const distribution = ranges.map(range => {
+      const count = readings.filter(r => r.glucose >= range.min && r.glucose <= range.max).length
+      return { ...range, count, percentage: readings.length > 0 ? Math.round((count / readings.length) * 100) : 0 }
+    })
+    
+    // Titolo
+    doc.setFontSize(12)
+    doc.setTextColor(40, 40, 40)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Distribuzione Glicemia', x, y)
+    y += 8
+    
+    // Disegna barre
+    const barWidth = 50
+    const barHeight = 30
+    const gap = 15
+    const startX = x
+    const maxCount = Math.max(...distribution.map(d => d.count))
+    
+    distribution.forEach((item, index) => {
+      const barX = startX + index * (barWidth + gap)
+      const barY = y
+      
+      // Background bar
+      doc.setFillColor(248, 250, 252)
+      doc.roundedRect(barX, barY, barWidth, barHeight, 3, 3, 'F')
+      
+      // Value bar (proporzionale)
+      const fillHeight = maxCount > 0 ? (item.count / maxCount) * (barHeight - 8) : 0
+      if (fillHeight > 0) {
+        doc.setFillColor(item.color[0], item.color[1], item.color[2])
+        doc.roundedRect(barX, barY + barHeight - fillHeight - 4, barWidth, fillHeight, 2, 2, 'F')
+      }
+      
+      // Label sotto
+      doc.setFontSize(6)
+      doc.setTextColor(80, 80, 80)
+      doc.setFont('helvetica', 'normal')
+      doc.text(item.label, barX + barWidth / 2, barY + barHeight + 5, { align: 'center' })
+      
+      // Percentuale sopra
+      doc.setFontSize(8)
+      doc.setTextColor(item.color[0], item.color[1], item.color[2])
+      doc.setFont('helvetica', 'bold')
+      doc.text(`${item.percentage}%`, barX + barWidth / 2, barY - 2, { align: 'center' })
+    })
+    
+    return y + barHeight + 15
+  }
+
+  /**
+   * Disegna grafico distribuzione oraria
+   * @param {Object} doc - Documento jsPDF
+   * @param {number} x - Posizione X
+   * @param {number} y - Posizione Y
+   * @param {Array} readings - Letture glicemiche
+   * @returns {number} Nuova posizione Y
+   */
+  static drawHourlyDistribution(doc, x, y, readings, settings) {
+    // Dividi in 6 fasce orarie (4 ore ciascuna)
+    const timeRanges = [
+      { label: '00-04', start: 0, end: 4 },
+      { label: '04-08', start: 4, end: 8 },
+      { label: '08-12', start: 8, end: 12 },
+      { label: '12-16', start: 12, end: 16 },
+      { label: '16-20', start: 16, end: 20 },
+      { label: '20-24', start: 20, end: 24 }
+    ]
+    
+    const hourlyData = timeRanges.map(range => {
+      const readingsInRange = readings.filter(r => {
+        const hour = new Date(r.timestamp).getHours()
+        return hour >= range.start && hour < range.end
+      })
+      const avg = readingsInRange.length > 0 
+        ? Math.round(readingsInRange.reduce((sum, r) => sum + r.glucose, 0) / readingsInRange.length)
+        : 0
+      return { ...range, avg, count: readingsInRange.length }
+    })
+    
+    doc.setFontSize(12)
+    doc.setTextColor(24, 24, 27)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Distribuzione Oraria', x, y)
+    y += 6
+
+    const chartWidth = 182
+    const chartHeight = 42
+    const chartY = y
+    const barBaseY = chartY + 30
+    const maxAvg = Math.max(...hourlyData.map(d => d.avg), 200)
+    const tirMin = settings?.tir_min || 70
+    const tirMax = settings?.tir_max || 180
+
+    doc.setFillColor(248, 250, 252)
+    doc.roundedRect(x, chartY, chartWidth, chartHeight, 6, 6, 'F')
+
+    hourlyData.forEach((item, index) => {
+      const barX = x + 10 + index * 28
+      const barHeight = item.avg > 0 ? Math.max(3, ((item.avg / maxAvg) * 20)) : 2
+      const color = this.getGlucoseColor(item.avg, tirMin, tirMax)
+
+      doc.setFillColor(228, 228, 231)
+      doc.roundedRect(barX, chartY + 8, 16, 22, 3, 3, 'F')
+
+      if (item.avg > 0) {
+        doc.setFillColor(color[0], color[1], color[2])
+        doc.roundedRect(barX, barBaseY - barHeight, 16, barHeight, 3, 3, 'F')
+      }
+
+      doc.setFontSize(7)
+      doc.setTextColor(24, 24, 27)
+      doc.setFont('helvetica', 'bold')
+      doc.text(item.avg > 0 ? String(item.avg) : '--', barX + 8, chartY + 6, { align: 'center' })
+
+      doc.setFontSize(6)
+      doc.setTextColor(82, 82, 91)
+      doc.setFont('helvetica', 'normal')
+      doc.text(item.label, barX + 8, chartY + 36, { align: 'center' })
+    })
+
+    return chartY + chartHeight + 8
+  }
+
+  /**
+   * Disegna grafico trend settimanale
+   * @param {Object} doc - Documento jsPDF
+   * @param {number} x - Posizione X
+   * @param {number} y - Posizione Y
+   * @param {Array} readings - Letture glicemiche
+   * @returns {number} Nuova posizione Y
+   */
+  static drawWeeklyTrend(doc, x, y, readings) {
+    const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
+    const weeklyData = days.map((day, index) => {
+      const dayReadings = readings.filter(r => new Date(r.timestamp).getDay() === index)
+      const avg = dayReadings.length > 0 
+        ? Math.round(dayReadings.reduce((sum, r) => sum + r.glucose, 0) / dayReadings.length)
+        : 0
+      return { day, avg, count: dayReadings.length }
+    })
+    
+    // Titolo
+    doc.setFontSize(12)
+    doc.setTextColor(40, 40, 40)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Trend Settimanale', x, y)
+    y += 8
+    
+    // Disegna mini bar chart
+    const chartWidth = 180
+    const chartHeight = 35
+    const startX = x
+    const barWidth = 18
+    const gap = 7
+    
+    const maxAvg = Math.max(...weeklyData.filter(d => d.avg > 0).map(d => d.avg), 200)
+    
+    weeklyData.forEach((item, index) => {
+      const barX = startX + index * (barWidth + gap)
+      const barY = y + chartHeight
+      
+      // Background bar
+      doc.setFillColor(248, 250, 252)
+      doc.roundedRect(barX, y, barWidth, chartHeight, 2, 2, 'F')
+      
+      // Value bar
+      if (item.avg > 0) {
+        const fillHeight = (item.avg / maxAvg) * (chartHeight - 8)
+        // Colore basato sul valore
+        const tirMin = 70
+        const tirMax = 180
+        let color = [99, 102, 241] // default viola
+        if (item.avg < tirMin) color = [239, 68, 68] // rosso
+        else if (item.avg > tirMax) color = [249, 115, 22] // arancione
+        else color = [34, 197, 94] // verde
+        
+        doc.setFillColor(color[0], color[1], color[2])
+        doc.roundedRect(barX, barY - fillHeight - 4, barWidth, fillHeight, 2, 2, 'F')
+        
+        // Valore
+        doc.setFontSize(7)
+        doc.setTextColor(color[0], color[1], color[2])
+        doc.setFont('helvetica', 'bold')
+        doc.text(String(item.avg), barX + barWidth / 2, barY - fillHeight - 7, { align: 'center' })
+      }
+      
+      // Label giorno
+      doc.setFontSize(6)
+      doc.setTextColor(100, 100, 100)
+      doc.setFont('helvetica', 'normal')
+      doc.text(item.day, barX + barWidth / 2, barY + 5, { align: 'center' })
+    })
+    
+    return y + chartHeight + 15
+  }
+
+  /**
+   * Disegna sezione riepilogo con icone
+   * @param {Object} doc - Documento jsPDF
+   * @param {number} x - Posizione X
+   * @param {number} y - Posizione Y
+   * @param {Array} readings - Letture glicemiche
+   * @param {Array} insulin - Record insulina
+   * @param {Array} carbs - Record carboidrati
+   * @param {Array} notes - Note
+   * @returns {number} Nuova posizione Y
+   */
+  static drawSummaryIcons(doc, x, y, readings, insulin, carbs, notes) {
+    doc.setFontSize(12)
+    doc.setTextColor(24, 24, 27)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Attivita Registrate', x, y)
+    y += 6
+    
+    const totalInsulin = insulin.reduce((sum, i) => sum + Number(i.units || 0), 0)
+    const totalCarbs = carbs.reduce((sum, c) => sum + Number(c.amount || 0), 0)
+    const rapidInsulin = insulin.filter(i => i.type === 'rapid').reduce((sum, i) => sum + Number(i.units || 0), 0)
+    const slowInsulin = insulin.filter(i => i.type === 'slow').reduce((sum, i) => sum + Number(i.units || 0), 0)
+
+    this.drawMiniMetricCard(doc, x, y, 42, 24, totalInsulin.toFixed(1), 'U totali', 'Insulina', [99, 102, 241])
+    this.drawMiniMetricCard(doc, x + 46, y, 42, 24, String(totalCarbs), 'grammi', 'Carboidrati', [249, 115, 22])
+    this.drawMiniMetricCard(doc, x + 92, y, 42, 24, String(notes.length), 'record', 'Note', [107, 114, 128])
+    this.drawMiniMetricCard(doc, x + 138, y, 42, 24, `${rapidInsulin.toFixed(1)}/${slowInsulin.toFixed(1)}`, 'U R/L', 'Rapida/Lenta', [34, 197, 94])
+
+    return y + 32
+  }
+
+  static drawMiniMetricCard(doc, x, y, width, height, value, suffix, label, color) {
+    doc.setFillColor(24, 24, 27)
+    doc.roundedRect(x, y, width, height, 4, 4, 'F')
+    doc.setFillColor(color[0], color[1], color[2])
+    doc.roundedRect(x, y, width, 3, 2, 2, 'F')
+
+    doc.setFontSize(10)
+    doc.setTextColor(255, 255, 255)
+    doc.setFont('helvetica', 'bold')
+    doc.text(String(value), x + 4, y + 11)
+
+    doc.setFontSize(6)
+    doc.setTextColor(color[0], color[1], color[2])
+    doc.setFont('helvetica', 'normal')
+    doc.text(String(suffix), x + 4, y + 16)
+
+    doc.setFontSize(6)
+    doc.setTextColor(161, 161, 170)
+    doc.text(String(label), x + 4, y + 21)
+  }
+
+  static getGlucoseColor(value, tirMin, tirMax) {
+    if (!value || Number(value) <= 0) return [99, 102, 241]
+    if (value < tirMin) return [239, 68, 68]
+    if (value > tirMax) return [249, 115, 22]
+    return [34, 197, 94]
+  }
+
+  /**
+   * Disegna icona con valore
+   * @param {Object} doc - Documento jsPDF
+   * @param {number} x - Posizione X
+   * @param {number} y - Posizione Y
+   * @param {string} icon - Emoji icona
+   * @param {string} value - Valore
+   * @param {string} label - Etichetta
+   * @param {Array} color - Colore [R, G, B]
+   */
+  static drawIcon(doc, x, y, icon, value, label, color) {
+    // Icona emoji
+    doc.setFontSize(12)
+    doc.text(String(icon), x, y)
+    
+    // Valore
+    doc.setFontSize(10)
+    doc.setTextColor(color[0], color[1], color[2])
+    doc.setFont('helvetica', 'bold')
+    doc.text(String(value), x, y + 8)
+    
+    // Label
+    doc.setFontSize(6)
+    doc.setTextColor(100, 100, 100)
+    doc.setFont('helvetica', 'normal')
+    doc.text(String(label), x, y + 14)
   }
 }
 

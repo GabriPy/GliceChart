@@ -110,7 +110,7 @@
               <label class="label py-1">
                 <span class="label-text text-[10px] font-black uppercase opacity-40">Insulina (Unità)</span>
               </label>
-              <div class="flex gap-2 items-center">
+              <div class="grid grid-cols-2 gap-2">
                 <input type="number" v-model.number="form.quick_insulin_1" class="input input-bordered font-black border-accent/30" />
                 <input type="number" v-model.number="form.quick_insulin_2" class="input input-bordered font-black border-accent/30" />
               </div>
@@ -120,7 +120,7 @@
               <label class="label py-1">
                 <span class="label-text text-[10px] font-black uppercase opacity-40">Carboidrati (g)</span>
               </label>
-              <div class="flex gap-2 items-center">
+              <div class="grid grid-cols-2 gap-2">
                 <input type="number" v-model.number="form.quick_carb_1" class="input input-bordered font-black border-accent/30" />
                 <input type="number" v-model.number="form.quick_carb_2" class="input input-bordered font-black border-accent/30" />
               </div>
