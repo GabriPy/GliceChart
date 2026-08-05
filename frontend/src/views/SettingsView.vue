@@ -313,6 +313,12 @@ onMounted(async () => {
   updateFormFromStore()
 })
 
+function normalizeBoolean(value, fallback = false) {
+  if (value === true || value === 1 || value === '1') return true
+  if (value === false || value === 0 || value === '0' || value === null || value === undefined) return fallback
+  return Boolean(value)
+}
+
 function updateFormFromStore() {
   form.tir_min = store.settings.tir_min
   form.tir_max = store.settings.tir_max
@@ -329,12 +335,12 @@ function updateFormFromStore() {
   form.quick_carb_1 = store.settings.quick_carb_1 ?? 10
   form.quick_carb_2 = store.settings.quick_carb_2 ?? 20
   // Telegram toggles
-  form.telegram_enabled = Boolean(store.settings.telegram_enabled)
-  form.telegram_high_low_alerts = store.settings.telegram_high_low_alerts !== false
-  form.telegram_prediction_alerts = store.settings.telegram_prediction_alerts !== false
-  form.telegram_insulin_alerts = Boolean(store.settings.telegram_insulin_alerts)
-  form.telegram_carb_alerts = Boolean(store.settings.telegram_carb_alerts)
-  form.telegram_daily_summary = Boolean(store.settings.telegram_daily_summary)
+  form.telegram_enabled = normalizeBoolean(store.settings.telegram_enabled, false)
+  form.telegram_high_low_alerts = normalizeBoolean(store.settings.telegram_high_low_alerts, true)
+  form.telegram_prediction_alerts = normalizeBoolean(store.settings.telegram_prediction_alerts, true)
+  form.telegram_insulin_alerts = normalizeBoolean(store.settings.telegram_insulin_alerts, false)
+  form.telegram_carb_alerts = normalizeBoolean(store.settings.telegram_carb_alerts, false)
+  form.telegram_daily_summary = normalizeBoolean(store.settings.telegram_daily_summary, false)
   form.telegram_daily_summary_time = store.settings.telegram_daily_summary_time || '21:00'
 }
 

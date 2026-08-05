@@ -7,6 +7,12 @@ import axios from 'axios'
 
 export const useGlucoseStore = defineStore('glucose', () => {
 
+  function normalizeBooleanSetting(value, fallback = false) {
+    if (value === true || value === 1 || value === '1') return true
+    if (value === false || value === 0 || value === '0' || value === null || value === undefined) return fallback
+    return Boolean(value)
+  }
+
   const current      = ref(null)
   const readings     = ref([])
   const allInsulin   = ref([]) // Dati completi (24h) per IOB
@@ -508,7 +514,19 @@ export const useGlucoseStore = defineStore('glucose', () => {
   async function fetchSettings() {
     try {
       const { data } = await axios.get('/api/settings')
-      if (data) settings.value = { ...DEFAULT_SETTINGS, ...data }
+      if (data) {
+        settings.value = {
+          ...DEFAULT_SETTINGS,
+          ...data,
+          telegram_enabled: normalizeBooleanSetting(data.telegram_enabled, false),
+          telegram_high_low_alerts: normalizeBooleanSetting(data.telegram_high_low_alerts, true),
+          telegram_prediction_alerts: normalizeBooleanSetting(data.telegram_prediction_alerts, true),
+          telegram_insulin_alerts: normalizeBooleanSetting(data.telegram_insulin_alerts, false),
+          telegram_carb_alerts: normalizeBooleanSetting(data.telegram_carb_alerts, false),
+          telegram_daily_summary: normalizeBooleanSetting(data.telegram_daily_summary, false),
+          telegram_daily_summary_time: data.telegram_daily_summary_time || '21:00'
+        }
+      }
     } catch {
       error.value = 'Errore caricamento impostazioni'
     }
@@ -518,7 +536,17 @@ export const useGlucoseStore = defineStore('glucose', () => {
     loading.value = true
     try {
       await axios.put('/api/settings', newSettings)
-      settings.value = { ...DEFAULT_SETTINGS, ...newSettings }
+      settings.value = {
+        ...DEFAULT_SETTINGS,
+        ...newSettings,
+        telegram_enabled: normalizeBooleanSetting(newSettings.telegram_enabled, false),
+        telegram_high_low_alerts: normalizeBooleanSetting(newSettings.telegram_high_low_alerts, true),
+        telegram_prediction_alerts: normalizeBooleanSetting(newSettings.telegram_prediction_alerts, true),
+        telegram_insulin_alerts: normalizeBooleanSetting(newSettings.telegram_insulin_alerts, false),
+        telegram_carb_alerts: normalizeBooleanSetting(newSettings.telegram_carb_alerts, false),
+        telegram_daily_summary: normalizeBooleanSetting(newSettings.telegram_daily_summary, false),
+        telegram_daily_summary_time: newSettings.telegram_daily_summary_time || '21:00'
+      }
       error.value = null
     } catch {
       error.value = 'Errore salvataggio impostazioni'
