@@ -60,20 +60,27 @@ async function initDB() {
 
     await conn.execute(`
       CREATE TABLE IF NOT EXISTS settings (
-        id             INT PRIMARY KEY DEFAULT 1,
-        tir_min        INT DEFAULT 70,
-        tir_max        INT DEFAULT 180,
-        red_under      INT DEFAULT 55,
-        red_over       INT DEFAULT 250,
-        rapid_duration      INT DEFAULT 3,
-        slow_duration       INT DEFAULT 24,
-        carb_duration       INT DEFAULT 4,
-        insulin_sensitivity INT DEFAULT 60,
-        carb_ratio          INT DEFAULT 15,
-        quick_insulin_1     INT DEFAULT 1,
-        quick_insulin_2     INT DEFAULT 2,
-        quick_carb_1        INT DEFAULT 10,
-        quick_carb_2        INT DEFAULT 20,
+        id                         INT PRIMARY KEY DEFAULT 1,
+        tir_min                    INT DEFAULT 70,
+        tir_max                    INT DEFAULT 180,
+        red_under                  INT DEFAULT 55,
+        red_over                   INT DEFAULT 250,
+        rapid_duration            INT DEFAULT 3,
+        slow_duration             INT DEFAULT 24,
+        carb_duration             INT DEFAULT 4,
+        insulin_sensitivity       INT DEFAULT 60,
+        carb_ratio                INT DEFAULT 15,
+        quick_insulin_1           INT DEFAULT 1,
+        quick_insulin_2           INT DEFAULT 2,
+        quick_carb_1              INT DEFAULT 10,
+        quick_carb_2              INT DEFAULT 20,
+        telegram_enabled          BOOLEAN DEFAULT FALSE,
+        telegram_high_low_alerts  BOOLEAN DEFAULT TRUE,
+        telegram_prediction_alerts BOOLEAN DEFAULT TRUE,
+        telegram_insulin_alerts   BOOLEAN DEFAULT FALSE,
+        telegram_carb_alerts      BOOLEAN DEFAULT FALSE,
+        telegram_daily_summary    BOOLEAN DEFAULT FALSE,
+        telegram_daily_summary_time VARCHAR(5) DEFAULT '21:00',
         CONSTRAINT one_row CHECK (id = 1)
       )
     `);
@@ -116,10 +123,38 @@ async function initDB() {
       await conn.execute(`ALTER TABLE settings ADD COLUMN quick_carb_2 INT DEFAULT 20 AFTER quick_carb_1`);
     } catch (e) {}
 
+    try {
+      await conn.execute(`ALTER TABLE settings ADD COLUMN telegram_enabled BOOLEAN DEFAULT FALSE AFTER quick_carb_2`);
+    } catch (e) {}
+
+    try {
+      await conn.execute(`ALTER TABLE settings ADD COLUMN telegram_high_low_alerts BOOLEAN DEFAULT TRUE AFTER telegram_enabled`);
+    } catch (e) {}
+
+    try {
+      await conn.execute(`ALTER TABLE settings ADD COLUMN telegram_prediction_alerts BOOLEAN DEFAULT TRUE AFTER telegram_high_low_alerts`);
+    } catch (e) {}
+
+    try {
+      await conn.execute(`ALTER TABLE settings ADD COLUMN telegram_insulin_alerts BOOLEAN DEFAULT FALSE AFTER telegram_prediction_alerts`);
+    } catch (e) {}
+
+    try {
+      await conn.execute(`ALTER TABLE settings ADD COLUMN telegram_carb_alerts BOOLEAN DEFAULT FALSE AFTER telegram_insulin_alerts`);
+    } catch (e) {}
+
+    try {
+      await conn.execute(`ALTER TABLE settings ADD COLUMN telegram_daily_summary BOOLEAN DEFAULT FALSE AFTER telegram_carb_alerts`);
+    } catch (e) {}
+
+    try {
+      await conn.execute(`ALTER TABLE settings ADD COLUMN telegram_daily_summary_time VARCHAR(5) DEFAULT '21:00' AFTER telegram_daily_summary`);
+    } catch (e) {}
+
     // Inserisce impostazioni di default se non esistono
     await conn.execute(`
-      INSERT IGNORE INTO settings (id, tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio, quick_insulin_1, quick_insulin_2, quick_carb_1, quick_carb_2)
-      VALUES (1, 70, 180, 55, 250, 3, 24, 4, 60, 15, 1, 2, 10, 20)
+      INSERT IGNORE INTO settings (id, tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio, quick_insulin_1, quick_insulin_2, quick_carb_1, quick_carb_2, telegram_enabled, telegram_high_low_alerts, telegram_prediction_alerts, telegram_insulin_alerts, telegram_carb_alerts, telegram_daily_summary, telegram_daily_summary_time)
+      VALUES (1, 70, 180, 55, 250, 3, 24, 4, 60, 15, 1, 2, 10, 20, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, '21:00')
     `);
 
     await conn.execute(`
@@ -522,7 +557,7 @@ async function getSettings() {
   return rows[0];
 }
 
-async function updateSettings({ tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio, quick_insulin_1, quick_insulin_2, quick_carb_1, quick_carb_2 }) {
+async function updateSettings({ tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio, quick_insulin_1, quick_insulin_2, quick_carb_1, quick_carb_2, telegram_enabled, telegram_high_low_alerts, telegram_prediction_alerts, telegram_insulin_alerts, telegram_carb_alerts, telegram_daily_summary, telegram_daily_summary_time }) {
   const p = await getPool();
   // Ulteriore controllo di sicurezza sui valori di default
   const finalTirMin = tir_min ?? 70;
@@ -538,12 +573,19 @@ async function updateSettings({ tir_min, tir_max, red_under, red_over, rapid_dur
   const finalQuickIns2 = quick_insulin_2 ?? 2;
   const finalQuickCarb1 = quick_carb_1 ?? 10;
   const finalQuickCarb2 = quick_carb_2 ?? 20;
+  const finalTelegramEnabled = telegram_enabled ?? false;
+  const finalTelegramHighLow = telegram_high_low_alerts ?? true;
+  const finalTelegramPrediction = telegram_prediction_alerts ?? true;
+  const finalTelegramInsulin = telegram_insulin_alerts ?? false;
+  const finalTelegramCarb = telegram_carb_alerts ?? false;
+  const finalTelegramDaily = telegram_daily_summary ?? false;
+  const finalDailySummaryTime = telegram_daily_summary_time || '21:00';
 
   const [result] = await p.execute(
     `UPDATE settings 
-     SET tir_min = ?, tir_max = ?, red_under = ?, red_over = ?, rapid_duration = ?, slow_duration = ?, carb_duration = ?, insulin_sensitivity = ?, carb_ratio = ?, quick_insulin_1 = ?, quick_insulin_2 = ?, quick_carb_1 = ?, quick_carb_2 = ?
+     SET tir_min = ?, tir_max = ?, red_under = ?, red_over = ?, rapid_duration = ?, slow_duration = ?, carb_duration = ?, insulin_sensitivity = ?, carb_ratio = ?, quick_insulin_1 = ?, quick_insulin_2 = ?, quick_carb_1 = ?, quick_carb_2 = ?, telegram_enabled = ?, telegram_high_low_alerts = ?, telegram_prediction_alerts = ?, telegram_insulin_alerts = ?, telegram_carb_alerts = ?, telegram_daily_summary = ?, telegram_daily_summary_time = ?
      WHERE id = 1`,
-    [finalTirMin, finalTirMax, finalRedUnder, finalRedOver, finalRapid, finalSlow, finalCarbDuration, finalInsulinSensitivity, finalCarbRatio, finalQuickIns1, finalQuickIns2, finalQuickCarb1, finalQuickCarb2]
+    [finalTirMin, finalTirMax, finalRedUnder, finalRedOver, finalRapid, finalSlow, finalCarbDuration, finalInsulinSensitivity, finalCarbRatio, finalQuickIns1, finalQuickIns2, finalQuickCarb1, finalQuickCarb2, finalTelegramEnabled, finalTelegramHighLow, finalTelegramPrediction, finalTelegramInsulin, finalTelegramCarb, finalTelegramDaily, finalDailySummaryTime]
   );
   return result.affectedRows > 0;
 }

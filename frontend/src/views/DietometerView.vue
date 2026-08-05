@@ -171,57 +171,66 @@
               :id="'card-cibo-' + food.name.toLowerCase().replace(/\s+/g, '-')"
               class="card bg-base-200 shadow-xl border border-base-content/5 transition-all duration-300"
             >
-              <div class="card-body p-5 gap-5">
-                <!-- Nome e CHO Totali (Grande) -->
-                <div class="flex items-start justify-between gap-4">
+              <div class="card-body p-5 gap-4">
+                <div
+                  class="flex items-start justify-between gap-4 cursor-pointer"
+                  @click="toggleFoodCard(food.id)"
+                >
                   <div class="flex flex-col min-w-0">
                     <div class="text-lg font-black uppercase tracking-tight truncate leading-none">{{ food.name }}</div>
                     <div class="mt-1 text-[8px] font-black opacity-30 uppercase tracking-[0.2em]">
                       {{ food.carbsPer100g }}g CHO / 100g
                     </div>
                   </div>
-                  <div class="text-right">
-                    <div class="text-3xl font-black tracking-tighter text-accent leading-none">
-                      {{ carbsFor(food).toFixed(0) }}<span class="text-xs ml-0.5 opacity-50">g</span>
+
+                  <div class="flex items-center gap-2 shrink-0">
+                    <div class="text-right">
+                      <div class="text-3xl font-black tracking-tighter text-accent leading-none">
+                        {{ carbsFor(food).toFixed(0) }}<span class="text-xs ml-0.5 opacity-50">g</span>
+                      </div>
+                      <div class="text-[8px] font-black opacity-30 uppercase tracking-widest mt-1">CHO STIMATI <span v-if="!expandedFoodCards[food.id]" >/ 100g</span></div>
                     </div>
-                    <div class="text-[8px] font-black opacity-30 uppercase tracking-widest mt-1">CHO STIMATI</div>
+                    <i
+                      class="fi text-[10px] opacity-40 transition-all"
+                      :class="expandedFoodCards[food.id] ? 'fi-sr-angle-up' : 'fi-sr-angle-down'"
+                    ></i>
                   </div>
                 </div>
 
-                <!-- Info Peso (Grande) -->
-                <div class="flex items-center justify-between bg-base-300/30 rounded-xl px-4 py-3 border border-base-content/5">
-                  <span class="text-[9px] font-black uppercase opacity-30 tracking-widest">Peso</span>
-                  <span class="text-2xl font-black text-base-content leading-none">
-                    {{ grams[food.id] }}<span class="text-[10px] ml-1 opacity-40 uppercase tracking-widest">grammi</span>
-                  </span>
-                </div>
-
-                <!-- Slider Ultra-Sottile -->
-                <div class="px-1">
-                  <input
-                    v-model.number="grams[food.id]"
-                    type="range"
-                    min="0"
-                    max="300"
-                    step="5"
-                    class="range range-accent range-xs"
-                  />
-                  <div class="flex justify-between text-[8px] font-black opacity-20 uppercase tracking-[0.2em] mt-2">
-                    <span>0g</span>
-                    <span>150g</span>
-                    <span>300g</span>
+                <div v-if="expandedFoodCards[food.id]" class="flex flex-col gap-4">
+                  <div class="flex items-center justify-between bg-base-300/30 rounded-xl px-4 py-3 border border-base-content/5">
+                    <span class="text-[9px] font-black uppercase opacity-30 tracking-widest">Peso</span>
+                    <span class="text-2xl font-black text-base-content leading-none">
+                      {{ grams[food.id] }}<span class="text-[10px] ml-1 opacity-40 uppercase tracking-widest">grammi</span>
+                    </span>
                   </div>
-                </div>
 
-                <button
-                  class="btn btn-sm btn-accent rounded-xl border-none font-black uppercase tracking-widest text-[10px] h-10 mt-auto"
-                  :class="grams[food.id] > 0 ? 'shadow-lg shadow-accent/20' : ''"
-                  :disabled="grams[food.id] <= 0"
-                  @click="addToCart(food)"
-                >
-                  <i class="fi fi-sr-plus text-[10px]"></i>
-                  Aggiungi
-                </button>
+                  <div class="px-1">
+                    <input
+                      v-model.number="grams[food.id]"
+                      type="range"
+                      min="0"
+                      max="300"
+                      step="5"
+                      class="range range-accent range-xs"
+                    />
+                    <div class="flex justify-between text-[8px] font-black opacity-20 uppercase tracking-[0.2em] mt-2">
+                      <span>0g</span>
+                      <span>150g</span>
+                      <span>300g</span>
+                    </div>
+                  </div>
+
+                  <button
+                    class="btn btn-sm btn-accent rounded-xl border-none font-black uppercase tracking-widest text-[10px] h-10 mt-auto"
+                    :class="grams[food.id] > 0 ? 'shadow-lg shadow-accent/20' : ''"
+                    :disabled="grams[food.id] <= 0"
+                    @click.stop="addToCart(food)"
+                  >
+                    <i class="fi fi-sr-plus text-[10px]"></i>
+                    Aggiungi
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -325,6 +334,7 @@ const newFood = reactive({
 
 const categories = ['primo', 'secondo', 'contorno', 'frutta']
 const collapsedCategories = reactive({})
+const expandedFoodCards = reactive({})
 
 const grams = reactive({})
 const cartItems = ref([])
@@ -338,6 +348,10 @@ onMounted(() => {
 function carbsFor(food) {
   const g = Number(grams[food.id]) || 0
   return (food.carbsPer100g * g) / 100
+}
+
+function toggleFoodCard(foodId) {
+  expandedFoodCards[foodId] = !expandedFoodCards[foodId]
 }
 
 const groupedFoods = computed(() => {
@@ -391,6 +405,7 @@ async function fetchFoods() {
     foods.value = uniqueFoods
     foods.value.forEach(f => {
       if (grams[f.id] === undefined) grams[f.id] = 100
+      if (expandedFoodCards[f.id] === undefined) expandedFoodCards[f.id] = false
     })
   } catch (e) {
     foodsError.value = e?.response?.data?.error || 'Errore caricamento alimenti'
