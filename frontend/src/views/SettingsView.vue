@@ -160,6 +160,64 @@
         </div>
       </div>
 
+      <!-- Notifiche Telegram -->
+      <div class="card bg-base-200 shadow-sm border border-base-content/10">
+        <div class="card-body p-6 gap-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i class="fi fi-sr-bell text-info"></i>
+            <span class="text-xs font-black uppercase tracking-widest opacity-50">Notifiche Telegram</span>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <p class="text-[10px] opacity-60 leading-relaxed">
+              Mantieni il volume basso e invia solo gli alert realmente utili: criticità glicemiche, rischio di previsione e riepiloghi selettivi.
+            </p>
+
+            <label class="label cursor-pointer justify-between gap-4 p-0">
+              <span class="label-text text-[10px] font-black uppercase opacity-60">Abilita Telegram</span>
+              <input v-model="form.telegram_enabled" type="checkbox" class="toggle toggle-primary" />
+            </label>
+
+            <label class="label cursor-pointer justify-between gap-4 p-0">
+              <span class="label-text text-[10px] font-black uppercase opacity-60">Alert ipoglicemia / iperglicemia</span>
+              <input v-model="form.telegram_high_low_alerts" :disabled="!form.telegram_enabled" type="checkbox" class="toggle toggle-error" />
+            </label>
+
+            <label class="label cursor-pointer justify-between gap-4 p-0">
+              <span class="label-text text-[10px] font-black uppercase opacity-60">Predizione rischio 15/30/60 min</span>
+              <input v-model="form.telegram_prediction_alerts" :disabled="!form.telegram_enabled" type="checkbox" class="toggle toggle-warning" />
+            </label>
+
+            <label class="label cursor-pointer justify-between gap-4 p-0">
+              <span class="label-text text-[10px] font-black uppercase opacity-60">Conferma inserimento insulina</span>
+              <input v-model="form.telegram_insulin_alerts" :disabled="!form.telegram_enabled" type="checkbox" class="toggle toggle-success" />
+            </label>
+
+            <label class="label cursor-pointer justify-between gap-4 p-0">
+              <span class="label-text text-[10px] font-black uppercase opacity-60">Conferma inserimento carboidrati</span>
+              <input v-model="form.telegram_carb_alerts" :disabled="!form.telegram_enabled" type="checkbox" class="toggle toggle-accent" />
+            </label>
+
+            <label class="label cursor-pointer justify-between gap-4 p-0">
+              <span class="label-text text-[10px] font-black uppercase opacity-60">Riepilogo giornaliero</span>
+              <input v-model="form.telegram_daily_summary" :disabled="!form.telegram_enabled" type="checkbox" class="toggle toggle-info" />
+            </label>
+
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-[10px] font-black uppercase opacity-40">Ora riepilogo giornaliero</span>
+              </label>
+              <input
+                v-model="form.telegram_daily_summary_time"
+                :disabled="!form.telegram_enabled || !form.telegram_daily_summary"
+                type="time"
+                class="input input-bordered font-black"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Export Dati -->
       <div class="card bg-base-200 shadow-sm border border-base-content/10">
         <div class="card-body p-6 gap-4">
@@ -240,7 +298,14 @@ const form = reactive({
   quick_insulin_1: 1,
   quick_insulin_2: 2,
   quick_carb_1: 10,
-  quick_carb_2: 20
+  quick_carb_2: 20,
+  telegram_enabled: false,
+  telegram_high_low_alerts: true,
+  telegram_prediction_alerts: true,
+  telegram_insulin_alerts: false,
+  telegram_carb_alerts: false,
+  telegram_daily_summary: false,
+  telegram_daily_summary_time: '21:00'
 })
 
 onMounted(async () => {
@@ -263,6 +328,14 @@ function updateFormFromStore() {
   form.quick_insulin_2 = store.settings.quick_insulin_2 ?? 2
   form.quick_carb_1 = store.settings.quick_carb_1 ?? 10
   form.quick_carb_2 = store.settings.quick_carb_2 ?? 20
+  // Telegram toggles
+  form.telegram_enabled = Boolean(store.settings.telegram_enabled)
+  form.telegram_high_low_alerts = store.settings.telegram_high_low_alerts !== false
+  form.telegram_prediction_alerts = store.settings.telegram_prediction_alerts !== false
+  form.telegram_insulin_alerts = Boolean(store.settings.telegram_insulin_alerts)
+  form.telegram_carb_alerts = Boolean(store.settings.telegram_carb_alerts)
+  form.telegram_daily_summary = Boolean(store.settings.telegram_daily_summary)
+  form.telegram_daily_summary_time = store.settings.telegram_daily_summary_time || '21:00'
 }
 
 async function resetToDefaults() {
@@ -289,7 +362,14 @@ async function save() {
     quick_insulin_1: form.quick_insulin_1 || 1,
     quick_insulin_2: form.quick_insulin_2 || 2,
     quick_carb_1: form.quick_carb_1 || 10,
-    quick_carb_2: form.quick_carb_2 || 20
+    quick_carb_2: form.quick_carb_2 || 20,
+    telegram_enabled: form.telegram_enabled,
+    telegram_high_low_alerts: form.telegram_high_low_alerts,
+    telegram_prediction_alerts: form.telegram_prediction_alerts,
+    telegram_insulin_alerts: form.telegram_insulin_alerts,
+    telegram_carb_alerts: form.telegram_carb_alerts,
+    telegram_daily_summary: form.telegram_daily_summary,
+    telegram_daily_summary_time: form.telegram_daily_summary_time || '21:00'
   }
 
   await store.updateSettings(settingsToSave)

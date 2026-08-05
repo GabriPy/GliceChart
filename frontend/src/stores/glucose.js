@@ -43,7 +43,18 @@ export const useGlucoseStore = defineStore('glucose', () => {
     slow_duration: 24,
     carb_duration: 4,
     insulin_sensitivity: 60,
-    carb_ratio: 15
+    carb_ratio: 15,
+    quick_insulin_1: 1,
+    quick_insulin_2: 2,
+    quick_carb_1: 10,
+    quick_carb_2: 20,
+    telegram_enabled: false,
+    telegram_high_low_alerts: true,
+    telegram_prediction_alerts: true,
+    telegram_insulin_alerts: false,
+    telegram_carb_alerts: false,
+    telegram_daily_summary: false,
+    telegram_daily_summary_time: '21:00'
   })
 
   const DEFAULT_SETTINGS = {
@@ -60,7 +71,14 @@ export const useGlucoseStore = defineStore('glucose', () => {
     quick_insulin_1: 1,
     quick_insulin_2: 2,
     quick_carb_1: 10,
-    quick_carb_2: 20
+    quick_carb_2: 20,
+    telegram_enabled: false,
+    telegram_high_low_alerts: true,
+    telegram_prediction_alerts: true,
+    telegram_insulin_alerts: false,
+    telegram_carb_alerts: false,
+    telegram_daily_summary: false,
+    telegram_daily_summary_time: '21:00'
   }
 
   async function resetSettings() {
@@ -490,7 +508,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
   async function fetchSettings() {
     try {
       const { data } = await axios.get('/api/settings')
-      if (data) settings.value = data
+      if (data) settings.value = { ...DEFAULT_SETTINGS, ...data }
     } catch {
       error.value = 'Errore caricamento impostazioni'
     }
@@ -500,7 +518,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     loading.value = true
     try {
       await axios.put('/api/settings', newSettings)
-      settings.value = { ...newSettings }
+      settings.value = { ...DEFAULT_SETTINGS, ...newSettings }
       error.value = null
     } catch {
       error.value = 'Errore salvataggio impostazioni'
