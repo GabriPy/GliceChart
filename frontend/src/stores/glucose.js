@@ -8,8 +8,9 @@ import axios from 'axios'
 export const useGlucoseStore = defineStore('glucose', () => {
 
   function normalizeBooleanSetting(value, fallback = false) {
-    if (value === true || value === 1 || value === '1') return true
-    if (value === false || value === 0 || value === '0' || value === null || value === undefined) return fallback
+    if (value === null || value === undefined) return fallback
+    if (value === true || value === 1 || value === '1' || value === 'true') return true
+    if (value === false || value === 0 || value === '0' || value === 'false') return false
     return Boolean(value)
   }
 
