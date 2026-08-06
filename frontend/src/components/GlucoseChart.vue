@@ -112,11 +112,15 @@ const props = defineProps({
   title: { type: String, default: 'Storico' },
   loading: { type: Boolean, default: false },
   fullDay: { type: Boolean, default: false },
-  date: { type: String, default: null }
+  date: { type: String, default: null },
+  // When true (or when readings is provided) show contextual annotations (insulin/carbs/notes)
+  showContextInfo: { type: Boolean, default: false }
 })
 
 const store = useGlucoseStore()
 const chartRef = ref(null)
+const hoveredInsulinId = ref(null)
+const insulinLineHitboxes = ref([])
 
 const isHistory = computed(() => props.readings !== null)
 const displayReadings = computed(() => props.readings || store.readings)
@@ -124,6 +128,40 @@ const displayInsulin = computed(() => props.insulin || store.insulinRecords)
 const displayCarbs = computed(() => props.carbs || store.carbRecords)
 const displayNotes = computed(() => props.notes || store.notes)
 const loading = computed(() => props.loading || store.chartLoading)
+
+// showContext: true when explicitly asked or when using readings (historical view)
+const showContext = computed(() => !!props.showContextInfo || isHistory.value)
+
+// Groups overlapping insulin entries into clusters and orders items (slow first, then rapid; within each by startTime)
+function getInsulinRenderingGroups(insArray = [], xMin, xMax) {
+  const entries = (insArray || []).map(ins => {
+    const start = new Date(ins.timestamp).getTime()
+    const durHours = ins.type === 'rapid' ? Number(store.settings.rapid_duration) : Number(store.settings.slow_duration)
+    const duration = (durHours && !isNaN(durHours) ? durHours : (ins.type === 'rapid' ? 3 : 24)) * 60 * 60 * 1000
+    const end = start + duration
+    return { ...ins, startTime: start, endTime: end }
+  }).filter(e => !(e.endTime < xMin || e.startTime > xMax))
+
+  entries.sort((a, b) => a.startTime - b.startTime)
+  const groups = []
+  entries.forEach(e => {
+    let g = groups.find(g => e.startTime <= g.maxEnd)
+    if (!g) { g = { items: [], maxEnd: e.endTime }; groups.push(g) }
+    g.items.push(e)
+    g.maxEnd = Math.max(g.maxEnd, e.endTime)
+  })
+
+  // Order within group: slow first, then rapid; within same type by startTime
+  groups.forEach(g => {
+    g.items.sort((a, b) => {
+      if (a.type !== b.type) return a.type === 'slow' ? -1 : 1
+      return a.startTime - b.startTime
+    })
+    g.items.forEach((it, idx) => { it._offsetIndex = idx })
+  })
+
+  return groups
+}
 
 const ranges = [
   { l: '1h',  v: 60 },
@@ -140,13 +178,11 @@ function ptColor(g) {
 }
 
 const chartPlugins = computed(() => {
-  // Su mobile, disabilita i gradienti complessi per performance
-  if (isMobile.value) {
-    return []
-  }
+  const plugins = []
 
-  return [
-    {
+  // Su mobile, disabilita i gradienti complessi per performance
+  if (!isMobile.value) {
+    plugins.push({
       id: 'gradient',
       beforeDatasetDraw: (chart) => {
         const ctx = chart.ctx
@@ -165,8 +201,48 @@ const chartPlugins = computed(() => {
           dataset.borderColor = lineGradient
         }
       }
-    }
-  ]
+    })
+  }
+
+  if (!isMobile.value) {
+    plugins.push({
+      id: 'insulinHover',
+      afterEvent: (chart, args) => {
+        const evt = args.event
+        if (evt.type === 'mouseout' || evt.type === 'mouseleave') {
+          if (hoveredInsulinId.value !== null) {
+            hoveredInsulinId.value = null
+            chart.update('none')
+          }
+          return
+        }
+        if (evt.type !== 'mousemove') return
+        if (!insulinLineHitboxes.value || !insulinLineHitboxes.value.length) return
+        if (!chart.scales.x || !chart.scales.y) return
+
+        const canvasX = evt.x
+        const canvasY = evt.y
+        const xVal = chart.scales.x.getValueForPixel(canvasX)
+        const yVal = chart.scales.y.getValueForPixel(canvasY)
+
+        if (xVal === undefined || yVal === undefined) return
+
+        let found = null
+        for (const hb of insulinLineHitboxes.value) {
+          if (xVal >= hb.xMin && xVal <= hb.xMax && yVal >= hb.yMin && yVal <= hb.yMax) {
+            found = hb.id
+            break
+          }
+        }
+        if (found !== hoveredInsulinId.value) {
+          hoveredInsulinId.value = found
+          chart.update('none')
+        }
+      }
+    })
+  }
+
+  return plugins
 })
 
 const chartData = computed(() => {
@@ -219,7 +295,9 @@ const chartOptions = computed(() => {
     ? Math.max(...displayReadings.value.map(r => r.glucose)) 
     : 300
   const yMax = Math.max(300, Math.ceil((maxReading + 10) / 10) * 10)
-  const yMin = 40 // Temporary fixed yMin to test daily chart
+    const yMin = 0
+    // Alzo leggermente la base delle linee di insulina per non stare troppo in basso
+    const yBase = yMin + 10
 
   let xMin, xMax
   const nowTs = new Date().getTime()
@@ -299,7 +377,7 @@ const chartOptions = computed(() => {
           type: 'box',
           xMin: prevTs,
           xMax: ts,
-          yMin: 40,
+                  yMin: yMin,
           yMax: yMax,
           backgroundColor: 'rgba(71, 85, 105, 0.2)',
           borderWidth: 0,
@@ -316,7 +394,7 @@ const chartOptions = computed(() => {
         type: 'box',
         xMin: lastReadingTs,
         xMax: xMax,
-        yMin: 40,
+              yMin: yMin,
         yMax: yMax,
         backgroundColor: 'rgba(71, 85, 105, 0.2)',
         borderWidth: 0,
@@ -325,8 +403,8 @@ const chartOptions = computed(() => {
     }
   }
 
-  // Su mobile, non mostrare annotations per insulina e carboidrati (performance)
-  if (!isMobile.value) {
+  // Show insulin/carbs/notes annotations only when in historical/context mode and not on mobile
+  if (showContext.value && !isMobile.value) {
     displayInsulin.value.forEach((ins, idx) => {
       const startTime = new Date(ins.timestamp).getTime()
       const durationHours = ins.type === 'rapid' 
@@ -340,36 +418,84 @@ const chartOptions = computed(() => {
       
       // Vertical line at injection time with label
       if (startTime >= xMin && startTime <= xMax) {
-        annotations[`insulin-line-${idx}`] = {
-          type: 'line',
-          xMin: startTime,
-          xMax: startTime,
-          borderColor: color,
-          borderWidth: 2,
-          borderDash: [4, 5],
-          label: {
-            display: true,
-            content: `${ins.units.toString().replace(',', '.')}U`,
-            position: 'start',
-            backgroundColor: color,
-            color: 'white',
-            font: { size: 10, weight: 'bold' },
-            padding: 5,
-            borderRadius: 10
-          }
-        }
-      }
+        // Render insulin durations as baseline stacked horizontal lines using grouping to avoid vertical overlap
+              // Compute groups and row offsets
+              const insulinGroups = getInsulinRenderingGroups(displayInsulin.value || [], xMin, xMax)
+              // determine maximum rows across groups
+              let maxRows = 0
+              insulinGroups.forEach(g => { maxRows = Math.max(maxRows, g.items.length) })
 
-      // Horizontal "tacchetta" at the bottom of the chart
-      annotations[`insulin-bottom-line-${idx}`] = {
-        type: 'line',
-        xMin: Math.max(xMin, startTime),
-        xMax: Math.min(xMax, endTime),
-        yMin: 40,
-        yMax: 40,
-        borderColor: color,
-        borderWidth: 4,
-      }
+              // Determine row step (in y units). Start from ~2% of range, clamp to 6..14 mg/dL, but ensure total stacked height doesn't exceed 25% of chart range
+              const totalRange = Math.max(1, yMax - yMin)
+              let desiredStep = Math.max(2, Math.round(totalRange * 0.02))
+              let rowStep = Math.min(14, Math.max(6, desiredStep))
+              if (maxRows > 0 && (maxRows * rowStep) > (totalRange * 0.25)) {
+                rowStep = Math.max(2, Math.floor((totalRange * 0.25) / maxRows))
+              }
+
+              const hitboxes = []
+              insulinGroups.forEach(group => {
+                group.items.forEach(item => {
+                  const color = item.type === 'rapid' ? '#6366f1' : '#ec4899'
+                  const offsetIndex = item._offsetIndex || 0
+                  const yLine = yBase + (offsetIndex * rowStep)
+                  const aKey = `insulin-${item.id}`
+                  const isHovered = hoveredInsulinId.value === item.id
+                  const hbXMin = Math.max(xMin, item.startTime)
+                  const hbXMax = Math.min(xMax, item.endTime)
+                  annotations[aKey] = {
+                    type: 'line',
+                    xMin: hbXMin,
+                    xMax: hbXMax,
+                    yMin: yLine,
+                    yMax: yLine,
+                    borderColor: color,
+                    borderWidth: isHovered ? 5 : 3,
+                    drawTime: 'beforeDatasetsDraw'
+                  }
+
+                  hitboxes.push({
+                    id: item.id,
+                    xMin: hbXMin,
+                    xMax: hbXMax,
+                    yMin: yLine - (rowStep * 0.45),
+                    yMax: yLine + (rowStep * 0.45)
+                  })
+
+                  const durationMs = item.endTime - item.startTime
+                  if (durationMs >= (15 * 60 * 1000)) {
+                                        let labelFontSize = 10
+                                        if (maxRows >= 4) labelFontSize = 9
+                                        if (maxRows >= 6) labelFontSize = 8
+                                        if (maxRows >= 8) labelFontSize = 7
+
+                                        const labelPadding = labelFontSize <= 7 ? 3 : (labelFontSize === 8 ? 4 : 6)
+                                        const labelRadius = Math.max(6, Math.min(10, Math.floor(labelPadding * 1.5)))
+
+                                        const clampedAtStart = item.startTime <= xMin
+                                        const labelXValue = clampedAtStart ? (xMin + 30 * 60 * 1000) : hbXMin
+                                        const labelXAdjust = clampedAtStart ? 4 : 6
+
+                                        annotations[`${aKey}-label`] = {
+                                          type: 'label',
+                                          display: isHovered,
+                                          xValue: labelXValue,
+                                          yValue: yLine,
+                                          xAdjust: labelXAdjust,
+                                          backgroundColor: color,
+                                          color: 'white',
+                                          content: `${Number(item.units || 0).toString().replace(',', '.')}U`,
+                                          font: { size: labelFontSize, weight: '700' },
+                                          padding: labelPadding,
+                                          borderRadius: labelRadius,
+                                          yAdjust: -6,
+                                          drawTime: 'afterDraw'
+                                        }
+                  }
+                })
+              })
+              insulinLineHitboxes.value = hitboxes
+          }
     })
 
     displayCarbs.value.forEach((carb, idx) => {

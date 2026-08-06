@@ -51,6 +51,7 @@
         :loading="store.historyLoading"
         fullDay
         :date="selectedDate"
+        show-context-info
       />
     </div>
 
