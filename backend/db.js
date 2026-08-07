@@ -195,16 +195,30 @@ async function initDB() {
 
     // Migrazione: Aggiunge la colonna category se non esiste (per db già esistenti)
     try {
-      await conn.execute(`ALTER TABLE diet_foods ADD COLUMN category ENUM('primi', 'secondi', 'contorni', 'frutta', 'latticini', 'bevande', 'prodotti_da_forno') DEFAULT 'contorni' AFTER carbs_per_100g`);
+      await conn.execute(`ALTER TABLE diet_foods ADD COLUMN category ENUM('primi', 'secondi', 'contorni', 'frutta', 'latticini', 'bevande', 'prodotti_da_forno', 'primo', 'secondo', 'contorno') DEFAULT 'contorni' AFTER carbs_per_100g`);
     } catch (e) {
       // La colonna probabilmente esiste già
     }
 
-    // Migrazione: Aggiorna i valori della ENUM e converte vecchi valori se presenti
+    // Migrazione: allarga temporaneamente l'ENUM per includere sia i vecchi che i nuovi
+    // valori, così le UPDATE di conversione sotto non falliscono per valore non ammesso.
+    // IMPORTANTE: questo step deve avvenire PRIMA delle UPDATE, altrimenti 'primi'/'secondi'/
+    // 'contorni' vengono rifiutati dal vecchio ENUM e l'intero blocco fallisce silenziosamente,
+    // lasciando l'ENUM non aggiornato per sempre (causa dell'errore "Data truncated").
     try {
-      await conn.execute(`UPDATE diet_foods SET category = 'primi'   WHERE category = 'primo'`);
-      await conn.execute(`UPDATE diet_foods SET category = 'secondi' WHERE category = 'secondo'`);
-      await conn.execute(`UPDATE diet_foods SET category = 'contorni' WHERE category = 'contorno'`);
+      await conn.execute(`ALTER TABLE diet_foods MODIFY COLUMN category ENUM('primi', 'secondi', 'contorni', 'frutta', 'latticini', 'bevande', 'prodotti_da_forno', 'primo', 'secondo', 'contorno') DEFAULT 'contorni'`);
+    } catch (e) {
+      // ENUM già ampliata o errore non bloccante
+    }
+
+    // Migrazione: converte i vecchi valori (singolare) nei nuovi (plurale).
+    // Ogni UPDATE ha il proprio try/catch: se uno fallisce, gli altri vengono eseguiti comunque.
+    try { await conn.execute(`UPDATE diet_foods SET category = 'primi'    WHERE category = 'primo'`);    } catch (e) {}
+    try { await conn.execute(`UPDATE diet_foods SET category = 'secondi' WHERE category = 'secondo'`);  } catch (e) {}
+    try { await conn.execute(`UPDATE diet_foods SET category = 'contorni' WHERE category = 'contorno'`); } catch (e) {}
+
+    // Migrazione: restringe l'ENUM ai soli valori finali, ora che i dati sono stati convertiti
+    try {
       await conn.execute(`ALTER TABLE diet_foods MODIFY COLUMN category ENUM('primi', 'secondi', 'contorni', 'frutta', 'latticini', 'bevande', 'prodotti_da_forno') DEFAULT 'contorni'`);
     } catch (e) {
       // ENUM già aggiornata o errore non bloccante
