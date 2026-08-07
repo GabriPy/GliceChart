@@ -1,49 +1,53 @@
 <template>
-  <div class="flex flex-col gap-6">
-    <div class="card bg-base-200 shadow-xl border border-base-content/5">
-      <div class="card-body p-4 md:p-6">
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 bg-accent/10 rounded-2xl">
-              <i class="fi fi-sr-wheat text-accent text-xl"></i>
+  <div class="flex flex-col gap-4 md:gap-6 lg:gap-8 px-2 md:px-4 lg:px-0">
+
+    <!-- Header -->
+    <div
+      class="relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
+      <div
+        class="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-accent/15 rounded-full blur-2xl md:blur-3xl opacity-70">
+      </div>
+      <div class="absolute bottom-0 left-0 w-32 md:w-48 h-32 md:h-48 bg-primary/15 rounded-xl md:blur-2xl opacity-70">
+      </div>
+
+      <div class="relative card-body p-4 md:p-6 lg:p-8">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 md:gap-6">
+          <div class="flex items-center gap-3 md:gap-4">
+            <div
+              class="p-3 md:p-4 bg-gradient-to-br from-accent/20 to-accent/5 rounded-xl md:rounded-2xl shadow-md md:shadow-lg shadow-accent/30">
+              <i class="fa-solid fa-wheat-awn text-accent text-xl md:text-2xl"></i>
             </div>
             <div>
-              <h2 class="text-lg font-black uppercase tracking-tight leading-none">Dietometro</h2>
-              <span class="text-[9px] font-black opacity-30 uppercase tracking-[0.2em]">Stima carboidrati per porzione</span>
+              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">Dietometro</h2>
+              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">Stima
+                Carboidrati per Porzione</span>
             </div>
           </div>
 
-          <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-            <!-- Ricerca -->
+          <div class="flex flex-col sm:flex-row items-center gap-2 md:gap-3 w-full sm:w-auto">
             <div class="relative w-full sm:w-64">
-              <i class="fi fi-sr-search absolute left-3 top-1/2 -translate-y-1/2 text-[10px] opacity-30"></i>
-              <input
-                v-model="searchQuery"
-                type="text"
-                class="input input-sm bg-base-300/60 rounded-xl font-black tracking-widest text-[10px] w-full pl-9 h-10 border-none focus:outline-none"
-                placeholder="CERCA ALIMENTO..."
-              />
+              <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[10px] opacity-30"></i>
+              <input v-model="searchQuery" type="text"
+                class="input input-sm bg-base-100/50 border border-base-content/10 rounded-lg md:rounded-xl font-black tracking-widest text-[10px] w-full pl-9 h-10 focus:outline-none shadow-sm"
+                placeholder="CERCA ALIMENTO..." />
             </div>
 
             <div class="flex items-center gap-2 w-full sm:w-auto">
               <button
-                class="btn btn-sm btn-outline rounded-xl border-base-content/10 font-black uppercase tracking-widest text-[10px] h-10 flex-1 sm:flex-none"
-                @click="showAddFood = !showAddFood"
-              >
-                <i class="fi fi-sr-plus text-[10px]"></i>
+                class="btn btn-sm rounded-lg md:rounded-xl bg-base-100/50 border border-base-content/10 font-black uppercase tracking-widest text-[10px] h-10 flex-1 sm:flex-none shadow-sm"
+                @click="showAddFood = !showAddFood">
+                <i class="fa-solid fa-plus text-[10px]"></i>
                 Aggiungi
               </button>
 
               <button
-                class="btn btn-sm btn-accent rounded-xl border-none font-black uppercase tracking-widest text-[10px] h-10 flex-1 sm:flex-none"
-                :class="cartTotal > 0 ? 'shadow-lg shadow-accent/20' : ''"
-                :disabled="cartTotal <= 0"
-                @click="openCart"
-                title="Apri pasto"
-              >
-                <i class="fi fi-sr-shopping-cart text-sm"></i>
+                class="btn btn-sm btn-accent rounded-lg md:rounded-xl border-none font-black uppercase tracking-widest text-[10px] h-10 flex-1 sm:flex-none"
+                :class="cartTotal > 0 ? 'shadow-md md:shadow-lg shadow-accent/40' : ''" :disabled="cartTotal <= 0"
+                @click="openCart" title="Apri pasto">
+                <i class="fa-solid fa-cart-shopping text-sm"></i>
                 <span>Pasto</span>
-                <span class="badge badge-neutral font-black text-[10px]">{{ Math.round(cartTotal) }}g</span>
+                <span class="px-1.5 py-0.5 rounded-md bg-base-100/30 font-black text-[10px]">{{
+                  Math.round(cartTotal) }}g</span>
               </button>
             </div>
           </div>
@@ -51,133 +55,128 @@
       </div>
     </div>
 
-    <div v-if="showAddFood" class="card bg-base-200 shadow-xl border border-base-content/5">
-      <div class="card-body p-6 gap-4">
+    <!-- Nuovo Alimento -->
+    <div v-if="showAddFood"
+      class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
+      <div class="card-body p-4 md:p-6 gap-4 md:gap-6">
         <div class="flex items-center justify-between gap-4">
-          <div class="text-xs font-black uppercase tracking-widest opacity-50">Nuovo alimento</div>
-          <button class="btn btn-ghost btn-xs font-black uppercase tracking-widest" @click="showAddFood = false">Chiudi</button>
+          <div class="flex items-center gap-2 md:gap-3">
+            <div class="p-2 md:p-3 bg-accent/10 rounded-lg md:rounded-xl shadow-sm">
+              <i class="fa-solid fa-plus text-accent text-lg md:text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Nuovo Alimento</h3>
+              <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">Aggiungi al
+                Database</span>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-xs font-black uppercase tracking-widest"
+            @click="showAddFood = false">Chiudi</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <!-- Nome -->
-            <div class="flex flex-col gap-1.5">
-              <div class="text-[8px] font-black uppercase tracking-widest opacity-30 ml-1">Nome alimento</div>
-              <input
-                v-model="newFood.name"
-                type="text"
-                class="input input-sm bg-base-300/60 rounded-xl font-black tracking-widest text-[10px] uppercase h-10 border-none focus:outline-none w-full"
-                placeholder="ES. PASTA..."
-              />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            <div class="space-y-1 md:space-y-2">
+              <label class="text-[10px] font-black uppercase opacity-40">Nome Alimento</label>
+              <input v-model="newFood.name" type="text"
+                class="input input-bordered bg-base-100/50 font-black tracking-widest text-[10px] uppercase h-10 w-full shadow-sm"
+                placeholder="ES. PASTA..." />
             </div>
-            <!-- Carb/100g -->
-            <div class="flex flex-col gap-1.5">
-              <div class="text-[8px] font-black uppercase tracking-widest opacity-30 ml-1">Carb/100g</div>
-              <input
-                v-model.number="newFood.carbsPer100g"
-                type="number"
-                min="0"
-                max="100"
-                class="input input-sm bg-base-300/60 rounded-xl font-black tracking-widest text-[10px] uppercase h-10 border-none focus:outline-none w-full no-spinner"
-                placeholder="ES. 70..."
-              />
+
+            <div class="space-y-1 md:space-y-2">
+              <label class="text-[10px] font-black uppercase opacity-40">Carb/100g</label>
+              <input v-model.number="newFood.carbsPer100g" type="number" min="0" max="100"
+                class="input input-bordered bg-base-100/50 font-black tracking-widest text-[10px] uppercase h-10 w-full no-spinner shadow-sm"
+                placeholder="ES. 70..." />
             </div>
           </div>
 
-          <!-- Selettore Categoria (Stile Button Group) -->
-          <div class="flex flex-col gap-1.5">
-            <div class="text-[8px] font-black uppercase tracking-widest opacity-30 ml-1">Categoria</div>
-            <div class="grid grid-cols-4 gap-1 p-1 bg-base-300/60 rounded-xl h-10 items-center">
-              <button 
-                v-for="cat in categories" 
-                :key="cat"
-                @click="newFood.category = cat"
-                class="btn btn-xs border-none rounded-lg transition-all duration-300 h-full"
-                :class="newFood.category === cat ? 'bg-accent text-accent-content shadow-lg' : 'bg-transparent opacity-50 hover:opacity-100'"
-              >
-                <span class="text-[8px] font-black uppercase">{{ cat }}</span>
+          <div class="space-y-1 md:space-y-2">
+            <label class="text-[10px] font-black uppercase opacity-40">Categoria</label>
+            <div
+              class="grid grid-cols-4 md:grid-cols-7 gap-1 p-1 bg-base-100/50 border border-base-content/10 rounded-lg md:rounded-xl h-auto min-h-[40px] items-center shadow-sm">
+              <button v-for="cat in categories" :key="cat" @click="newFood.category = cat"
+                class="btn btn-xs border-none rounded-lg transition-all duration-300 min-h-[32px]"
+                :class="newFood.category === cat ? 'bg-accent text-accent-content shadow-md' : 'bg-transparent opacity-50 hover:opacity-100'">
+                <span class="text-[8px] font-black uppercase">{{ labelForCategory(cat) }}</span>
               </button>
             </div>
           </div>
         </div>
 
         <div class="flex items-center justify-end gap-2">
-          <button
-            class="btn btn-sm btn-ghost rounded-xl font-black uppercase tracking-widest text-[10px]"
-            :disabled="creatingFood"
-            @click="resetNewFood"
-          >
+          <button class="btn btn-sm btn-ghost rounded-lg md:rounded-xl font-black uppercase tracking-widest text-[10px]"
+            :disabled="creatingFood" @click="resetNewFood">
             Reset
           </button>
+
           <button
-            class="btn btn-sm btn-accent rounded-xl border-none font-black uppercase tracking-widest text-[10px]"
-            :class="canCreateFood ? 'shadow-lg shadow-accent/20' : ''"
-            :disabled="!canCreateFood || creatingFood"
-            @click="createFood"
-          >
+            class="btn btn-sm btn-accent rounded-lg md:rounded-xl border-none font-black uppercase tracking-widest text-[10px]"
+            :class="canCreateFood ? 'shadow-md md:shadow-lg shadow-accent/40' : ''"
+            :disabled="!canCreateFood || creatingFood" @click="createFood">
             <span v-if="creatingFood" class="loading loading-spinner loading-xs"></span>
-            <span v-else>Salva</span>
+            <template v-else>
+              <i class="fa-regular fa-floppy-disk mr-1"></i>
+              Salva
+            </template>
           </button>
         </div>
 
-        <div v-if="foodError" class="alert alert-warning border-none text-[10px] font-black uppercase tracking-wider py-2">
-          <span>{{ foodError }}</span>
+        <div v-if="foodError"
+          class="flex items-center gap-2 md:gap-3 p-3 bg-warning/10 border border-warning/20 rounded-lg md:rounded-xl">
+          <i class="fa-solid fa-triangle-exclamation text-warning text-sm"></i>
+          <span class="text-[10px] font-black uppercase tracking-wider">{{ foodError }}</span>
         </div>
       </div>
     </div>
 
-    <div class="flex flex-col gap-6">
-      <div v-if="foodsLoading" class="card bg-base-200 shadow-xl border border-base-content/5">
+    <div class="flex flex-col gap-4 md:gap-6">
+      <div v-if="foodsLoading"
+        class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
         <div class="card-body p-8 flex items-center justify-center">
           <span class="loading loading-dots loading-md text-accent"></span>
         </div>
       </div>
 
-      <div v-else-if="foodsError" class="alert alert-error shadow-lg border-none">
+      <div v-else-if="foodsError"
+        class="flex items-center gap-2 md:gap-3 p-4 bg-error/10 border border-error/20 rounded-xl md:rounded-2xl shadow-sm">
+        <i class="fa-solid fa-circle-exclamation text-error text-lg"></i>
         <span class="text-xs font-black uppercase tracking-widest">{{ foodsError }}</span>
       </div>
 
-      <div v-else-if="!foods.length" class="card bg-base-200 shadow-xl border border-base-content/5">
+      <div v-else-if="!foods.length"
+        class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
         <div class="card-body p-10 text-center opacity-30">
           <div class="text-[10px] font-black uppercase tracking-widest">Nessun alimento disponibile</div>
         </div>
       </div>
 
       <template v-else>
-        <div v-for="(categoryFoods, category) in groupedFoods" :key="category" class="flex flex-col gap-4">
-          <div 
-            v-if="categoryFoods.length"
-            class="flex items-center gap-3 cursor-pointer group w-fit"
-            @click="collapsedCategories[category] = !collapsedCategories[category]"
-          >
+        <div v-for="(categoryFoods, category) in groupedFoods" :key="category" class="flex flex-col gap-3 md:gap-4">
+          <div v-if="categoryFoods.length" class="flex items-center gap-2 md:gap-3 cursor-pointer group w-fit"
+            @click="collapsedCategories[category] = !collapsedCategories[category]">
             <div class="w-1.5 h-6 rounded-full bg-accent/40 group-hover:bg-accent transition-colors"></div>
-            <h3 class="text-xs font-black uppercase tracking-[0.2em] opacity-50 group-hover:opacity-100 transition-opacity">
-              {{ category }}
+            <h3
+              class="text-xs font-black uppercase tracking-[0.2em] opacity-50 group-hover:opacity-100 transition-opacity">
+              {{ labelForCategory(category) }}
             </h3>
-            <span class="badge badge-sm badge-neutral text-[9px] font-black opacity-40">{{ categoryFoods.length }}</span>
-            <i 
-              class="fi text-[10px] opacity-30 group-hover:opacity-100 transition-all ml-1"
-              :class="collapsedCategories[category] ? 'fi-sr-angle-down' : 'fi-sr-angle-up'"
-            ></i>
+            <span
+              class="px-2 py-0.5 rounded-md bg-base-100/50 border border-base-content/10 text-[9px] font-black opacity-40">{{
+                categoryFoods.length }}</span>
+            <i class="fa-solid text-[10px] opacity-30 group-hover:opacity-100 transition-all ml-1"
+              :class="collapsedCategories[category] ? 'fa-angle-down' : 'fa-angle-up'"></i>
           </div>
 
-          <div 
-            v-if="categoryFoods.length && !collapsedCategories[category]" 
-            class="grid grid-cols-1 md:grid-cols-2 gap-6"
-          >
-            <div
-              v-for="food in categoryFoods"
-              :key="food.id"
+          <div v-if="categoryFoods.length && !collapsedCategories[category]"
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            <div v-for="food in categoryFoods" :key="food.id"
               :id="'card-cibo-' + food.name.toLowerCase().replace(/\s+/g, '-')"
-              class="card bg-base-200 shadow-xl border border-base-content/5 transition-all duration-300"
-            >
-              <div class="card-body p-5 gap-4">
-                <div
-                  class="flex items-start justify-between gap-4 cursor-pointer"
-                  @click="toggleFoodCard(food.id)"
-                >
+              class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10 transition-all duration-300">
+              <div class="card-body p-4 md:p-5 gap-3 md:gap-4">
+                <div class="flex items-start justify-between gap-4 cursor-pointer" @click="toggleFoodCard(food.id)">
                   <div class="flex flex-col min-w-0">
-                    <div class="text-lg font-black uppercase tracking-tight truncate leading-none">{{ food.name }}</div>
+                    <div class="text-base md:text-lg font-black uppercase tracking-tight truncate leading-none">{{
+                      food.name }}</div>
                     <div class="mt-1 text-[8px] font-black opacity-30 uppercase tracking-[0.2em]">
                       {{ food.carbsPer100g }}g CHO / 100g
                     </div>
@@ -185,35 +184,34 @@
 
                   <div class="flex items-center gap-2 shrink-0">
                     <div class="text-right">
-                      <div class="text-3xl font-black tracking-tighter text-accent leading-none">
+                      <div class="text-2xl md:text-3xl font-black tracking-tighter text-accent leading-none">
                         {{ carbsFor(food).toFixed(0) }}<span class="text-xs ml-0.5 opacity-50">g</span>
                       </div>
-                      <div class="text-[8px] font-black opacity-30 uppercase tracking-widest mt-1">CHO STIMATI <span v-if="!expandedFoodCards[food.id]" >/ 100g</span></div>
+                      <div class="text-[8px] font-black opacity-30 uppercase tracking-widest mt-1">
+                        CHO STIMATI <span v-if="!expandedFoodCards[food.id]">/ 100g</span>
+                      </div>
                     </div>
-                    <i
-                      class="fi text-[10px] opacity-40 transition-all"
-                      :class="expandedFoodCards[food.id] ? 'fi-sr-angle-up' : 'fi-sr-angle-down'"
-                    ></i>
+                    <i class="fa-solid text-[10px] opacity-40 transition-all"
+                      :class="expandedFoodCards[food.id] ? 'fa-angle-up' : 'fa-angle-down'"></i>
                   </div>
                 </div>
 
-                <div v-if="expandedFoodCards[food.id]" class="flex flex-col gap-4">
-                  <div class="flex items-center justify-between bg-base-300/30 rounded-xl px-4 py-3 border border-base-content/5">
-                    <span class="text-[9px] font-black uppercase opacity-30 tracking-widest">Peso</span>
-                    <span class="text-2xl font-black text-base-content leading-none">
-                      {{ grams[food.id] }}<span class="text-[10px] ml-1 opacity-40 uppercase tracking-widest">grammi</span>
-                    </span>
+                <div v-if="expandedFoodCards[food.id]" class="flex flex-col gap-3 md:gap-4">
+                  <div
+                    class="flex items-center justify-between bg-base-100/50 rounded-lg md:rounded-xl px-4 py-3 border border-base-content/10 shadow-sm">
+                    <span class="text-[9px] font-black uppercase opacity-40 tracking-widest">Peso</span>
+                    <div class="flex items-center justify-end leading-none">
+                      <input v-model.number="grams[food.id]" type="number" min="0" max="300" step="1"
+                        inputmode="numeric" pattern="[0-9]*"
+                        class="w-20 text-right text-2xl font-black text-base-content leading-none bg-transparent border-none outline-none focus:ring-0 p-0 no-spinner"
+                        @input="clampGrams(food.id)" @blur="clampGrams(food.id)" />
+                      <span class="text-[10px] ml-1 opacity-40 uppercase tracking-widest">grammi</span>
+                    </div>
                   </div>
 
                   <div class="px-1">
-                    <input
-                      v-model.number="grams[food.id]"
-                      type="range"
-                      min="0"
-                      max="300"
-                      step="5"
-                      class="range range-accent range-xs"
-                    />
+                    <input v-model.number="grams[food.id]" type="range" min="0" max="300" step="5"
+                      class="range range-accent range-xs" @input="clampGrams(food.id)" />
                     <div class="flex justify-between text-[8px] font-black opacity-20 uppercase tracking-[0.2em] mt-2">
                       <span>0g</span>
                       <span>150g</span>
@@ -222,12 +220,10 @@
                   </div>
 
                   <button
-                    class="btn btn-sm btn-accent rounded-xl border-none font-black uppercase tracking-widest text-[10px] h-10 mt-auto"
-                    :class="grams[food.id] > 0 ? 'shadow-lg shadow-accent/20' : ''"
-                    :disabled="grams[food.id] <= 0"
-                    @click.stop="addToCart(food)"
-                  >
-                    <i class="fi fi-sr-plus text-[10px]"></i>
+                    class="btn btn-sm btn-accent rounded-lg md:rounded-xl border-none font-black uppercase tracking-widest text-[10px] h-10 mt-auto"
+                    :class="grams[food.id] > 0 ? 'shadow-md md:shadow-lg shadow-accent/40' : ''"
+                    :disabled="grams[food.id] <= 0" @click.stop="addToCart(food)">
+                    <i class="fa-solid fa-plus text-[10px]"></i>
                     Aggiungi
                   </button>
                 </div>
@@ -238,16 +234,19 @@
       </template>
     </div>
 
+    <!-- Modal Carrello -->
     <dialog ref="cartDialog" class="modal">
-      <div class="modal-box bg-base-200 border border-base-content/10 shadow-2xl rounded-2xl">
+      <div
+        class="modal-box bg-gradient-to-br from-base-200 to-base-300 border border-base-content/10 shadow-2xl shadow-black/10 rounded-2xl md:rounded-3xl p-4 md:p-6">
         <div class="flex items-start justify-between gap-4">
-          <div class="flex items-center gap-3">
-            <div class="p-2 bg-accent/10 rounded-xl">
-              <i class="fi fi-sr-shopping-cart text-accent text-lg"></i>
+          <div class="flex items-center gap-2 md:gap-3">
+            <div class="p-2 md:p-3 bg-accent/10 rounded-lg md:rounded-xl shadow-sm">
+              <i class="fa-solid fa-cart-shopping text-accent text-lg md:text-xl"></i>
             </div>
             <div>
-              <div class="text-sm font-black uppercase tracking-widest">Totale CHO</div>
-              <div class="text-[9px] font-black opacity-30 uppercase tracking-[0.2em]">Totale {{ Math.round(cartTotal) }}g</div>
+              <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Totale CHO</h3>
+              <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-[0.2em]">Totale {{
+                Math.round(cartTotal) }}g</span>
             </div>
           </div>
           <form method="dialog">
@@ -261,43 +260,32 @@
           </div>
 
           <div v-else class="space-y-2 max-h-[45vh] overflow-y-auto pr-1">
-            <div
-              v-for="item in cartItems"
-              :key="item.id"
-              class="bg-base-300/30 p-3 rounded-2xl border border-base-content/5 flex items-center justify-between gap-4"
-            >
+            <div v-for="item in cartItems" :key="item.id"
+              class="bg-base-100/50 p-3 rounded-lg md:rounded-xl border border-base-content/10 shadow-sm flex items-center justify-between gap-4">
               <div class="min-w-0">
                 <div class="text-[10px] font-black uppercase tracking-widest truncate">{{ item.name }}</div>
                 <div class="text-[9px] font-black opacity-30 uppercase tracking-widest mt-1">
                   {{ item.grams }}g • {{ item.carbs.toFixed(0) }}g CHO
                 </div>
               </div>
-              <button
-                class="btn btn-ghost btn-xs btn-circle text-error hover:bg-error/10"
-                @click="removeFromCart(item.id)"
-                title="Rimuovi"
-              >
-                <i class="fi fi-sr-trash text-[10px]"></i>
+              <button class="btn btn-ghost btn-xs btn-circle text-error hover:bg-error/10"
+                @click="removeFromCart(item.id)" title="Rimuovi">
+                <i class="fa-solid fa-trash text-[10px]"></i>
               </button>
             </div>
           </div>
         </div>
 
         <div class="modal-action mt-5 flex items-center justify-between w-full">
-          <button
-            class="btn btn-ghost btn-sm rounded-xl font-black uppercase tracking-widest text-[10px]"
-            :disabled="!cartItems.length"
-            @click="clearCart"
-          >
+          <button class="btn btn-ghost btn-sm rounded-lg md:rounded-xl font-black uppercase tracking-widest text-[10px]"
+            :disabled="!cartItems.length" @click="clearCart">
             Svuota
           </button>
 
           <button
-            class="btn btn-accent btn-sm rounded-xl border-none font-black uppercase tracking-widest text-[10px]"
-            :class="cartTotal > 0 ? 'shadow-lg shadow-accent/20' : ''"
-            :disabled="cartTotal <= 0"
-            @click="sendToCarbInput"
-          >
+            class="btn btn-accent btn-sm rounded-lg md:rounded-xl border-none font-black uppercase tracking-widest text-[10px]"
+            :class="cartTotal > 0 ? 'shadow-md md:shadow-lg shadow-accent/40' : ''" :disabled="cartTotal <= 0"
+            @click="sendToCarbInput">
             Registra CHO
           </button>
         </div>
@@ -309,6 +297,7 @@
     </dialog>
   </div>
 </template>
+
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
@@ -326,13 +315,24 @@ const searchQuery = ref('')
 const creatingFood = ref(false)
 const foodError = ref(null)
 
+const CATEGORY_LABELS = {
+  primi: 'Primi',
+  secondi: 'Secondi',
+  contorni: 'Contorni',
+  frutta: 'Frutta',
+  latticini: 'Latticini',
+  bevande: 'Bevande',
+  prodotti_da_forno: 'Prodotti da forno'
+}
+const categories = Object.keys(CATEGORY_LABELS)
+function labelForCategory(cat) { return CATEGORY_LABELS[cat] || cat }
+
 const newFood = reactive({
   name: '',
   carbsPer100g: 0,
-  category: 'contorno'
+  category: 'contorni'
 })
 
-const categories = ['primo', 'secondo', 'contorno', 'frutta']
 const collapsedCategories = reactive({})
 const expandedFoodCards = reactive({})
 
@@ -350,6 +350,13 @@ function carbsFor(food) {
   return (food.carbsPer100g * g) / 100
 }
 
+function clampGrams(foodId) {
+  let v = Number(grams[foodId])
+  if (!Number.isFinite(v) || v < 0) v = 0
+  if (v > 300) v = 300
+  grams[foodId] = Math.round(v)
+}
+
 function toggleFoodCard(foodId) {
   expandedFoodCards[foodId] = !expandedFoodCards[foodId]
 }
@@ -358,13 +365,12 @@ const groupedFoods = computed(() => {
   const query = String(searchQuery.value || '').trim().toLowerCase()
   const groups = {}
   categories.forEach(c => groups[c] = [])
-  
+
   foods.value.forEach(f => {
-    // Filtro per ricerca
     if (query && !f.name.toLowerCase().includes(query)) return
-    
+
     if (groups[f.category]) groups[f.category].push(f)
-    else groups['contorno'].push(f)
+    else groups['contorni'].push(f)
   })
   return groups
 })
@@ -378,7 +384,7 @@ const canCreateFood = computed(() => {
 function resetNewFood() {
   newFood.name = ''
   newFood.carbsPer100g = 0
-  newFood.category = 'contorno'
+  newFood.category = 'contorni'
   foodError.value = null
 }
 
@@ -390,7 +396,7 @@ async function fetchFoods() {
     const list = Array.isArray(data) ? data : []
     const uniqueFoods = []
     const seenIds = new Set()
-    
+
     list.forEach(x => {
       if (!seenIds.has(x.id)) {
         seenIds.add(x.id)
@@ -482,6 +488,7 @@ async function sendToCarbInput() {
 }
 
 .no-spinner {
-  -moz-appearance: textfield; /* Per Firefox */
+  -moz-appearance: textfield;
+  /* Per Firefox */
 }
 </style>

@@ -317,9 +317,9 @@ app.post('/api/diet/foods', async (req, res) => {
   const { name, carbs_per_100g, category } = req.body || {};
   const finalName = String(name || '').trim();
   const carbs = Number(carbs_per_100g);
-  const finalCat = String(category || 'contorno').trim().toLowerCase();
+  const finalCat = String(category || 'contorni').trim().toLowerCase();
 
-  const validCats = ['primo', 'secondo', 'contorno', 'frutta'];
+  const validCats = ['primi', 'secondi', 'contorni', 'frutta', 'latticini', 'bevande', 'prodotti_da_forno'];
   if (!validCats.includes(finalCat)) return res.status(400).json({ error: 'Categoria non valida' });
 
   if (!finalName) return res.status(400).json({ error: 'Nome mancante' });

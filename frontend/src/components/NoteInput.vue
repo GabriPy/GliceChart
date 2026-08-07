@@ -5,7 +5,7 @@
       <div class="h-8 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="p-1.5 bg-info/10 rounded-lg">
-            <i class="fi fi-sr-note-sticky text-info text-sm"></i>
+            <i class="fa-solid fa-note-sticky text-info text-sm"></i>
           </div>
           <span class="text-[10px] uppercase font-black tracking-widest opacity-40">Note / Eventi</span>
         </div>
@@ -20,21 +20,15 @@
               <span class="text-[10px] font-black uppercase opacity-30 tracking-widest">Testo nota</span>
             </div>
             <div class="h-[38px]">
-              <input
-                v-model="text"
-                type="text"
+              <input v-model="text" type="text"
                 class="input input-sm bg-base-300/60 rounded-xl font-black tracking-widest text-[10px] w-full h-full border-none focus:outline-none"
-                placeholder="Scrivi una nota (es. Sport, Pizza...)"
-              />
+                placeholder="Scrivi una nota (es. Sport, Pizza...)" />
             </div>
 
             <div class="flex flex-wrap gap-2 mt-1">
-              <button
-                v-for="t in quickTags"
-                :key="t"
+              <button v-for="t in quickTags" :key="t"
                 class="btn btn-xs btn-ghost rounded-xl font-black uppercase tracking-widest text-[9px] opacity-70 hover:opacity-100"
-                @click="applyQuickTag(t)"
-              >
+                @click="applyQuickTag(t)">
                 {{ t }}
               </button>
             </div>
@@ -42,10 +36,8 @@
 
           <button
             class="btn btn-sm btn-info rounded-xl border-none font-black uppercase tracking-widest text-[10px] h-10 mt-auto"
-            :class="(store.loading || !canSave) ? '' : 'shadow-lg shadow-info/20'"
-            :disabled="store.loading || !canSave"
-            @click="save"
-          >
+            :class="(store.loading || !canSave) ? '' : 'shadow-lg shadow-info/20'" :disabled="store.loading || !canSave"
+            @click="save">
             <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
             <span v-else>Salva Nota</span>
           </button>
@@ -57,9 +49,7 @@
         <!-- Parte Inferiore: Storico -->
         <div class="flex flex-col gap-2 h-[160px]">
           <div class="flex items-center gap-2 mb-1">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3 opacity-30">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-            </svg>
+            <i class="fa-solid fa-clock w-3 h-3 opacity-30 text-[12px]"></i>
             <span class="text-[8px] uppercase font-black tracking-widest opacity-30">Recenti</span>
           </div>
 
@@ -69,34 +59,27 @@
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <div
-                v-for="n in sortedNotes"
-                :key="n.id"
-                class="bg-base-100/40 p-2 rounded-xl group transition-all border border-transparent hover:border-base-content/5"
-              >
+              <div v-for="n in sortedNotes" :key="n.id"
+                class="bg-base-100/40 p-2 rounded-xl group transition-all border border-transparent hover:border-base-content/5">
                 <!-- Vista normale -->
                 <div class="flex items-center justify-between gap-3">
                   <div class="flex items-center gap-3 min-w-0">
                     <div class="w-1 h-8 rounded-full bg-info"></div>
                     <div class="flex flex-col min-w-0">
                       <span class="text-xs font-black tracking-tight truncate">{{ n.text }}</span>
-                      <span class="text-[8px] font-black opacity-30 uppercase tracking-wider">{{ formatTime(n.timestamp) }}</span>
+                      <span class="text-[8px] font-black opacity-30 uppercase tracking-wider">{{ formatTime(n.timestamp)
+                        }}</span>
                     </div>
                   </div>
 
                   <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                    <button 
-                      @click="startEdit(n)"
-                      class="btn btn-ghost btn-circle btn-xs text-info hover:bg-info/10 h-6 w-6"
-                    >
-                      <i class="fi fi-sr-pencil text-[10px]"></i>
+                    <button @click="startEdit(n)"
+                      class="btn btn-ghost btn-circle btn-xs text-info hover:bg-info/10 h-6 w-6">
+                      <i class="fa-solid fa-pencil text-[10px]"></i>
                     </button>
-                    <button
-                      class="btn btn-ghost btn-circle btn-xs text-error hover:bg-error/10 h-6 w-6"
-                      @click="store.removeNote(n.id)"
-                      title="Elimina"
-                    >
-                      <i class="fi fi-sr-trash text-[10px]"></i>
+                    <button class="btn btn-ghost btn-circle btn-xs text-error hover:bg-error/10 h-6 w-6"
+                      @click="store.removeNote(n.id)" title="Elimina">
+                      <i class="fa-solid fa-trash text-[10px]"></i>
                     </button>
                   </div>
                 </div>
@@ -111,24 +94,19 @@
     <dialog :id="`edit_modal_note_${id}`" class="modal">
       <div class="modal-box bg-base-200 border border-base-content/10 shadow-2xl rounded-3xl p-6">
         <h3 class="font-black text-lg uppercase italic tracking-tight mb-4 flex items-center gap-2">
-          <i class="fi fi-sr-pencil text-info"></i> Modifica Nota
+          <i class="fa-solid fa-pencil text-info"></i> Modifica Nota
         </h3>
-        
+
         <div class="space-y-4">
           <div class="flex flex-col gap-2">
             <label class="text-[10px] font-black uppercase opacity-40">Testo Nota</label>
-            <textarea 
-              v-model="editForm.text" 
-              class="textarea textarea-bordered bg-base-300/50 font-bold h-24"
-            ></textarea>
+            <textarea v-model="editForm.text"
+              class="textarea textarea-bordered bg-base-300/50 font-bold h-24"></textarea>
           </div>
           <div class="flex flex-col gap-2">
             <label class="text-[10px] font-black uppercase opacity-40">Orario</label>
-            <input 
-              type="datetime-local" 
-              v-model="editForm.timestamp" 
-              class="input input-bordered bg-base-300/50 font-black"
-            />
+            <input type="datetime-local" v-model="editForm.timestamp"
+              class="input input-bordered bg-base-300/50 font-black" />
           </div>
         </div>
 
@@ -136,11 +114,7 @@
           <form method="dialog">
             <button class="btn btn-ghost uppercase font-black text-xs">Annulla</button>
           </form>
-          <button 
-            @click="saveEdit" 
-            class="btn btn-info uppercase font-black text-xs px-8"
-            :disabled="store.loading"
-          >
+          <button @click="saveEdit" class="btn btn-info uppercase font-black text-xs px-8" :disabled="store.loading">
             Salva
           </button>
         </div>
@@ -151,6 +125,7 @@
     </dialog>
   </div>
 </template>
+
 
 <script setup>
 import { computed, ref } from 'vue'

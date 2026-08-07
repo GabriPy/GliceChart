@@ -172,7 +172,7 @@ async function initDB() {
         id             INT AUTO_INCREMENT PRIMARY KEY,
         name           VARCHAR(100) NOT NULL,
         carbs_per_100g INT NOT NULL,
-        category       ENUM('primo', 'secondo', 'contorno', 'frutta') DEFAULT 'contorno',
+        category       ENUM('primi', 'secondi', 'contorni', 'frutta', 'latticini', 'bevande', 'prodotti_da_forno') DEFAULT 'contorni',
         created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY uq_name (name)
       )
@@ -195,17 +195,104 @@ async function initDB() {
 
     // Migrazione: Aggiunge la colonna category se non esiste (per db già esistenti)
     try {
-      await conn.execute(`ALTER TABLE diet_foods ADD COLUMN category ENUM('primo', 'secondo', 'contorno', 'frutta') DEFAULT 'contorno' AFTER carbs_per_100g`);
+      await conn.execute(`ALTER TABLE diet_foods ADD COLUMN category ENUM('primi', 'secondi', 'contorni', 'frutta', 'latticini', 'bevande', 'prodotti_da_forno') DEFAULT 'contorni' AFTER carbs_per_100g`);
     } catch (e) {
       // La colonna probabilmente esiste già
     }
 
-    // Inserisce/Aggiorna dati richiesti dall'utente
+    // Migrazione: Aggiorna i valori della ENUM e converte vecchi valori se presenti
+    try {
+      await conn.execute(`UPDATE diet_foods SET category = 'primi'   WHERE category = 'primo'`);
+      await conn.execute(`UPDATE diet_foods SET category = 'secondi' WHERE category = 'secondo'`);
+      await conn.execute(`UPDATE diet_foods SET category = 'contorni' WHERE category = 'contorno'`);
+      await conn.execute(`ALTER TABLE diet_foods MODIFY COLUMN category ENUM('primi', 'secondi', 'contorni', 'frutta', 'latticini', 'bevande', 'prodotti_da_forno') DEFAULT 'contorni'`);
+    } catch (e) {
+      // ENUM già aggiornata o errore non bloccante
+    }
+
+    // Inserisce/Aggiorna dati richiesti dall'utente (compresi alimenti_nuovi.json)
     const foods = [
-      { name: 'Pasta', carbs: 70, cat: 'primo' },
-      { name: 'Riso', carbs: 80, cat: 'primo' },
-      { name: 'Pane', carbs: 50, cat: 'contorno' },
-      { name: 'Pesca', carbs: 9, cat: 'frutta' }
+      // Base storici
+      { name: 'Pasta', carbs: 70, cat: 'primi' },
+      { name: 'Riso', carbs: 80, cat: 'primi' },
+      { name: 'Pane', carbs: 50, cat: 'contorni' },
+      { name: 'Pesca', carbs: 9, cat: 'frutta' },
+      // Primi
+      { name: 'Gnocchi di patate', carbs: 30, cat: 'primi' },
+      { name: 'Cous cous', carbs: 73, cat: 'primi' },
+      { name: 'Farro', carbs: 67, cat: 'primi' },
+      { name: 'Orzo', carbs: 73, cat: 'primi' },
+      { name: 'Quinoa', carbs: 64, cat: 'primi' },
+      { name: 'Avena', carbs: 60, cat: 'primi' },
+      { name: 'Patate', carbs: 17, cat: 'primi' },
+      { name: 'Patate dolci', carbs: 20, cat: 'primi' },
+      { name: 'Lasagne', carbs: 25, cat: 'primi' },
+      { name: 'Ravioli', carbs: 30, cat: 'primi' },
+      { name: 'Tortellini', carbs: 35, cat: 'primi' },
+      // Secondi
+      { name: 'Prosciutto cotto', carbs: 1, cat: 'secondi' },
+      { name: 'Prosciutto crudo', carbs: 1, cat: 'secondi' },
+      { name: 'Mortadella', carbs: 1, cat: 'secondi' },
+      { name: 'Salsiccia', carbs: 2, cat: 'secondi' },
+      { name: 'Hamburger', carbs: 2, cat: 'secondi' },
+      { name: 'Polpette', carbs: 5, cat: 'secondi' },
+      { name: 'Wurstel', carbs: 3, cat: 'secondi' },
+      // Contorni
+      { name: 'Carote', carbs: 10, cat: 'contorni' },
+      { name: 'Piselli', carbs: 14, cat: 'contorni' },
+      { name: 'Mais', carbs: 19, cat: 'contorni' },
+      { name: 'Zucca', carbs: 7, cat: 'contorni' },
+      { name: 'Cipolle', carbs: 9, cat: 'contorni' },
+      { name: 'Pomodori', carbs: 4, cat: 'contorni' },
+      { name: 'Zucchine', carbs: 3, cat: 'contorni' },
+      { name: 'Melanzane', carbs: 6, cat: 'contorni' },
+      { name: 'Peperoni', carbs: 6, cat: 'contorni' },
+      { name: 'Broccoli', carbs: 4, cat: 'contorni' },
+      { name: 'Cavolfiore', carbs: 5, cat: 'contorni' },
+      { name: 'Fagiolini', carbs: 4, cat: 'contorni' },
+      { name: 'Funghi', carbs: 2, cat: 'contorni' },
+      // Frutta
+      { name: 'Mela', carbs: 14, cat: 'frutta' },
+      { name: 'Pera', carbs: 15, cat: 'frutta' },
+      { name: 'Banana', carbs: 23, cat: 'frutta' },
+      { name: 'Albicocca', carbs: 11, cat: 'frutta' },
+      { name: 'Arancia', carbs: 12, cat: 'frutta' },
+      { name: 'Mandarino', carbs: 13, cat: 'frutta' },
+      { name: 'Kiwi', carbs: 15, cat: 'frutta' },
+      { name: 'Fragole', carbs: 8, cat: 'frutta' },
+      { name: 'Ciliegie', carbs: 16, cat: 'frutta' },
+      { name: 'Uva', carbs: 18, cat: 'frutta' },
+      { name: 'Anguria', carbs: 8, cat: 'frutta' },
+      { name: 'Melone', carbs: 8, cat: 'frutta' },
+      { name: 'Ananas', carbs: 13, cat: 'frutta' },
+      { name: 'Mango', carbs: 15, cat: 'frutta' },
+      // Latticini
+      { name: 'Latte intero', carbs: 5, cat: 'latticini' },
+      { name: 'Latte scremato', carbs: 5, cat: 'latticini' },
+      { name: 'Yogurt bianco', carbs: 5, cat: 'latticini' },
+      { name: 'Yogurt alla frutta', carbs: 15, cat: 'latticini' },
+      { name: 'Yogurt greco', carbs: 4, cat: 'latticini' },
+      { name: 'Mozzarella', carbs: 1, cat: 'latticini' },
+      { name: 'Ricotta', carbs: 3, cat: 'latticini' },
+      { name: 'Formaggio spalmabile', carbs: 4, cat: 'latticini' },
+      { name: 'Budino', carbs: 15, cat: 'latticini' },
+      // Bevande
+      { name: 'Succo di frutta', carbs: 11, cat: 'bevande' },
+      { name: 'Coca Cola', carbs: 11, cat: 'bevande' },
+      { name: 'Aranciata', carbs: 10, cat: 'bevande' },
+      { name: 'Tè zuccherato', carbs: 8, cat: 'bevande' },
+      { name: 'Latte e cacao', carbs: 12, cat: 'bevande' },
+      { name: 'Frullato di frutta', carbs: 15, cat: 'bevande' },
+      // Prodotti da forno
+      { name: 'Pizza margherita', carbs: 30, cat: 'prodotti_da_forno' },
+      { name: 'Focaccia', carbs: 50, cat: 'prodotti_da_forno' },
+      { name: 'Piadina', carbs: 55, cat: 'prodotti_da_forno' },
+      { name: 'Cracker', carbs: 65, cat: 'prodotti_da_forno' },
+      { name: 'Grissini', carbs: 70, cat: 'prodotti_da_forno' },
+      { name: 'Biscotti secchi', carbs: 73, cat: 'prodotti_da_forno' },
+      { name: 'Cornetto', carbs: 50, cat: 'prodotti_da_forno' },
+      { name: 'Panino', carbs: 55, cat: 'prodotti_da_forno' },
+      { name: 'Crostata', carbs: 45, cat: 'prodotti_da_forno' }
     ];
 
     for (const f of foods) {
@@ -499,7 +586,7 @@ async function insertDietFood({ name, carbs_per_100g, category }) {
   const p = await getPool();
   const [result] = await p.execute(
     `INSERT INTO diet_foods (name, carbs_per_100g, category) VALUES (?, ?, ?)`,
-    [name, carbs_per_100g, category || 'contorno']
+    [name, carbs_per_100g, category || 'contorni']
   );
   return result.insertId;
 }

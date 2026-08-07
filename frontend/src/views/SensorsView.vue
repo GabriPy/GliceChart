@@ -1,188 +1,273 @@
 <template>
-  <div class="flex flex-col gap-6">
-    <!-- Header Sensori -->
-    <div class="card bg-base-200 shadow-sm border border-base-content/10">
-      <div class="card-body p-4 md:p-6">
-        <div class="flex items-center gap-3">
-          <div class="p-2.5 bg-primary/10 rounded-2xl">
-            <i class="fi fi-sr-microchip text-primary text-xl"></i>
+  <div class="flex flex-col gap-4 md:gap-6 lg:gap-8 px-2 md:px-4 lg:px-0">
+
+    <!-- HEADER -->
+    <div
+      class="relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
+      <div
+        class="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-primary/15 rounded-full blur-2xl md:blur-3xl opacity-70">
+      </div>
+      <div
+        class="absolute bottom-0 left-0 w-32 md:w-48 h-32 md:h-48 bg-accent/15 rounded-full blur-xl md:blur-2xl opacity-70">
+      </div>
+
+      <div class="relative card-body p-4 md:p-6 lg:p-8">
+        <div class="flex items-center gap-3 md:gap-4">
+          <div
+            class="p-3 md:p-4 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl md:rounded-2xl shadow-md md:shadow-lg shadow-primary/30">
+            <i class="fa-solid fa-microchip text-primary text-xl md:text-2xl"></i>
           </div>
           <div>
-            <h2 class="text-lg font-black uppercase tracking-tight leading-none">Storico Sensori</h2>
-            <span class="text-[9px] font-black opacity-30 uppercase tracking-[0.2em]">Tracking e Gestione</span>
+            <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">Storico Sensori</h2>
+            <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">Tracking &
+              Gestione</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Form Nuovo Sensore -->
-    <div class="card bg-base-200 shadow-xl border border-base-content/5">
-      <div class="card-body p-6 gap-4">
-        <div class="flex items-center gap-2 mb-2">
-          <i class="fi fi-rr-add-circle text-success"></i>
-          <span class="text-xs font-black uppercase tracking-widest opacity-50">Nuovo Sensore</span>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="form-control">
-            <label class="label py-1">
-              <span class="label-text text-[10px] font-black uppercase opacity-40">Numero Seriale</span>
-            </label>
-            <input 
-              type="text" 
-              v-model="newSensor.serial_number" 
-              placeholder="SN12345678" 
-              class="input input-bordered font-black" 
-            />
+    <!-- CARD NUOVO SENSORE -->
+    <div
+      class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
+      <div class="card-body p-4 md:p-6 lg:p-8 gap-4 md:gap-6">
+
+        <div class="flex items-center gap-2 md:gap-3">
+          <div class="p-2 md:p-3 bg-success/10 rounded-lg md:rounded-xl shadow-sm">
+            <i class="fa-solid fa-plus text-success text-lg md:text-xl"></i>
           </div>
-          <div class="form-control">
-            <label class="label py-1">
-              <span class="label-text text-[10px] font-black uppercase opacity-40">Numero Lotto</span>
-            </label>
-            <input 
-              type="text" 
-              v-model="newSensor.lot_number" 
-              placeholder="LOT12345" 
-              class="input input-bordered font-black" 
-            />
-          </div>
-          <div class="form-control">
-            <label class="label py-1">
-              <span class="label-text text-[10px] font-black uppercase opacity-40">Data Applicazione</span>
-            </label>
-            <input 
-              type="datetime-local" 
-              v-model="newSensor.start_date" 
-              class="input input-bordered font-black" 
-            />
+          <div>
+            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Nuovo Sensore</h3>
+            <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">Registrazione
+              Applicazione</span>
           </div>
         </div>
 
-        <button 
-          @click="addSensor" 
-          class="btn btn-success btn-sm font-black uppercase tracking-widest gap-2 mt-2"
-          :disabled="store.loading || !newSensor.serial_number"
-        >
-          <span v-if="store.loading" class="loading loading-spinner"></span>
-          <i class="fi fi-sr-plus"></i>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+
+          <!-- Numero Seriale -->
+          <div class="space-y-1 md:space-y-2">
+            <label class="text-[10px] font-black uppercase opacity-40">Numero Seriale</label>
+            <input type="text" v-model="newSensor.serial_number" placeholder="SN12345678"
+              class="input input-bordered font-black input-xs md:input-sm w-full border-primary/30 focus:border-primary placeholder:opacity-30" />
+          </div>
+
+          <!-- Numero Lotto -->
+          <div class="space-y-1 md:space-y-2">
+            <label class="text-[10px] font-black uppercase opacity-40">Numero Lotto</label>
+            <input type="text" v-model="newSensor.lot_number" placeholder="LOT12345"
+              class="input input-bordered font-black input-xs md:input-sm w-full border-accent/30 focus:border-accent placeholder:opacity-30" />
+          </div>
+
+          <!-- Data Applicazione -->
+          <div class="space-y-1 md:space-y-2">
+            <label class="text-[10px] font-black uppercase opacity-40">Data Applicazione</label>
+            <input type="datetime-local" v-model="newSensor.start_date"
+              class="input input-bordered font-black input-xs md:input-sm w-full border-success/30 focus:border-success placeholder:opacity-30" />
+          </div>
+
+        </div>
+
+        <!-- Pulsante Aggiungi -->
+        <button @click="addSensor"
+          class="btn btn-success w-full btn-sm md:btn-md font-black uppercase tracking-widest gap-2 shadow-md md:shadow-lg shadow-success/40"
+          :disabled="store.loading || !newSensor.serial_number">
+          <span v-if="store.loading" class="loading loading-spinner loading-xs md:loading-sm"></span>
+          <i v-else class="fa-solid fa-plus"></i>
           Aggiungi Sensore
         </button>
+
       </div>
     </div>
 
-    <!-- Tabella Sensori -->
-    <div class="card bg-base-200 shadow-sm border border-base-content/10">
-      <div class="card-body p-6 gap-4">
-        <div class="flex items-center gap-2 mb-2">
-          <i class="fi fi-sr-list text-primary"></i>
-          <span class="text-xs font-black uppercase tracking-widest opacity-50">Storico Completo</span>
+    <!-- TABELLONE STORICO SENSORI -->
+    <div
+      class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
+      <div class="card-body p-4 md:p-6 lg:p-8 gap-4 md:gap-6">
+
+        <!-- Header Tabella -->
+        <div class="flex items-center gap-2 md:gap-3">
+          <div class="p-2 md:p-3 bg-primary/10 rounded-lg md:rounded-xl shadow-sm">
+            <i class="fa-solid fa-list text-primary text-lg md:text-xl"></i>
+          </div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Storico Completo</h3>
+            <span class="px-2 py-0.5 rounded-md bg-primary/10 text-[9px] font-black text-primary">{{
+              store.sensors.length }}</span>
+          </div>
         </div>
 
-        <div v-if="store.sensors.length === 0" class="text-center py-8 opacity-40">
-          <i class="fi fi-sr-microchip text-4xl mb-2"></i>
-          <p class="text-xs font-black uppercase">Nessun sensore registrato</p>
+        <!-- Nessun sensore -->
+        <div v-if="store.sensors.length === 0" class="text-center py-10 opacity-30">
+          <i class="fa-solid fa-microchip text-4xl mb-2"></i>
+          <p class="text-[10px] font-black uppercase tracking-widest">Nessun sensore registrato</p>
         </div>
 
-        <div v-else class="overflow-x-auto">
-          <table class="table table-zebra">
-            <thead>
-              <tr class="text-[10px] font-black uppercase opacity-50">
-                <th>Seriale</th>
-                <th>Lotto</th>
-                <th>Inizio</th>
-                <th>Fine Prevista</th>
-                <th>Stato</th>
-                <th>Note</th>
-                <th>Azioni</th>
+        <!-- Tabella -->
+        <div v-else class="overflow-x-auto rounded-xl md:rounded-2xl border border-base-content/10 shadow-sm">
+          <table class="table table-sm">
+
+            <thead class="bg-base-100/50">
+              <tr class="text-[10px] font-black uppercase opacity-50 tracking-widest">
+                <th class="text-center py-3">Seriale</th>
+                <th class="text-center py-3">Lotto</th>
+                <th class="text-center py-3">Inizio</th>
+                <th class="text-center py-3">Fine Prevista</th>
+                <th class="text-center py-3">Stato</th>
+                <th class="text-center py-3">Tempo</th>
+                <th class="text-center py-3">Note</th>
+                <th class="text-center py-3">Azioni</th>
               </tr>
             </thead>
+
             <tbody>
-              <tr v-for="sensor in store.sensors" :key="sensor.id" class="text-xs">
-                <td class="font-black">{{ sensor.serial_number }}</td>
-                <td class="opacity-70">{{ sensor.lot_number || '-' }}</td>
-                <td>{{ formatDate(sensor.start_date) }}</td>
-                <td>{{ formatDate(sensor.end_date) }}</td>
-                <td>
-                  <div v-if="!sensor.actual_end_date" class="flex flex-col gap-1">
-                    <span class="badge badge-success badge-sm font-black">Attivo</span>
-                    <span class="text-[9px] font-bold opacity-50">{{ getCountdown(sensor.end_date) }}</span>
-                  </div>
-                  <div v-else class="flex flex-col gap-1">
-                    <span class="badge badge-error badge-sm font-black">Scaduto</span>
-                    <span v-if="isEarlyEnd(sensor)" class="badge badge-warning badge-xs font-black">Terminato prima</span>
+
+              <tr v-for="sensor in store.sensors" :key="sensor.id"
+                class="text-xs hover:bg-base-100/50 transition-colors">
+
+                <!-- Seriale -->
+                <td class="font-black text-center py-3">
+                  {{ sensor.serial_number }}
+                </td>
+
+                <!-- Lotto -->
+                <td class="opacity-70 text-center py-3">
+                  {{ sensor.lot_number || '-' }}
+                </td>
+
+                <!-- Inizio -->
+                <td class="text-center py-3">
+                  {{ formatDate(sensor.start_date) }}
+                </td>
+
+                <!-- Fine Prevista -->
+                <td class="text-center py-3">
+                  {{ formatDate(sensor.end_date) }}
+                </td>
+
+                <!-- STATO -->
+                <td class="text-center py-3">
+                  <div class="flex flex-col items-center gap-1">
+                    <span v-if="!sensor.actual_end_date"
+                      class="px-2 py-0.5 rounded-md bg-success/10 text-success border border-success/20 text-[9px] font-black uppercase tracking-widest">
+                      Attivo
+                    </span>
+
+                    <span v-else
+                      class="px-2 py-0.5 rounded-md bg-error/10 text-error border border-error/20 text-[9px] font-black uppercase tracking-widest">
+                      Scaduto
+                    </span>
+
+                    <span v-if="sensor.actual_end_date && isEarlyEnd(sensor)"
+                      class="px-2 py-0.5 rounded-md bg-warning/10 text-warning border border-warning/20 text-[8px] font-black uppercase tracking-widest">
+                      Terminato prima
+                    </span>
                   </div>
                 </td>
-                <td class="max-w-[200px]">
-                  <div v-if="sensor.early_end_note" class="text-[9px] opacity-70 truncate" :title="sensor.early_end_note">
+
+                <!-- TEMPO RIMANENTE -->
+                <td class="text-center font-bold opacity-60 py-3">
+                  <span v-if="!sensor.actual_end_date">
+                    {{ getCountdown(sensor.end_date) }}
+                  </span>
+                  <span v-else class="opacity-40">-</span>
+                </td>
+
+                <!-- NOTE -->
+                <td class="text-center max-w-[200px] py-3">
+                  <div v-if="sensor.early_end_note" class="text-[9px] opacity-70 truncate"
+                    :title="sensor.early_end_note">
                     {{ sensor.early_end_note }}
                   </div>
                   <span v-else class="opacity-30">-</span>
                 </td>
-                <td>
-                  <div v-if="!sensor.actual_end_date" class="flex gap-1">
-                    <button 
-                      @click="showEndModal(sensor)" 
-                      class="btn btn-warning btn-xs font-black uppercase"
-                    >
-                      Termina
+
+                <!-- AZIONI -->
+                <td class="text-center py-3">
+                  <div class="flex justify-center gap-1">
+
+                    <!-- Termina -->
+                    <button v-if="!sensor.actual_end_date" @click="showEndModal(sensor)"
+                      class="btn btn-ghost btn-xs btn-circle text-warning" title="Termina sensore">
+                      <i class="fa-solid fa-flag-checkered text-[10px]"></i>
                     </button>
-                    <button 
-                      @click="deleteSensor(sensor.id)" 
-                      class="btn btn-ghost btn-xs text-error"
-                    >
-                      <i class="fi fi-sr-trash"></i>
+
+                    <!-- Elimina -->
+                    <button @click="deleteSensor(sensor.id)" class="btn btn-ghost btn-xs btn-circle text-error"
+                      title="Elimina">
+                      <i class="fa-solid fa-trash text-[10px]"></i>
                     </button>
+
                   </div>
-                  <button 
-                    v-else 
-                    @click="deleteSensor(sensor.id)" 
-                    class="btn btn-ghost btn-xs text-error"
-                  >
-                    <i class="fi fi-sr-trash"></i>
-                  </button>
                 </td>
+
               </tr>
+
             </tbody>
+
           </table>
         </div>
+
       </div>
     </div>
 
-    <!-- Modal Terminazione Sensore -->
+    <!-- MODAL TERMINAZIONE SENSORE -->
     <dialog ref="endModal" class="modal">
-      <div class="modal-box">
-        <h3 class="font-black text-lg mb-4">Termina Sensore</h3>
-        <p class="text-sm opacity-70 mb-4">Il sensore verrà spostato nello storico con la data odierna.</p>
-        
-        <div class="form-control mb-4">
-          <label class="label py-1">
-            <span class="label-text text-xs font-black uppercase opacity-50">Nota (opzionale)</span>
-          </label>
-          <textarea 
-            v-model="endNote" 
-            class="textarea textarea-bordered h-24 text-xs" 
-            placeholder="Spiega perché il sensore è durato meno di 15 giorni..."
-          ></textarea>
+      <div
+        class="modal-box bg-gradient-to-br from-base-200 to-base-300 border border-base-content/10 shadow-2xl shadow-black/10 rounded-2xl md:rounded-3xl p-4 md:p-6">
+
+        <!-- Header Modal -->
+        <div class="flex items-center gap-2 md:gap-3 mb-4">
+          <div class="p-2 md:p-3 bg-warning/10 rounded-lg md:rounded-xl shadow-sm">
+            <i class="fa-solid fa-flag-checkered text-warning text-lg md:text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-base md:text-lg font-black uppercase tracking-tight leading-none">
+              Termina Sensore
+            </h3>
+            <span class="text-[9px] md:text-[10px] font-black opacity-40 uppercase tracking-widest">
+              Chiusura Anticipata o Scadenza
+            </span>
+          </div>
         </div>
 
+        <p class="text-xs md:text-sm opacity-70 mb-4 leading-relaxed">
+          Il sensore verrà spostato nello storico con la data odierna.
+          Puoi aggiungere una nota per indicare il motivo della terminazione anticipata.
+        </p>
+
+        <!-- Nota -->
+        <div class="space-y-1 md:space-y-2 mb-6">
+          <label class="text-[10px] font-black uppercase opacity-40">Nota (opzionale)</label>
+          <textarea v-model="endNote"
+            class="textarea textarea-bordered h-28 text-xs font-black border-warning/30 focus:border-warning w-full rounded-lg md:rounded-xl shadow-sm"
+            placeholder="Spiega perché il sensore è durato meno di 15 giorni..."></textarea>
+        </div>
+
+        <!-- Pulsanti -->
         <div class="flex justify-end gap-2">
-          <button @click="closeEndModal" class="btn btn-ghost btn-sm">Annulla</button>
-          <button 
-            @click="confirmEndSensor" 
-            class="btn btn-warning btn-sm font-black uppercase"
-            :disabled="store.loading"
-          >
-            <span v-if="store.loading" class="loading loading-spinner"></span>
-            Conferma
+          <button @click="closeEndModal"
+            class="btn btn-ghost btn-sm md:btn-md px-4 font-black uppercase tracking-widest opacity-60 hover:opacity-100">
+            Annulla
+          </button>
+
+          <button @click="confirmEndSensor"
+            class="btn btn-warning btn-sm md:btn-md px-6 font-black uppercase tracking-widest shadow-md md:shadow-lg shadow-warning/40"
+            :disabled="store.loading">
+            <span v-if="store.loading" class="loading loading-spinner loading-xs md:loading-sm"></span>
+            <span v-else>Conferma</span>
           </button>
         </div>
+
       </div>
+
       <form method="dialog" class="modal-backdrop">
         <button @click="closeEndModal">close</button>
       </form>
     </dialog>
+
   </div>
 </template>
+
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
@@ -205,9 +290,9 @@ onMounted(async () => {
 
 function formatDate(dateStr) {
   const date = new Date(dateStr)
-  return date.toLocaleDateString('it-IT', { 
-    day: '2-digit', 
-    month: '2-digit', 
+  return date.toLocaleDateString('it-IT', {
+    day: '2-digit',
+    month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
@@ -220,7 +305,7 @@ function getCountdown(endDateStr) {
   const diffMs = end - now
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
   const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  
+
   if (diffMs <= 0) return 'Scaduto'
   if (diffDays > 0) return `${diffDays}g ${diffHours}h rimanenti`
   return `${diffHours}h rimanenti`
@@ -236,13 +321,13 @@ function isEarlyEnd(sensor) {
 
 async function addSensor() {
   if (!newSensor.serial_number.trim()) return
-  
+
   await store.addSensor(
     newSensor.serial_number,
     newSensor.lot_number,
     newSensor.start_date
   )
-  
+
   if (!store.error) {
     newSensor.serial_number = ''
     newSensor.lot_number = ''
@@ -264,13 +349,13 @@ function closeEndModal() {
 
 async function confirmEndSensor() {
   if (!sensorToEnd.value) return
-  
+
   await store.endSensor(
     sensorToEnd.value.id,
     new Date().toISOString(),
     endNote.value
   )
-  
+
   if (!store.error) {
     closeEndModal()
   }

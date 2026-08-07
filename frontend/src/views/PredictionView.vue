@@ -5,7 +5,7 @@
       <div class="card-body p-6">
         <div class="flex items-center gap-4">
           <div class="p-3 bg-secondary/10 rounded-2xl">
-            <i class="fi fi-sr-chart-line-up text-secondary text-2xl leading-none"></i>
+            <i class="fa-solid fa-chart-line text-secondary text-2xl leading-none"></i>
           </div>
           <div>
             <h1 class="text-3xl font-black uppercase tracking-tight leading-none italic">Predizione Glicemia</h1>
@@ -16,8 +16,9 @@
     </div>
 
     <!-- Nessun dato -->
-    <div v-if="!store.readings.length && !store.loading" class="flex flex-col items-center justify-center py-20 opacity-30 gap-4">
-      <i class="fi fi-sr-database text-4xl"></i>
+    <div v-if="!store.readings.length && !store.loading"
+      class="flex flex-col items-center justify-center py-20 opacity-30 gap-4">
+      <i class="fa-solid fa-database text-4xl"></i>
       <span class="text-base font-black uppercase tracking-widest">Dati insufficienti per la predizione</span>
     </div>
 
@@ -27,8 +28,10 @@
         <div class="card bg-base-200 shadow-sm border border-base-content/10 h-[450px]">
           <div class="card-body p-6">
             <div class="flex items-center justify-between mb-4">
-              <span class="text-xs font-black uppercase tracking-widest opacity-40">Andamento e Previsione (60 min)</span>
-              <div class="badge badge-secondary badge-outline font-black text-[10px] uppercase tracking-widest">Live Forecast</div>
+              <span class="text-xs font-black uppercase tracking-widest opacity-40">Andamento e Previsione (60
+                min)</span>
+              <div class="badge badge-secondary badge-outline font-black text-[10px] uppercase tracking-widest">Live
+                Forecast</div>
             </div>
             <div class="relative flex-1 h-full">
               <Line v-if="chartData" :data="chartData" :options="chartOptions" />
@@ -61,12 +64,14 @@
               </div>
               <div class="flex flex-col">
                 <span class="text-[10px] font-black uppercase opacity-50 text-current">Trend</span>
-                <span class="text-xl font-black italic leading-none">{{ store.prediction?.roc > 0 ? '+' : '' }}{{ store.prediction?.roc || '0.00' }}</span>
+                <span class="text-xl font-black italic leading-none">{{ store.prediction?.roc > 0 ? '+' : '' }}{{
+                  store.prediction?.roc || '0.00' }}</span>
               </div>
             </div>
 
             <div class="mt-4 w-full">
-              <div class="badge w-full py-4 font-black text-xs uppercase tracking-widest border-none" :class="riskBadgeClass">
+              <div class="badge w-full py-4 font-black text-xs uppercase tracking-widest border-none"
+                :class="riskBadgeClass">
                 Rischio: {{ riskLabelText }}
               </div>
             </div>
@@ -85,6 +90,7 @@
                 </div>
                 <span class="text-sm font-black">{{ store.prediction?.current }} mg/dL</span>
               </div>
+
               <div class="flex items-center justify-between bg-base-300/30 p-3 rounded-2xl">
                 <div class="flex items-center gap-3">
                   <div class="w-2.5 h-2.5 rounded-full" :class="trendIconColor"></div>
@@ -92,6 +98,7 @@
                 </div>
                 <span class="text-sm font-black">{{ store.prediction?.roc }} mg/m</span>
               </div>
+
               <div class="flex items-center justify-between bg-base-300/30 p-3 rounded-2xl">
                 <div class="flex items-center gap-3">
                   <div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
@@ -99,6 +106,7 @@
                 </div>
                 <span class="text-sm font-black">{{ store.iob.toFixed(1) }} U</span>
               </div>
+
               <div class="flex items-center justify-between bg-base-300/30 p-3 rounded-2xl">
                 <div class="flex items-center gap-3">
                   <div class="w-2.5 h-2.5 rounded-full bg-accent"></div>
@@ -107,6 +115,7 @@
                 <span class="text-sm font-black">{{ Math.round(store.cob) }} g</span>
               </div>
             </div>
+
             <p class="text-[11px] opacity-40 italic mt-auto leading-relaxed">
               * Algoritmo Matematico v2.0 (Linear ROC + IOB/COB + Smoothing). Non utilizzare per decisioni mediche.
             </p>
@@ -119,36 +128,41 @@
     <div class="card bg-base-200 shadow-sm border border-base-content/10">
       <div class="card-body p-6 gap-6">
         <div class="flex items-center gap-3">
-          <i class="fi fi-sr-info text-primary text-lg"></i>
-          <span class="text-sm font-black uppercase tracking-widest opacity-50">Come funziona la previsione? (Algoritmo v2.0)</span>
+          <i class="fa-solid fa-circle-info text-primary text-lg"></i>
+          <span class="text-sm font-black uppercase tracking-widest opacity-50">Come funziona la previsione? (Algoritmo
+            v2.0)</span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="flex flex-col gap-2">
             <span class="text-xs font-black uppercase text-secondary italic">1. Smussamento</span>
             <p class="text-sm opacity-70 leading-relaxed">
-              Viene calcolata la media mobile delle ultime 5 letture (25 min) per ridurre il rumore del sensore ed evitare previsioni troppo aggressive causate da singoli salti.
+              Viene calcolata la media mobile delle ultime 5 letture (25 min) per ridurre il rumore del sensore ed
+              evitare previsioni troppo aggressive causate da singoli salti.
             </p>
           </div>
 
           <div class="flex flex-col gap-2">
             <span class="text-xs font-black uppercase text-secondary italic">2. Rate of Change (ROC)</span>
             <p class="text-sm opacity-70 leading-relaxed">
-              Si analizza la velocità di variazione (mg/dL al minuto) dell'ultima mezz'ora. Se la variazione è rapida (> 2 mg/dL/m), viene applicato un fattore correttivo del +15%.
+              Si analizza la velocità di variazione (mg/dL al minuto) dell'ultima mezz'ora. Se la variazione è rapida (>
+              2 mg/dL/m), viene applicato un fattore correttivo del +15%.
             </p>
           </div>
 
           <div class="flex flex-col gap-2">
             <span class="text-xs font-black uppercase text-secondary italic">3. Impatto Insulina (IOB)</span>
             <p class="text-sm opacity-70 leading-relaxed">
-              Utilizza la tua <strong>Sensibilità (ISF)</strong> impostata per sottrarre l'effetto dell'insulina che deve ancora agire nei prossimi 60 minuti dalla proiezione lineare.
+              Utilizza la tua <strong>Sensibilità (ISF)</strong> impostata per sottrarre l'effetto dell'insulina che
+              deve ancora agire nei prossimi 60 minuti dalla proiezione lineare.
             </p>
           </div>
 
           <div class="flex flex-col gap-2">
             <span class="text-xs font-black uppercase text-secondary italic">4. Impatto Carboidrati (COB)</span>
             <p class="text-sm opacity-70 leading-relaxed">
-              Calcola il rialzo previsto in base al tuo <strong>Rapporto I/C</strong>. Ogni grammo di carboidrati residui alza la proiezione seguendo una curva di assorbimento lineare.
+              Calcola il rialzo previsto in base al tuo <strong>Rapporto I/C</strong>. Ogni grammo di carboidrati
+              residui alza la proiezione seguendo una curva di assorbimento lineare.
             </p>
           </div>
         </div>
@@ -164,6 +178,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { onMounted, onUnmounted, computed } from 'vue'

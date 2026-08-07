@@ -1,0 +1,106 @@
+[
+  {
+    "category": "Primi",
+    "foods": [
+      { "name": "Gnocchi di patate", "cho": 30 },
+      { "name": "Cous cous", "cho": 73 },
+      { "name": "Farro", "cho": 67 },
+      { "name": "Orzo", "cho": 73 },
+      { "name": "Quinoa", "cho": 64 },
+      { "name": "Avena", "cho": 60 },
+      { "name": "Patate", "cho": 17 },
+      { "name": "Patate dolci", "cho": 20 },
+      { "name": "Lasagne", "cho": 25 },
+      { "name": "Ravioli", "cho": 30 },
+      { "name": "Tortellini", "cho": 35 }
+    ]
+  },
+  {
+    "category": "Secondi",
+    "foods": [
+      { "name": "Prosciutto cotto", "cho": 1 },
+      { "name": "Prosciutto crudo", "cho": 1 },
+      { "name": "Mortadella", "cho": 1 },
+      { "name": "Salsiccia", "cho": 2 },
+      { "name": "Hamburger", "cho": 2 },
+      { "name": "Polpette", "cho": 5 },
+      { "name": "Wurstel", "cho": 3 }
+    ]
+  },
+  {
+    "category": "Contorni",
+    "foods": [
+      { "name": "Carote", "cho": 10 },
+      { "name": "Piselli", "cho": 14 },
+      { "name": "Mais", "cho": 19 },
+      { "name": "Zucca", "cho": 7 },
+      { "name": "Cipolle", "cho": 9 },
+      { "name": "Pomodori", "cho": 4 },
+      { "name": "Zucchine", "cho": 3 },
+      { "name": "Melanzane", "cho": 6 },
+      { "name": "Peperoni", "cho": 6 },
+      { "name": "Broccoli", "cho": 4 },
+      { "name": "Cavolfiore", "cho": 5 },
+      { "name": "Fagiolini", "cho": 4 },
+      { "name": "Funghi", "cho": 2 }
+    ]
+  },
+  {
+    "category": "Frutta",
+    "foods": [
+      { "name": "Mela", "cho": 14 },
+      { "name": "Pera", "cho": 15 },
+      { "name": "Banana", "cho": 23 },
+      { "name": "Albicocca", "cho": 11 },
+      { "name": "Arancia", "cho": 12 },
+      { "name": "Mandarino", "cho": 13 },
+      { "name": "Kiwi", "cho": 15 },
+      { "name": "Fragole", "cho": 8 },
+      { "name": "Ciliegie", "cho": 16 },
+      { "name": "Uva", "cho": 18 },
+      { "name": "Anguria", "cho": 8 },
+      { "name": "Melone", "cho": 8 },
+      { "name": "Ananas", "cho": 13 },
+      { "name": "Mango", "cho": 15 }
+    ]
+  },
+  {
+    "category": "Latticini",
+    "foods": [
+      { "name": "Latte intero", "cho": 5 },
+      { "name": "Latte scremato", "cho": 5 },
+      { "name": "Yogurt bianco", "cho": 5 },
+      { "name": "Yogurt alla frutta", "cho": 15 },
+      { "name": "Yogurt greco", "cho": 4 },
+      { "name": "Mozzarella", "cho": 1 },
+      { "name": "Ricotta", "cho": 3 },
+      { "name": "Formaggio spalmabile", "cho": 4 },
+      { "name": "Budino", "cho": 15 }
+    ]
+  },
+  {
+    "category": "Bevande",
+    "foods": [
+      { "name": "Succo di frutta", "cho": 11 },
+      { "name": "Coca Cola", "cho": 11 },
+      { "name": "Aranciata", "cho": 10 },
+      { "name": "Tè zuccherato", "cho": 8 },
+      { "name": "Latte e cacao", "cho": 12 },
+      { "name": "Frullato di frutta", "cho": 15 }
+    ]
+  },
+  {
+    "category": "Prodotti da forno",
+    "foods": [
+      { "name": "Pizza margherita", "cho": 30 },
+      { "name": "Focaccia", "cho": 50 },
+      { "name": "Piadina", "cho": 55 },
+      { "name": "Cracker", "cho": 65 },
+      { "name": "Grissini", "cho": 70 },
+      { "name": "Biscotti secchi", "cho": 73 },
+      { "name": "Cornetto", "cho": 50 },
+      { "name": "Panino", "cho": 55 },
+      { "name": "Crostata", "cho": 45 }
+    ]
+  }
+]
