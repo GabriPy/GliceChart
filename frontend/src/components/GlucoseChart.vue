@@ -132,7 +132,8 @@ const loading = computed(() => props.loading || store.chartLoading)
 // showContext: true when explicitly asked or when using readings (historical view)
 const showContext = computed(() => !!props.showContextInfo || isHistory.value)
 
-// Groups overlapping insulin entries into clusters and orders items (slow first, then rapid; within each by startTime)
+// Assigns insulin entries to rows using a greedy algorithm that reuses free rows
+// Slow insulin always gets the lowest rows, rapid insulin gets higher rows
 function getInsulinRenderingGroups(insArray = [], xMin, xMax) {
   const entries = (insArray || []).map(ins => {
     const start = new Date(ins.timestamp).getTime()
@@ -142,24 +143,62 @@ function getInsulinRenderingGroups(insArray = [], xMin, xMax) {
     return { ...ins, startTime: start, endTime: end }
   }).filter(e => !(e.endTime < xMin || e.startTime > xMax))
 
-  entries.sort((a, b) => a.startTime - b.startTime)
-  const groups = []
-  entries.forEach(e => {
-    let g = groups.find(g => e.startTime <= g.maxEnd)
-    if (!g) { g = { items: [], maxEnd: e.endTime }; groups.push(g) }
-    g.items.push(e)
-    g.maxEnd = Math.max(g.maxEnd, e.endTime)
+  // Separate slow and rapid insulin
+  const slowEntries = entries.filter(e => e.type === 'slow').sort((a, b) => a.startTime - b.startTime)
+  const rapidEntries = entries.filter(e => e.type === 'rapid').sort((a, b) => a.startTime - b.startTime)
+  
+  // Track rows as arrays of items
+  const rows = []
+  
+  // First assign slow insulin (they get lower rows)
+  slowEntries.forEach(e => {
+    let foundRowIndex = -1
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i]
+      const hasOverlap = row.some(item => 
+        item.endTime > e.startTime && item.startTime < e.endTime
+      )
+      if (!hasOverlap) {
+        foundRowIndex = i
+        break
+      }
+    }
+    
+    if (foundRowIndex === -1) {
+      foundRowIndex = rows.length
+      rows[foundRowIndex] = []
+    }
+    
+    e._offsetIndex = foundRowIndex
+    rows[foundRowIndex].push(e)
+  })
+  
+  // Then assign rapid insulin (they can reuse higher rows or create new ones above)
+  rapidEntries.forEach(e => {
+    let foundRowIndex = -1
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i]
+      const hasOverlap = row.some(item => 
+        item.endTime > e.startTime && item.startTime < e.endTime
+      )
+      if (!hasOverlap) {
+        foundRowIndex = i
+        break
+      }
+    }
+    
+    if (foundRowIndex === -1) {
+      foundRowIndex = rows.length
+      rows[foundRowIndex] = []
+    }
+    
+    e._offsetIndex = foundRowIndex
+    rows[foundRowIndex].push(e)
   })
 
-  // Order within group: slow first, then rapid; within same type by startTime
-  groups.forEach(g => {
-    g.items.sort((a, b) => {
-      if (a.type !== b.type) return a.type === 'slow' ? -1 : 1
-      return a.startTime - b.startTime
-    })
-    g.items.forEach((it, idx) => { it._offsetIndex = idx })
-  })
-
+  // Convert rows array to groups format for compatibility
+  const groups = rows.map(items => ({ items, maxEnd: Math.max(...items.map(i => i.endTime)) }))
+  
   return groups
 }
 

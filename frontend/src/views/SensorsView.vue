@@ -192,7 +192,7 @@
                     </button>
 
                     <!-- Elimina -->
-                    <button @click="deleteSensor(sensor.id)" class="btn btn-ghost btn-xs btn-circle text-error"
+                    <button @click="openDeleteModal(sensor.id)" class="btn btn-ghost btn-xs btn-circle text-error"
                       title="Elimina">
                       <i class="fa-solid fa-trash text-[10px]"></i>
                     </button>
@@ -265,6 +265,52 @@
       </form>
     </dialog>
 
+    <!-- MODAL ELIMINAZIONE SENSORE -->
+    <dialog ref="deleteModal" class="modal">
+      <div
+        class="modal-box bg-gradient-to-br from-base-200 to-base-300 border border-base-content/10 shadow-2xl shadow-black/10 rounded-2xl md:rounded-3xl p-4 md:p-6">
+
+        <!-- Header Modal -->
+        <div class="flex items-center gap-2 md:gap-3 mb-4">
+          <div class="p-2 md:p-3 bg-error/10 rounded-lg md:rounded-xl shadow-sm">
+            <i class="fa-solid fa-trash text-error text-lg md:text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-base md:text-lg font-black uppercase tracking-tight leading-none">
+              Elimina Sensore
+            </h3>
+            <span class="text-[9px] md:text-[10px] font-black opacity-40 uppercase tracking-widest">
+              Rimozione Definitiva
+            </span>
+          </div>
+        </div>
+
+        <p class="text-xs md:text-sm opacity-70 mb-6 leading-relaxed">
+          Sei sicuro di voler eliminare questo sensore? Questa azione non può essere annullata.
+        </p>
+
+        <!-- Buttons -->
+        <div class="flex gap-3 justify-end">
+          <button @click="closeDeleteModal"
+            class="btn btn-ghost btn-sm md:btn-md font-black uppercase tracking-widest">
+            Annulla
+          </button>
+
+          <button @click="confirmDeleteSensor"
+            class="btn btn-error btn-sm md:btn-md px-6 font-black uppercase tracking-widest shadow-md md:shadow-lg shadow-error/40"
+            :disabled="store.loading">
+            <span v-if="store.loading" class="loading loading-spinner loading-xs md:loading-sm"></span>
+            <span v-else>Elimina</span>
+          </button>
+        </div>
+
+      </div>
+
+      <form method="dialog" class="modal-backdrop">
+        <button @click="closeDeleteModal">close</button>
+      </form>
+    </dialog>
+
   </div>
 </template>
 
@@ -275,8 +321,10 @@ import { useGlucoseStore } from '../stores/glucose'
 
 const store = useGlucoseStore()
 const endModal = ref(null)
+const deleteModal = ref(null)
 const endNote = ref('')
 const sensorToEnd = ref(null)
+const sensorToDelete = ref(null)
 
 const newSensor = reactive({
   serial_number: '',
@@ -361,9 +409,20 @@ async function confirmEndSensor() {
   }
 }
 
-async function deleteSensor(id) {
-  if (confirm('Sei sicuro di voler eliminare questo sensore?')) {
-    await store.deleteSensor(id)
+function openDeleteModal(id) {
+  sensorToDelete.value = id
+  deleteModal.value.showModal()
+}
+
+function closeDeleteModal() {
+  deleteModal.value.close()
+  sensorToDelete.value = null
+}
+
+async function confirmDeleteSensor() {
+  if (sensorToDelete.value) {
+    await store.deleteSensor(sensorToDelete.value)
+    closeDeleteModal()
   }
 }
 </script>

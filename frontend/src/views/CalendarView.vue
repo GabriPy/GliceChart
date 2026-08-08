@@ -328,6 +328,47 @@
       </form>
     </dialog>
 
+    <!-- Modal Conferma Eliminazione -->
+    <dialog id="delete_modal" class="modal">
+      <div
+        class="modal-box bg-gradient-to-br from-base-200 to-base-300 border border-base-content/10 shadow-2xl shadow-black/10 rounded-2xl md:rounded-3xl p-4 md:p-6">
+        <div class="flex items-center gap-2 md:gap-3 mb-4">
+          <div class="p-2 md:p-3 bg-error/10 rounded-lg md:rounded-xl shadow-sm">
+            <i class="fa-solid fa-trash text-error text-lg md:text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-base md:text-lg font-black uppercase tracking-tight leading-none">
+              Elimina Record
+            </h3>
+            <span class="text-[9px] md:text-[10px] font-black opacity-40 uppercase tracking-widest">
+              Rimozione Definitiva
+            </span>
+          </div>
+        </div>
+
+        <p class="text-xs md:text-sm opacity-70 mb-6 leading-relaxed">
+          Sei sicuro di voler eliminare questo record? Questa azione non può essere annullata.
+        </p>
+
+        <div class="modal-action gap-2">
+          <form method="dialog">
+            <button class="btn btn-ghost uppercase font-black text-xs">Annulla</button>
+          </form>
+
+          <button @click="confirmDelete"
+            class="btn btn-error uppercase font-black text-xs px-8 shadow-md shadow-error/40"
+            :disabled="store.loading">
+            <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
+            <span v-else>Elimina</span>
+          </button>
+        </div>
+      </div>
+
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+
   </div>
 </template>
 
@@ -344,6 +385,8 @@ const store = useGlucoseStore()
 // ── Gestione Modifica / Aggiunta ───────────────────────────────────────────
 const editingItem = ref(null)
 const isEditing = ref(false)
+const deleteType = ref(null)
+const deleteId = ref(null)
 const editForm = reactive({
   id: null,
   units: 1,
@@ -455,13 +498,18 @@ async function handleSave() {
 }
 
 async function handleDelete(type, id) {
-  if (!confirm('Sei sicuro di voler eliminare questo record?')) return
+  deleteType.value = type
+  deleteId.value = id
+  document.getElementById('delete_modal').showModal()
+}
 
+async function confirmDelete() {
   try {
-    if (type === 'insulin') await store.removeInsulin(id)
-    else if (type === 'carb') await store.removeCarb(id)
-    else if (type === 'note') await store.removeNote(id)
+    if (deleteType.value === 'insulin') await store.removeInsulin(deleteId.value)
+    else if (deleteType.value === 'carb') await store.removeCarb(deleteId.value)
+    else if (deleteType.value === 'note') await store.removeNote(deleteId.value)
 
+    document.getElementById('delete_modal').close()
     await fetchDayData() // Rinfresca il calendario
   } catch (err) {
     console.error('Errore durante l\'eliminazione:', err)

@@ -362,7 +362,7 @@
         </div>
 
         <div class="flex items-center gap-2 md:gap-3 w-full sm:w-auto">
-          <button @click="resetToDefaults"
+          <button @click="openResetModal"
             class="btn btn-ghost btn-xs md:btn-sm px-3 md:px-6 font-black uppercase tracking-widest opacity-50 hover:opacity-100 transition-all flex-1 sm:flex-none"
             :disabled="store.loading">
             <i class="fa-solid fa-rotate-right mr-1 md:mr-2"></i>
@@ -390,6 +390,47 @@
 
     <!-- Export Modal -->
     <ExportModal :is-open="showExportModal" @close="showExportModal = false" />
+
+    <!-- Modal Conferma Ripristino -->
+    <dialog id="reset_modal" class="modal">
+      <div
+        class="modal-box bg-gradient-to-br from-base-200 to-base-300 border border-base-content/10 shadow-2xl shadow-black/10 rounded-2xl md:rounded-3xl p-4 md:p-6">
+        <div class="flex items-center gap-2 md:gap-3 mb-4">
+          <div class="p-2 md:p-3 bg-warning/10 rounded-lg md:rounded-xl shadow-sm">
+            <i class="fa-solid fa-rotate-right text-warning text-lg md:text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-base md:text-lg font-black uppercase tracking-tight leading-none">
+              Ripristina Impostazioni
+            </h3>
+            <span class="text-[9px] md:text-[10px] font-black opacity-40 uppercase tracking-widest">
+              Valori Predefiniti
+            </span>
+          </div>
+        </div>
+
+        <p class="text-xs md:text-sm opacity-70 mb-6 leading-relaxed">
+          Sei sicuro di voler ripristinare i valori predefiniti? Tutte le tue impostazioni personalizzate verranno perse.
+        </p>
+
+        <div class="modal-action gap-2">
+          <form method="dialog">
+            <button class="btn btn-ghost uppercase font-black text-xs">Annulla</button>
+          </form>
+
+          <button @click="confirmReset"
+            class="btn btn-warning uppercase font-black text-xs px-8 shadow-md shadow-warning/40"
+            :disabled="store.loading">
+            <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
+            <span v-else>Ripristina</span>
+          </button>
+        </div>
+      </div>
+
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
   </div>
 </template>
 
@@ -466,13 +507,21 @@ function updateFormFromStore() {
   form.telegram_daily_summary_time = store.settings.telegram_daily_summary_time || '21:00'
 }
 
+function openResetModal() {
+  document.getElementById('reset_modal').showModal()
+}
+
+async function confirmReset() {
+  await store.resetSettings()
+  updateFormFromStore()
+  document.getElementById('reset_modal').close()
+  saved.value = true
+  setTimeout(() => saved.value = false, 3000)
+}
+
 async function resetToDefaults() {
-  if (confirm('Sei sicuro di voler ripristinare i valori predefiniti?')) {
-    await store.resetSettings()
-    updateFormFromStore()
-    saved.value = true
-    setTimeout(() => saved.value = false, 3000)
-  }
+  // Funzione mantenuta per compatibilità, ma non più utilizzata
+  openResetModal()
 }
 
 async function save() {
