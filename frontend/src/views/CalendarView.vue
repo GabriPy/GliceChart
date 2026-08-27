@@ -18,16 +18,14 @@
               <i class="fa-solid fa-calendar text-primary text-xl md:text-2xl"></i>
             </div>
             <div>
-              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">Calendario Glicemico
-              </h2>
-              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">Analisi Storica
-                Giornaliera</span>
+              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{ $t('calendar.title') }}</h2>
+              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{ $t('calendar.subtitle') }}</span>
             </div>
           </div>
 
           <div
             class="flex items-center gap-2 bg-base-100/50 p-1.5 rounded-xl md:rounded-2xl border border-base-content/10 shadow-sm">
-            <button @click="changeDate(-1)" class="btn btn-ghost btn-xs btn-circle font-black">
+            <button @click="changeDate(-1)" class="btn btn-ghost btn-xs btn-circle font-black" :title="$t('calendar.prevDay')" :aria-label="$t('calendar.prevDay')">
               <i class="fa-solid fa-angle-left"></i>
             </button>
 
@@ -37,14 +35,14 @@
                 @change="fetchDayData" />
             </div>
 
-            <button @click="changeDate(1)" class="btn btn-ghost btn-xs btn-circle font-black">
+            <button @click="changeDate(1)" class="btn btn-ghost btn-xs btn-circle font-black" :title="$t('calendar.nextDay')" :aria-label="$t('calendar.nextDay')">
               <i class="fa-solid fa-angle-right"></i>
             </button>
 
             <div class="divider divider-horizontal mx-0 opacity-20"></div>
 
             <button @click="setToday" class="btn btn-ghost btn-xs px-2 font-black uppercase text-[8px] tracking-widest">
-              Oggi
+              {{ $t('calendar.today') }}
             </button>
           </div>
         </div>
@@ -54,7 +52,7 @@
     <!-- Grafico del Giorno -->
     <div class="grid grid-cols-1">
       <GlucoseChart :readings="store.historyReadings" :insulin="store.historyChartInsulin" :carbs="store.historyCarbs"
-        :notes="store.historyNotes" :title="`Andamento del ${formatDate(selectedDate)}`" :loading="store.historyLoading"
+        :notes="store.historyNotes" :title="$t('calendar.trendTitle', { date: formatDate(selectedDate) })" :loading="store.historyLoading"
         fullDay :date="selectedDate" show-context-info />
     </div>
 
@@ -71,12 +69,12 @@
                 <i class="fa-solid fa-syringe text-primary text-lg md:text-xl"></i>
               </div>
               <div class="flex items-center gap-2">
-                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Insuline</h3>
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('calendar.insulinSection') }}</h3>
                 <span class="px-2 py-0.5 rounded-md bg-primary/10 text-[9px] font-black text-primary">{{
                   store.historyInsulin.length }}</span>
               </div>
             </div>
-            <button @click="startAdd('insulin')" class="btn btn-ghost btn-xs btn-circle text-primary shadow-sm">
+            <button @click="startAdd('insulin')" class="btn btn-ghost btn-xs btn-circle text-primary shadow-sm" :title="$t('calendar.addInsulin')">
               <i class="fa-solid fa-plus text-lg"></i>
             </button>
           </div>
@@ -88,7 +86,7 @@
 
             <div v-else class="space-y-2">
               <div v-if="!store.historyInsulin.length" class="py-8 text-center opacity-20">
-                <span class="text-[10px] font-black uppercase tracking-widest">Nessun dato</span>
+                <span class="text-[10px] font-black uppercase tracking-widest">{{ $t('common.noDataAvailable') }}</span>
               </div>
 
               <div v-for="ins in sortedHistoryInsulin" :key="ins.id"
@@ -100,10 +98,9 @@
 
                   <div class="flex flex-col">
                     <div class="flex items-center gap-2 leading-none">
-                      <span class="text-sm font-black tracking-tight">{{ ins.units.toString().replace(',', '.')
-                      }}U</span>
+                      <span class="text-sm font-black tracking-tight">{{ ins.units.toString().replace(',', '.') }}{{ $t('common.unitSymbol') }}</span>
                       <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-base-300/50 opacity-60">
-                        {{ ins.type === 'rapid' ? 'Rapida' : 'Lenta' }}
+                        {{ ins.type === 'rapid' ? $t('home.rapid') : $t('home.slow') }}
                       </span>
                     </div>
                     <span class="text-[9px] font-black opacity-30 uppercase tracking-wider mt-1">{{
@@ -112,10 +109,10 @@
                 </div>
 
                 <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button @click="startEdit('insulin', ins)" class="btn btn-ghost btn-xs btn-circle text-info">
+                  <button @click="startEdit('insulin', ins)" class="btn btn-ghost btn-xs btn-circle text-info" :title="$t('common.edit')">
                     <i class="fa-solid fa-pencil text-[10px]"></i>
                   </button>
-                  <button @click="handleDelete('insulin', ins.id)" class="btn btn-ghost btn-xs btn-circle text-error">
+                  <button @click="handleDelete('insulin', ins.id)" class="btn btn-ghost btn-xs btn-circle text-error" :title="$t('common.delete')">
                     <i class="fa-solid fa-trash text-[10px]"></i>
                   </button>
                 </div>
@@ -135,12 +132,12 @@
                 <i class="fa-solid fa-bread-slice text-accent text-lg md:text-xl"></i>
               </div>
               <div class="flex items-center gap-2">
-                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Carboidrati</h3>
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('calendar.carbsSection') }}</h3>
                 <span class="px-2 py-0.5 rounded-md bg-accent/10 text-[9px] font-black text-accent">{{
                   store.historyCarbs.length }}</span>
               </div>
             </div>
-            <button @click="startAdd('carb')" class="btn btn-ghost btn-xs btn-circle text-accent shadow-sm">
+            <button @click="startAdd('carb')" class="btn btn-ghost btn-xs btn-circle text-accent shadow-sm" :title="$t('calendar.addCarb')">
               <i class="fa-solid fa-plus text-lg"></i>
             </button>
           </div>
@@ -152,7 +149,7 @@
 
             <div v-else class="space-y-2">
               <div v-if="!store.historyCarbs.length" class="py-8 text-center opacity-20">
-                <span class="text-[10px] font-black uppercase tracking-widest">Nessun dato</span>
+                <span class="text-[10px] font-black uppercase tracking-widest">{{ $t('common.noDataAvailable') }}</span>
               </div>
 
               <div v-for="carb in sortedHistoryCarbs" :key="carb.id"
@@ -162,7 +159,7 @@
 
                   <div class="flex flex-col">
                     <div class="flex items-center gap-2 leading-none">
-                      <span class="text-sm font-black tracking-tight text-accent">{{ carb.amount }}g</span>
+                      <span class="text-sm font-black tracking-tight text-accent">{{ carb.amount }}{{ $t('common.gramSymbol') }}</span>
                       <span
                         class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-base-300/50 opacity-60">CHO</span>
                     </div>
@@ -172,10 +169,10 @@
                 </div>
 
                 <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button @click="startEdit('carb', carb)" class="btn btn-ghost btn-xs btn-circle text-info">
+                  <button @click="startEdit('carb', carb)" class="btn btn-ghost btn-xs btn-circle text-info" :title="$t('common.edit')">
                     <i class="fa-solid fa-pencil text-[10px]"></i>
                   </button>
-                  <button @click="handleDelete('carb', carb.id)" class="btn btn-ghost btn-xs btn-circle text-error">
+                  <button @click="handleDelete('carb', carb.id)" class="btn btn-ghost btn-xs btn-circle text-error" :title="$t('common.delete')">
                     <i class="fa-solid fa-trash text-[10px]"></i>
                   </button>
                 </div>
@@ -195,12 +192,12 @@
                 <i class="fa-solid fa-note-sticky text-info text-lg md:text-xl"></i>
               </div>
               <div class="flex items-center gap-2">
-                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Note ed Eventi</h3>
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('calendar.notesSection') }}</h3>
                 <span class="px-2 py-0.5 rounded-md bg-info/10 text-[9px] font-black text-info">{{
                   store.historyNotes.length }}</span>
               </div>
             </div>
-            <button @click="startAdd('note')" class="btn btn-ghost btn-xs btn-circle text-info shadow-sm">
+            <button @click="startAdd('note')" class="btn btn-ghost btn-xs btn-circle text-info shadow-sm" :title="$t('calendar.addNote')">
               <i class="fa-solid fa-plus text-lg"></i>
             </button>
           </div>
@@ -212,7 +209,7 @@
 
             <div v-else class="space-y-2">
               <div v-if="!store.historyNotes.length" class="py-8 text-center opacity-20">
-                <span class="text-[10px] font-black uppercase tracking-widest">Nessun dato</span>
+                <span class="text-[10px] font-black uppercase tracking-widest">{{ $t('common.noDataAvailable') }}</span>
               </div>
 
               <div v-for="note in sortedHistoryNotes" :key="note.id"
@@ -222,10 +219,10 @@
                     formatTime(note.timestamp) }}</span>
 
                   <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button @click="startEdit('note', note)" class="btn btn-ghost btn-xs btn-circle text-info">
+                    <button @click="startEdit('note', note)" class="btn btn-ghost btn-xs btn-circle text-info" :title="$t('common.edit')">
                       <i class="fa-solid fa-pencil text-[10px]"></i>
                     </button>
-                    <button @click="handleDelete('note', note.id)" class="btn btn-ghost btn-xs btn-circle text-error">
+                    <button @click="handleDelete('note', note.id)" class="btn btn-ghost btn-xs btn-circle text-error" :title="$t('common.delete')">
                       <i class="fa-solid fa-trash text-[10px]"></i>
                     </button>
                   </div>
@@ -249,8 +246,8 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-      <StatsChart title="Fasce Orarie" type="bar" :readings="store.historyReadings" />
-      <StatsChart title="Percentuale Range" type="doughnut" :readings="store.historyReadings" />
+      <StatsChart :title="$t('charts.hourlyDistribution')" type="bar" :readings="store.historyReadings" />
+      <StatsChart :title="$t('charts.timeInRangePie')" type="doughnut" :readings="store.historyReadings" />
     </div>
 
     <!-- Modal Modifica / Aggiunta -->
@@ -264,7 +261,7 @@
               :class="isEditing ? 'fa-solid fa-pencil text-primary' : 'fa-solid fa-plus text-success'"></i>
           </div>
           <h3 class="font-black text-base md:text-lg uppercase tracking-tight leading-none">
-            {{ isEditing ? 'Modifica' : 'Aggiungi' }} Record
+            {{ isEditing ? $t('calendar.editRecord') : $t('calendar.addRecord') }}
           </h3>
         </div>
 
@@ -272,23 +269,23 @@
 
           <template v-if="editingItem.type === 'insulin'">
             <div class="flex flex-col gap-1 md:gap-2">
-              <label class="text-[10px] font-black uppercase opacity-40">Unità</label>
+              <label class="text-[10px] font-black uppercase opacity-40">{{ $t('common.units') }}</label>
               <input type="number" step="0.5" v-model.number="editForm.units"
                 class="input input-bordered bg-base-100/50 font-black text-lg md:text-xl shadow-sm" />
             </div>
 
             <div class="flex flex-col gap-1 md:gap-2">
-              <label class="text-[10px] font-black uppercase opacity-40">Tipo</label>
+              <label class="text-[10px] font-black uppercase opacity-40">{{ $t('common.type') }}</label>
               <select v-model="editForm.insulinType" class="select select-bordered bg-base-100/50 font-black shadow-sm">
-                <option value="rapid">Rapida</option>
-                <option value="slow">Lenta</option>
+                <option value="rapid">{{ $t('home.rapid') }}</option>
+                <option value="slow">{{ $t('home.slow') }}</option>
               </select>
             </div>
           </template>
 
           <template v-else-if="editingItem.type === 'carb'">
             <div class="flex flex-col gap-1 md:gap-2">
-              <label class="text-[10px] font-black uppercase opacity-40">Quantità (g)</label>
+              <label class="text-[10px] font-black uppercase opacity-40">{{ $t('common.quantity') }} ({{ $t('common.gramSymbol') }})</label>
               <input type="number" v-model.number="editForm.amount"
                 class="input input-bordered bg-base-100/50 font-black text-lg md:text-xl shadow-sm" />
             </div>
@@ -296,14 +293,14 @@
 
           <template v-else-if="editingItem.type === 'note'">
             <div class="flex flex-col gap-1 md:gap-2">
-              <label class="text-[10px] font-black uppercase opacity-40">Testo Nota</label>
+              <label class="text-[10px] font-black uppercase opacity-40">{{ $t('notes.noteText') }}</label>
               <textarea v-model="editForm.text"
                 class="textarea textarea-bordered bg-base-100/50 font-bold h-24 shadow-sm"></textarea>
             </div>
           </template>
 
           <div class="flex flex-col gap-1 md:gap-2">
-            <label class="text-[10px] font-black uppercase opacity-40">Orario</label>
+            <label class="text-[10px] font-black uppercase opacity-40">{{ $t('common.time') }}</label>
             <input type="time" v-model="editForm.time"
               class="input input-bordered bg-base-100/50 font-black shadow-sm" />
           </div>
@@ -311,20 +308,20 @@
 
         <div class="modal-action gap-2">
           <form method="dialog">
-            <button class="btn btn-ghost uppercase font-black text-xs">Annulla</button>
+            <button class="btn btn-ghost uppercase font-black text-xs">{{ $t('common.cancel') }}</button>
           </form>
 
           <button @click="handleSave"
             class="btn btn-primary uppercase font-black text-xs px-8 shadow-md shadow-primary/40"
             :disabled="store.loading">
             <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
-            <template v-else>Salva Modifiche</template>
+            <template v-else>{{ $t('calendar.saveChanges') }}</template>
           </button>
         </div>
       </div>
 
       <form method="dialog" class="modal-backdrop">
-        <button>close</button>
+        <button>{{ $t('common.close') }}</button>
       </form>
     </dialog>
 
@@ -338,51 +335,51 @@
           </div>
           <div>
             <h3 class="text-base md:text-lg font-black uppercase tracking-tight leading-none">
-              Elimina Record
+              {{ $t('calendar.deleteRecordTitle') }}
             </h3>
             <span class="text-[9px] md:text-[10px] font-black opacity-40 uppercase tracking-widest">
-              Rimozione Definitiva
+              {{ $t('calendar.permanentDeleteSubtitle') }}
             </span>
           </div>
         </div>
 
         <p class="text-xs md:text-sm opacity-70 mb-6 leading-relaxed">
-          Sei sicuro di voler eliminare questo record? Questa azione non può essere annullata.
+          {{ $t('calendar.deleteConfirmation') }}
         </p>
 
         <div class="modal-action gap-2">
           <form method="dialog">
-            <button class="btn btn-ghost uppercase font-black text-xs">Annulla</button>
+            <button class="btn btn-ghost uppercase font-black text-xs">{{ $t('common.cancel') }}</button>
           </form>
 
           <button @click="confirmDelete"
             class="btn btn-error uppercase font-black text-xs px-8 shadow-md shadow-error/40"
             :disabled="store.loading">
             <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
-            <span v-else>Elimina</span>
+            <span v-else>{{ $t('common.delete') }}</span>
           </button>
         </div>
       </div>
 
       <form method="dialog" class="modal-backdrop">
-        <button>close</button>
+        <button>{{ $t('common.close') }}</button>
       </form>
     </dialog>
 
   </div>
 </template>
 
-
 <script setup>
 import { ref, onMounted, computed, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useGlucoseStore } from '../stores/glucose'
 import GlucoseChart from '../components/GlucoseChart.vue'
 import DailyStats from '../components/DailyStats.vue'
 import StatsChart from '../components/StatsChart.vue'
 
+const { t, locale } = useI18n()
 const store = useGlucoseStore()
 
-// ── Gestione Modifica / Aggiunta ───────────────────────────────────────────
 const editingItem = ref(null)
 const isEditing = ref(false)
 const deleteType = ref(null)
@@ -405,7 +402,6 @@ watch(() => editForm.units, (newVal) => {
 
 function startEdit(type, item) {
   isEditing.value = true
-  // We need to set the type first, and make sure the item's own 'type' property doesn't overwrite it!
   editingItem.value = { ...item, type }
   editForm.id = item.id
   editForm.time = formatTime24h(item.timestamp)
@@ -413,7 +409,7 @@ function startEdit(type, item) {
 
   if (type === 'insulin') {
     editForm.units = parseFloat(item.units)
-    editForm.insulinType = item.type // <-- here we use item.type (rapid/slow) for insulinType!
+    editForm.insulinType = item.type
   } else if (type === 'carb') {
     editForm.amount = parseInt(item.amount)
   } else if (type === 'note') {
@@ -428,12 +424,10 @@ function startAdd(type) {
   editingItem.value = { type }
   editForm.id = null
 
-  // Imposta l'orario attuale se è oggi, altrimenti le 12:00 del giorno selezionato
   const now = new Date()
   const isToday = selectedDate.value === getLocalDateString(now)
   editForm.time = isToday ? formatTime24h(now.toISOString()) : '12:00'
 
-  // Usa il giorno selezionato nel calendario, in fuso orario locale
   const [year, month, day] = selectedDate.value.split('-').map(Number)
   const baseDate = new Date(year, month - 1, day)
   editForm.originalTimestamp = baseDate.toISOString()
@@ -491,9 +485,9 @@ async function handleSave() {
     }
 
     document.getElementById('edit_modal').close()
-    await fetchDayData() // Rinfresca il calendario
+    await fetchDayData()
   } catch (err) {
-    console.error('Errore durante il salvataggio:', err)
+    console.error('Save error:', err)
   }
 }
 
@@ -510,9 +504,9 @@ async function confirmDelete() {
     else if (deleteType.value === 'note') await store.removeNote(deleteId.value)
 
     document.getElementById('delete_modal').close()
-    await fetchDayData() // Rinfresca il calendario
+    await fetchDayData()
   } catch (err) {
-    console.error('Errore durante l\'eliminazione:', err)
+    console.error('Delete error:', err)
   }
 }
 
@@ -543,16 +537,17 @@ const sortedHistoryNotes = computed(() => {
 })
 
 function formatTime(iso) {
-  return new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+  const activeLoc = locale.value === 'en' ? 'en-US' : 'it-IT'
+  return new Date(iso).toLocaleTimeString(activeLoc, { hour: '2-digit', minute: '2-digit' })
 }
 
 function formatDate(dateStr) {
   const [year, month, day] = dateStr.split('-').map(Number)
-  return new Date(year, month - 1, day).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' })
+  const activeLoc = locale.value === 'en' ? 'en-US' : 'it-IT'
+  return new Date(year, month - 1, day).toLocaleDateString(activeLoc, { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
 function changeDate(days) {
-  // Parsa la data in fuso orario locale invece che UTC
   const [year, month, day] = selectedDate.value.split('-').map(Number)
   const d = new Date(year, month - 1, day)
   d.setDate(d.getDate() + days)
@@ -570,7 +565,6 @@ async function fetchDayData() {
 }
 
 onMounted(() => {
-  // Carica i dati iniziali per la data selezionata
   fetchDayData()
 })
 </script>

@@ -14,7 +14,7 @@
           <span class="hidden lg:block animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-60"></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
         </div>
-        <span class="text-[11px] uppercase font-semibold tracking-[0.2em] opacity-50">Live Monitoring</span>
+        <span class="text-[11px] uppercase font-semibold tracking-[0.2em] opacity-50">{{ $t('glucose.liveMonitoring') }}</span>
       </div>
 
       <!-- Valore + freccia -->
@@ -28,7 +28,7 @@
           </div>
           <div class="flex flex-col items-center gap-1">
             <TrendArrow :trend="store.current.trend" :size="56" />
-            <span class="text-[12px] font-semibold opacity-40 tracking-widest uppercase">mg/dL</span>
+            <span class="text-[12px] font-semibold opacity-40 tracking-widest uppercase">{{ $t('common.mgDl') }}</span>
           </div>
         </div>
 
@@ -36,9 +36,9 @@
           <div class="flex flex-col items-center gap-0.5">
             <div class="flex items-center gap-2">
               <Syringe class="w-4 h-4 text-primary" />
-              <span class="text-2xl font-black tracking-tight">{{ store.iob.toFixed(1) }} <span class="text-sm opacity-40">U</span></span>
+              <span class="text-2xl font-black tracking-tight">{{ store.iob.toFixed(1) }} <span class="text-sm opacity-40">{{ $t('common.unitSymbol') }}</span></span>
             </div>
-            <span class="text-[11px] font-semibold uppercase opacity-40 tracking-widest">Insulina Attiva</span>
+            <span class="text-[11px] font-semibold uppercase opacity-40 tracking-widest">{{ $t('glucose.activeInsulin') }}</span>
           </div>
           
           <div class="w-px h-10 bg-base-content/10"></div>
@@ -46,9 +46,9 @@
           <div class="flex flex-col items-center gap-0.5">
             <div class="flex items-center gap-2">
               <Cookie class="w-4 h-4 text-accent" />
-              <span class="text-2xl font-black tracking-tight">{{ Math.round(store.cob) }} <span class="text-sm opacity-40">g</span></span>
+              <span class="text-2xl font-black tracking-tight">{{ Math.round(store.cob) }} <span class="text-sm opacity-40">{{ $t('common.gramSymbol') }}</span></span>
             </div>
-            <span class="text-[11px] font-semibold uppercase opacity-40 tracking-widest">CHO da assorbire</span>
+            <span class="text-[11px] font-semibold uppercase opacity-40 tracking-widest">{{ $t('glucose.carbsToAbsorb') }}</span>
           </div>
         </div>
       </div>
@@ -59,7 +59,7 @@
       <!-- Footer Info -->
       <div v-if="store.minutesAgo !== null" class="mt-3 px-5 py-2 rounded-full bg-base-300/40 border border-white/5">
         <span class="text-[11px] font-semibold opacity-50 uppercase tracking-wider">
-          {{ store.minutesAgo === 0 ? 'adesso' : `${store.minutesAgo} min fa` }}
+          {{ store.minutesAgo === 0 ? $t('glucose.rightNow') : $t('glucose.minutesAgo', { count: store.minutesAgo }) }}
         </span>
       </div>
 

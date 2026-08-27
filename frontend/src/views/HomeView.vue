@@ -17,9 +17,8 @@
               <i class="fa-solid fa-house text-primary text-xl md:text-2xl"></i>
             </div>
             <div>
-              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">Dashboard</h2>
-              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">Situazione
-                Glicemica in Tempo Reale</span>
+              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{ $t('home.dashboardTitle') }}</h2>
+              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{ $t('home.realtimeStatus') }}</span>
             </div>
           </div>
         </div>
@@ -52,36 +51,35 @@
               <i class="fa-solid fa-syringe text-primary text-lg md:text-xl"></i>
             </div>
             <div>
-              <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Insulina</h3>
-              <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">Inserimento
-                Veloce Adesso</span>
+              <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('home.insulinSection') }}</h3>
+              <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('home.quickEntryNow') }}</span>
             </div>
           </div>
 
           <div class="flex items-center gap-2 md:gap-3">
             <button @click="quickInsulinUnits = Math.max(0, quickInsulinUnits - 0.5)"
-              class="btn btn-sm btn-ghost btn-circle shadow-sm">-</button>
+              class="btn btn-sm btn-ghost btn-circle shadow-sm" :aria-label="'-0.5 ' + $t('common.units')">-</button>
             <input v-model.number="quickInsulinUnits" type="number" step="0.5"
               class="input input-bordered bg-base-100/50 text-center font-black text-lg md:text-xl flex-1 shadow-sm" />
-            <button @click="quickInsulinUnits += 0.5" class="btn btn-sm btn-ghost btn-circle shadow-sm">+</button>
+            <button @click="quickInsulinUnits += 0.5" class="btn btn-sm btn-ghost btn-circle shadow-sm" :aria-label="'+0.5 ' + $t('common.units')">+</button>
           </div>
 
           <div class="flex flex-wrap items-center justify-between gap-2 w-full">
             <div class="flex flex-wrap items-center gap-2">
               <button v-for="val in insulinPresets" :key="`ins-${val}`"
                 class="btn btn-xs rounded-lg md:rounded-xl bg-base-100/50 border border-base-content/10 font-black shadow-sm"
-                @click="quickInsulinUnits = val">{{ val }}U</button>
+                @click="quickInsulinUnits = val">{{ val }}{{ $t('common.unitSymbol') }}</button>
             </div>
 
             <div class="flex flex-wrap gap-2 ml-auto">
               <button
                 class="btn btn-xs rounded-lg md:rounded-xl border-0 font-black uppercase tracking-widest shadow-sm"
                 :class="quickInsulinType === 'rapid' ? 'bg-primary text-primary-content hover:bg-primary' : 'bg-base-100/50 hover:bg-base-content/5'"
-                @click="quickInsulinType = 'rapid'">Rapida</button>
+                @click="quickInsulinType = 'rapid'">{{ $t('home.rapid') }}</button>
               <button
                 class="btn btn-xs rounded-lg md:rounded-xl border-0 font-black uppercase tracking-widest shadow-sm"
                 :class="quickInsulinType === 'slow' ? 'bg-secondary text-secondary-content hover:bg-secondary' : 'bg-base-100/50 hover:bg-base-content/5'"
-                @click="quickInsulinType = 'slow'">Lenta</button>
+                @click="quickInsulinType = 'slow'">{{ $t('home.slow') }}</button>
             </div>
           </div>
 
@@ -95,7 +93,7 @@
               <span v-if="savingInsulin" class="loading loading-spinner loading-xs"></span>
               <template v-else>
                 <i class="fa-regular fa-floppy-disk mr-1"></i>
-                Salva Insulina
+                {{ $t('home.saveInsulin') }}
               </template>
             </button>
           </div>
@@ -111,24 +109,23 @@
               <i class="fa-solid fa-bread-slice text-accent text-lg md:text-xl"></i>
             </div>
             <div>
-              <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Carboidrati</h3>
-              <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">Inserimento
-                Veloce Adesso</span>
+              <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('home.carbsSection') }}</h3>
+              <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('home.quickEntryNow') }}</span>
             </div>
           </div>
 
           <div class="flex items-center gap-2 md:gap-3">
             <button @click="quickCarbs = Math.max(0, quickCarbs - 5)"
-              class="btn btn-sm btn-ghost btn-circle shadow-sm">-</button>
+              class="btn btn-sm btn-ghost btn-circle shadow-sm" :aria-label="'-5 ' + $t('common.grams')">-</button>
             <input v-model.number="quickCarbs" type="number" step="1"
               class="input input-bordered bg-base-100/50 text-center font-black text-lg md:text-xl flex-1 shadow-sm" />
-            <button @click="quickCarbs += 5" class="btn btn-sm btn-ghost btn-circle shadow-sm">+</button>
+            <button @click="quickCarbs += 5" class="btn btn-sm btn-ghost btn-circle shadow-sm" :aria-label="'+5 ' + $t('common.grams')">+</button>
           </div>
 
           <div class="flex flex-wrap gap-2">
             <button v-for="val in carbPresets" :key="`carb-${val}`"
               class="btn btn-xs rounded-lg md:rounded-xl bg-base-100/50 border border-base-content/10 font-black shadow-sm"
-              @click="quickCarbs = val">{{ val }}g</button>
+              @click="quickCarbs = val">{{ val }}{{ $t('common.gramSymbol') }}</button>
           </div>
 
           <div class="flex items-center gap-3">
@@ -138,7 +135,7 @@
               <span v-if="savingCarbs" class="loading loading-spinner loading-xs"></span>
               <template v-else>
                 <i class="fa-regular fa-floppy-disk mr-1"></i>
-                Salva CHO
+                {{ $t('home.saveCho') }}
               </template>
             </button>
           </div>
@@ -208,11 +205,9 @@ async function saveQuickCarbs() {
   }
 }
 
-// ── Auto-refresh: 60s su desktop, 120s su mobile per performance ─────────────────────
 let interval = null
 onMounted(async () => {
   await store.fetchAll()
-  // Su mobile usa intervallo più lungo per risparmiare batteria e risorse
   const refreshInterval = window.innerWidth < 768 ? 120_000 : 60_000
   interval = setInterval(() => store.fetchAll(), refreshInterval)
 })

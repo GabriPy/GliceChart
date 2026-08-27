@@ -18,23 +18,21 @@
               <i class="fa-solid fa-brain text-accent text-xl md:text-2xl"></i>
             </div>
             <div>
-              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">Pattern Intelligenti
-              </h2>
-              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">Analisi
-                Comportamentale v1.0</span>
+              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{ $t('patterns.title') }}</h2>
+              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{ $t('patterns.subtitle') }}</span>
             </div>
           </div>
 
           <div class="flex flex-wrap gap-2">
             <span
               class="px-2.5 py-1 bg-base-100/50 border border-base-content/10 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-60 shadow-sm">{{
-                patternsCount }} pattern</span>
+                $t('patterns.patternsCount', { count: patternsCount }, patternsCount) }}</span>
             <span
               class="px-2.5 py-1 bg-base-100/50 border border-base-content/10 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-60 shadow-sm">{{
-                historyDataCount }} letture</span>
+                $t('patterns.readingsCount', { count: historyDataCount }, historyDataCount) }}</span>
             <span
               class="px-2.5 py-1 bg-base-100/50 border border-base-content/10 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-60 shadow-sm">{{
-                notesCount }} note</span>
+                $t('patterns.notesCount', { count: notesCount }, notesCount) }}</span>
           </div>
         </div>
       </div>
@@ -44,7 +42,7 @@
     <div v-if="store.historyLoading"
       class="flex flex-col items-center justify-center py-16 md:py-20 gap-3 md:gap-4 bg-gradient-to-br from-base-200 to-base-300 border border-base-content/10 rounded-2xl md:rounded-3xl shadow-md md:shadow-lg shadow-black/5">
       <span class="loading loading-ring loading-lg text-primary"></span>
-      <span class="text-xs font-black uppercase tracking-widest opacity-40">Analisi in corso...</span>
+      <span class="text-xs font-black uppercase tracking-widest opacity-40">{{ $t('patterns.analyzing') }}</span>
     </div>
 
     <!-- Nessun Pattern -->
@@ -53,14 +51,12 @@
       <div class="p-3 md:p-4 bg-base-100/50 rounded-xl md:rounded-2xl shadow-sm opacity-60">
         <i class="fa-solid fa-exclamation text-3xl md:text-4xl"></i>
       </div>
-      <span class="text-sm md:text-base font-black uppercase tracking-widest opacity-60 text-center">Nessun pattern
-        rilevato negli ultimi dati</span>
+      <span class="text-sm md:text-base font-black uppercase tracking-widest opacity-60 text-center">{{ $t('patterns.noPatternsTitle') }}</span>
       <p class="text-[10px] md:text-xs uppercase tracking-widest max-w-xs text-center leading-relaxed opacity-40">
-        Carica più dati o aggiungi note (es. "Pizza") per permettere al sistema di analizzare le tue risposte
-        glicemiche.
+        {{ $t('patterns.noPatternsHelp') }}
       </p>
       <p class="text-[9px] md:text-[10px] uppercase tracking-[0.2em] opacity-30">
-        Dati disponibili: {{ historyDataCount }} letture, {{ notesCount }} note
+        {{ $t('patterns.dataAvailableSummary', { readings: historyDataCount, notes: notesCount }) }}
       </p>
     </div>
 
@@ -74,12 +70,11 @@
               <div class="p-2 md:p-3 rounded-lg md:rounded-xl shadow-sm" :class="`bg-${p.color}/10`">
                 <i class="fa-solid fa-exclamation text-lg md:text-xl" :class="[p.icon, `text-${p.color}`]"></i>
               </div>
-              <span class="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-40">Pattern
-                Rilevato</span>
+              <span class="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-40">{{ $t('patterns.patternDetected') }}</span>
             </div>
             <div v-if="p.confidence > 80"
               class="px-2 py-0.5 rounded-md bg-accent/10 text-accent border border-accent/20 font-black text-[9px] uppercase tracking-widest">
-              Alta Priorità
+              {{ $t('patterns.highPriority') }}
             </div>
           </div>
 
@@ -92,7 +87,7 @@
           <div
             class="bg-base-100/50 p-3 md:p-4 rounded-lg md:rounded-xl border border-base-content/10 shadow-sm flex flex-col gap-2 md:gap-3">
             <div class="flex items-center justify-between text-[10px] font-black uppercase opacity-40">
-              <span>Affidabilità</span>
+              <span>{{ $t('patterns.confidence') }}</span>
               <span>{{ p.confidence }}%</span>
             </div>
 
@@ -113,16 +108,15 @@
           <i class="fa-solid fa-database text-primary text-lg md:text-xl"></i>
         </div>
         <div>
-          <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Dati Analizzati</h3>
+          <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('patterns.analyzedDataTitle') }}</h3>
           <p class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest mt-1">
-            L'analisi viene effettuata in tempo reale sulla cronologia caricata.
+            {{ $t('patterns.realtimeAnalysisNote') }}
           </p>
         </div>
       </div>
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { computed, onMounted } from 'vue'
@@ -136,7 +130,6 @@ const historyDataCount = computed(() => Array.isArray(store.historyReadings) ? s
 const notesCount = computed(() => Array.isArray(store.historyNotes) ? store.historyNotes.length : 0)
 
 onMounted(async () => {
-  // Carichiamo 3 giorni di dati per un'analisi reale dei pattern
   await store.fetchLongHistory(4320)
 })
 </script>

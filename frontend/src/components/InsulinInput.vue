@@ -7,10 +7,9 @@
           <div class="p-1.5 bg-primary/10 rounded-lg">
             <i class="fa-solid fa-plus w-3.5 h-3.5 text-primary text-[14px]"></i>
           </div>
-          <span class="text-[10px] uppercase font-black tracking-widest opacity-40">Gestione Insulina</span>
+          <span class="text-[10px] uppercase font-black tracking-widest opacity-40">{{ $t('insulin.title') }}</span>
         </div>
-        <div class="px-2 py-0.5 rounded-md bg-base-300 text-[9px] font-black opacity-40">{{ store.insulinRecords.length
-          }}</div>
+        <div class="px-2 py-0.5 rounded-md bg-base-300 text-[9px] font-black opacity-40">{{ store.insulinRecords.length }}</div>
       </div>
 
       <div class="flex flex-col gap-6">
@@ -20,22 +19,22 @@
             <!-- Tipo Insulina -->
             <div class="flex flex-col gap-1.5">
               <div class="flex items-center justify-between px-1">
-                <span class="text-[10px] font-black uppercase opacity-30 tracking-widest">Tipo</span>
+                <span class="text-[10px] font-black uppercase opacity-30 tracking-widest">{{ $t('common.type') }}</span>
                 <span class="text-[9px] font-black uppercase"
                   :class="type === 'rapid' ? 'text-primary' : 'text-secondary'">
-                  {{ type === 'rapid' ? 'Rapida' : 'Lenta' }}
+                  {{ type === 'rapid' ? $t('home.rapid') : $t('home.slow') }}
                 </span>
               </div>
               <div class="grid grid-cols-2 gap-2 p-1 bg-base-300 rounded-xl h-[38px] items-center">
                 <button @click="type = 'rapid'"
                   class="btn btn-xs border-none rounded-lg transition-all duration-300 h-full"
                   :class="type === 'rapid' ? 'bg-primary hover:bg-primary text-primary-content shadow-lg' : 'bg-transparent opacity-50 hover:opacity-100'">
-                  <span class="text-[9px] font-black uppercase">Rapida</span>
+                  <span class="text-[9px] font-black uppercase">{{ $t('home.rapid') }}</span>
                 </button>
                 <button @click="type = 'slow'"
                   class="btn btn-xs border-none rounded-lg transition-all duration-300 h-full"
                   :class="type === 'slow' ? 'bg-secondary hover:bg-secondary text-secondary-content shadow-lg' : 'bg-transparent opacity-50 hover:opacity-100'">
-                  <span class="text-[9px] font-black uppercase">Lenta</span>
+                  <span class="text-[9px] font-black uppercase">{{ $t('home.slow') }}</span>
                 </button>
               </div>
             </div>
@@ -43,16 +42,16 @@
             <!-- Unità -->
             <div class="flex flex-col gap-1.5">
               <div class="flex items-center justify-between px-1">
-                <span class="text-[10px] font-black uppercase opacity-30 tracking-widest">Dosaggio</span>
+                <span class="text-[10px] font-black uppercase opacity-30 tracking-widest">{{ $t('insulin.dosage') }}</span>
                 <span class="text-xs font-black text-primary">{{ formatUnits(units) }} <span
-                    class="opacity-50">U</span></span>
+                    class="opacity-50">{{ $t('common.unitSymbol') }}</span></span>
               </div>
               <div class="flex items-center gap-2 bg-base-300 p-1 rounded-xl h-[38px]">
                 <button @click="units = Math.max(0, units - 0.5)"
-                  class="btn btn-xs btn-ghost btn-circle font-black text-base">-</button>
+                  class="btn btn-xs btn-ghost btn-circle font-black text-base" :aria-label="'-0.5 ' + $t('common.units')">-</button>
                 <input type="number" v-model.number="units" step="0.5" lang="en-US"
                   class="input input-xs bg-transparent w-full text-center font-black text-base border-none focus:outline-none h-full no-spinner" />
-                <button @click="units += 0.5" class="btn btn-xs btn-ghost btn-circle font-black text-base">+</button>
+                <button @click="units += 0.5" class="btn btn-xs btn-ghost btn-circle font-black text-base" :aria-label="'+0.5 ' + $t('common.units')">+</button>
               </div>
             </div>
           </div>
@@ -61,7 +60,7 @@
           <div class="flex flex-wrap gap-2">
             <button v-for="val in [1, 2, 3, 5, 10]" :key="val" @click="units = val"
               class="btn btn-xs btn-ghost rounded-xl font-black uppercase tracking-widest text-[9px] opacity-70 hover:opacity-100 bg-base-300/50">
-              {{ val }}U
+              {{ val }}{{ $t('common.unitSymbol') }}
             </button>
           </div>
 
@@ -71,7 +70,7 @@
             :class="(store.loading || units <= 0) ? '' : 'shadow-lg shadow-primary/20'"
             :disabled="store.loading || units <= 0">
             <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
-            <span v-else>Conferma</span>
+            <span v-else>{{ $t('insulin.confirm') }}</span>
           </button>
         </div>
 
@@ -82,13 +81,13 @@
         <div class="flex flex-col gap-2 h-[160px]">
           <div class="flex items-center gap-2 mb-1">
             <i class="fa-solid fa-clock w-3 h-3 opacity-30 text-[12px]"></i>
-            <span class="text-[8px] uppercase font-black tracking-widest opacity-30">Recenti</span>
+            <span class="text-[8px] uppercase font-black tracking-widest opacity-30">{{ $t('common.recent') }}</span>
           </div>
 
           <div class="flex-1 overflow-y-auto pr-1 scrollbar-hide">
             <div v-if="!store.insulinRecords.length"
               class="text-center py-8 opacity-20 flex flex-col items-center gap-1">
-              <span class="text-[8px] font-bold uppercase tracking-widest">Nessun record</span>
+              <span class="text-[8px] font-bold uppercase tracking-widest">{{ $t('insulin.noRecords') }}</span>
             </div>
 
             <div class="flex flex-col gap-1.5">
@@ -101,9 +100,9 @@
                     </div>
                     <div class="flex flex-col">
                       <div class="flex items-center gap-2 leading-none">
-                        <span class="text-xs font-black tracking-tight">{{ formatUnits(ins.units) }}U</span>
+                        <span class="text-xs font-black tracking-tight">{{ formatUnits(ins.units) }}{{ $t('common.unitSymbol') }}</span>
                         <span class="text-[7px] font-black uppercase px-1 rounded bg-base-300 opacity-60">
-                          {{ ins.type === 'rapid' ? 'R' : 'L' }}
+                          {{ ins.type === 'rapid' ? $t('home.rapid').charAt(0) : $t('home.slow').charAt(0) }}
                         </span>
                       </div>
                       <span class="text-[8px] font-black opacity-30 uppercase tracking-wider">{{
@@ -113,11 +112,11 @@
 
                   <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                     <button @click="startEdit(ins)"
-                      class="btn btn-ghost btn-circle btn-xs text-primary hover:bg-primary/10 h-6 w-6">
+                      class="btn btn-ghost btn-circle btn-xs text-primary hover:bg-primary/10 h-6 w-6" :title="$t('common.edit')">
                       <i class="fa-solid fa-pencil text-[10px]"></i>
                     </button>
                     <button @click="store.removeInsulin(ins.id)"
-                      class="btn btn-ghost btn-circle btn-xs text-error hover:bg-error/10 h-6 w-6">
+                      class="btn btn-ghost btn-circle btn-xs text-error hover:bg-error/10 h-6 w-6" :title="$t('common.delete')">
                       <i class="fa-solid fa-trash text-[10px]"></i>
                     </button>
                   </div>
@@ -133,24 +132,24 @@
     <dialog :id="`edit_modal_insulin_${id}`" class="modal">
       <div class="modal-box bg-base-200 border border-base-content/10 shadow-2xl rounded-3xl p-6">
         <h3 class="font-black text-lg uppercase italic tracking-tight mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-pencil text-primary"></i> Modifica Insulina
+          <i class="fa-solid fa-pencil text-primary"></i> {{ $t('insulin.editTitle') }}
         </h3>
 
         <div class="space-y-4">
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] font-black uppercase opacity-40">Unità</label>
+            <label class="text-[10px] font-black uppercase opacity-40">{{ $t('common.units') }}</label>
             <input type="number" step="0.5" v-model="editForm.units"
               class="input input-bordered bg-base-300/50 font-black text-xl" />
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] font-black uppercase opacity-40">Tipo</label>
+            <label class="text-[10px] font-black uppercase opacity-40">{{ $t('common.type') }}</label>
             <select v-model="editForm.type" class="select select-bordered bg-base-300/50 font-black">
-              <option value="rapid">Rapida</option>
-              <option value="slow">Lenta</option>
+              <option value="rapid">{{ $t('home.rapid') }}</option>
+              <option value="slow">{{ $t('home.slow') }}</option>
             </select>
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-[10px] font-black uppercase opacity-40">Orario</label>
+            <label class="text-[10px] font-black uppercase opacity-40">{{ $t('common.dateTime') }}</label>
             <input type="datetime-local" v-model="editForm.timestamp"
               class="input input-bordered bg-base-300/50 font-black" />
           </div>
@@ -158,25 +157,26 @@
 
         <div class="modal-action gap-2">
           <form method="dialog">
-            <button class="btn btn-ghost uppercase font-black text-xs">Annulla</button>
+            <button class="btn btn-ghost uppercase font-black text-xs">{{ $t('common.cancel') }}</button>
           </form>
           <button @click="saveEdit" class="btn btn-primary uppercase font-black text-xs px-8" :disabled="store.loading">
-            Salva
+            {{ $t('common.save') }}
           </button>
         </div>
       </div>
       <form method="dialog" class="modal-backdrop">
-        <button>close</button>
+        <button>{{ $t('common.close') }}</button>
       </form>
     </dialog>
   </div>
 </template>
 
-
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useGlucoseStore } from '../stores/glucose'
 
+const { t, locale } = useI18n()
 const store = useGlucoseStore()
 const id = Math.random().toString(36).substr(2, 9)
 const type = ref('rapid')
@@ -194,7 +194,8 @@ function formatUnits(val) {
 }
 
 function formatTime(ts) {
-  return new Date(ts).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+  const activeLoc = locale.value === 'en' ? 'en-US' : 'it-IT'
+  return new Date(ts).toLocaleTimeString(activeLoc, { hour: '2-digit', minute: '2-digit' })
 }
 
 watch(() => units.value, (newVal) => {

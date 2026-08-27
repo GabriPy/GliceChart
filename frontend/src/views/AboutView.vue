@@ -17,9 +17,8 @@
             <i class="fa-solid fa-circle-info text-primary text-xl md:text-2xl"></i>
           </div>
           <div>
-            <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">Informazioni</h2>
-            <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">Guida Rapida a
-              GliceChart</span>
+            <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{ $t('about.title') }}</h2>
+            <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{ $t('about.subtitle') }}</span>
           </div>
         </div>
       </div>
@@ -36,12 +35,10 @@
             <div class="p-2 md:p-3 bg-primary/10 rounded-lg md:rounded-xl shadow-sm">
               <i class="fa-solid fa-rocket text-primary text-lg md:text-xl"></i>
             </div>
-            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Cos'è GliceChart?</h3>
+            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('about.whatIsTitle') }}</h3>
           </div>
           <p class="text-xs md:text-sm opacity-70 leading-relaxed">
-            GliceChart è un'app per monitorare glicemia, insulina, carboidrati e note in un unico luogo.
-            Ti aiuta a vedere il quadro complessivo della giornata e a capire meglio come i tuoi dati si comportano
-            nel tempo.
+            {{ $t('about.whatIsDesc') }}
           </p>
         </div>
       </div>
@@ -54,13 +51,10 @@
             <div class="p-2 md:p-3 bg-accent/10 rounded-lg md:rounded-xl shadow-sm">
               <i class="fa-solid fa-brain text-accent text-lg md:text-xl"></i>
             </div>
-            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Pattern Smart</h3>
+            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('about.smartPatternsTitle') }}</h3>
           </div>
           <p class="text-xs md:text-sm opacity-70 leading-relaxed">
-            La sezione Pattern Smart analizza i dati raccolti per evidenziare trend interessanti e comportamenti
-            ricorrenti.
-            Quando ci sono abbastanza informazioni, mostra schemi che possono aiutarti a riconoscere situazioni più
-            frequenti nella tua giornata.
+            {{ $t('about.smartPatternsDesc') }}
           </p>
         </div>
       </div>
@@ -73,25 +67,21 @@
             <div class="p-2 md:p-3 bg-primary/10 rounded-lg md:rounded-xl shadow-sm">
               <i class="fa-solid fa-calculator text-primary text-lg md:text-xl"></i>
             </div>
-            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">IOB e COB</h3>
+            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('about.iobCobTitle') }}</h3>
           </div>
 
           <div class="space-y-3 md:space-y-4">
             <div class="bg-base-100/50 rounded-lg md:rounded-xl p-3 md:p-4 border border-base-content/10 shadow-sm">
-              <h4 class="text-[10px] font-black uppercase opacity-40 mb-1.5 md:mb-2">IOB (Insulin On Board)</h4>
+              <h4 class="text-[10px] font-black uppercase opacity-40 mb-1.5 md:mb-2">{{ $t('about.iobTitle') }}</h4>
               <p class="text-xs md:text-sm opacity-70 leading-relaxed">
-                Mostra l'insulina ancora attiva in base alla durata impostata
-                (<strong class="opacity-100">{{ store.settings.rapid_duration }}h</strong>).
-                È utile per capire quanto dell'ultima somministrazione sta ancora influenzando la glicemia.
+                {{ $t('about.iobDesc', { hours: store.settings.rapid_duration }) }}
               </p>
             </div>
 
             <div class="bg-base-100/50 rounded-lg md:rounded-xl p-3 md:p-4 border border-base-content/10 shadow-sm">
-              <h4 class="text-[10px] font-black uppercase opacity-40 mb-1.5 md:mb-2">COB (Carbs On Board)</h4>
+              <h4 class="text-[10px] font-black uppercase opacity-40 mb-1.5 md:mb-2">{{ $t('about.cobTitle') }}</h4>
               <p class="text-xs md:text-sm opacity-70 leading-relaxed">
-                Rappresenta i carboidrati ancora in fase di assorbimento
-                (durata: <strong class="opacity-100">{{ store.settings.carb_duration }}h</strong>).
-                Aiuta a stimare l'effetto del pasto o dei carboidrati inseriti di recente.
+                {{ $t('about.cobDesc', { hours: store.settings.carb_duration }) }}
               </p>
             </div>
           </div>
@@ -106,12 +96,10 @@
             <div class="p-2 md:p-3 bg-warning/10 rounded-lg md:rounded-xl shadow-sm">
               <i class="fa-solid fa-wheat-awn text-warning text-lg md:text-xl"></i>
             </div>
-            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Il Dietometro</h3>
+            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('about.dietometerTitle') }}</h3>
           </div>
           <p class="text-xs md:text-sm opacity-70 leading-relaxed">
-            Il Dietometro raccoglie i tuoi alimenti preferiti e calcola rapidamente i carboidrati in base al peso
-            selezionato.
-            È pensato per rendere più veloce l'inserimento dei pasti e delle porzioni.
+            {{ $t('about.dietometerDesc') }}
           </p>
         </div>
       </div>
@@ -124,7 +112,7 @@
             <div class="p-2 md:p-3 bg-info/10 rounded-lg md:rounded-xl shadow-sm">
               <i class="fa-solid fa-question text-info text-lg md:text-xl"></i>
             </div>
-            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Interpretazione Grafico</h3>
+            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('about.chartInterpretationTitle') }}</h3>
           </div>
 
           <div class="space-y-2 md:space-y-3">
@@ -132,9 +120,8 @@
               class="flex items-start gap-3 md:gap-4 bg-base-100/50 rounded-lg md:rounded-xl p-3 md:p-4 border border-base-content/10 shadow-sm">
               <div class="w-5 h-5 rounded bg-slate-600/40 mt-0.5 shrink-0"></div>
               <div>
-                <span class="text-[10px] md:text-xs font-black uppercase tracking-wider block">GAP Dati</span>
-                <p class="text-[10px] md:text-xs opacity-60 mt-1 leading-relaxed">Aree grigie che indicano periodi
-                  senza letture glicemiche, ad esempio quando il sensore è spento o fuori portata.</p>
+                <span class="text-[10px] md:text-xs font-black uppercase tracking-wider block">{{ $t('about.dataGapTitle') }}</span>
+                <p class="text-[10px] md:text-xs opacity-60 mt-1 leading-relaxed">{{ $t('about.dataGapDesc') }}</p>
               </div>
             </div>
 
@@ -142,9 +129,8 @@
               class="flex items-start gap-3 md:gap-4 bg-base-100/50 rounded-lg md:rounded-xl p-3 md:p-4 border border-base-content/10 shadow-sm">
               <div class="w-5 h-5 rounded border-2 border-dashed border-slate-500 mt-0.5 shrink-0"></div>
               <div>
-                <span class="text-[10px] md:text-xs font-black uppercase tracking-wider block">Linea "ADESSO"</span>
-                <p class="text-[10px] md:text-xs opacity-60 mt-1 leading-relaxed">Indica l'ora corrente rispetto alla
-                  giornata intera nel calendario.</p>
+                <span class="text-[10px] md:text-xs font-black uppercase tracking-wider block">{{ $t('about.nowLineTitle') }}</span>
+                <p class="text-[10px] md:text-xs opacity-60 mt-1 leading-relaxed">{{ $t('about.nowLineDesc') }}</p>
               </div>
             </div>
           </div>
@@ -161,10 +147,9 @@
           <div class="p-3 md:p-4 bg-primary-content/10 rounded-xl md:rounded-2xl shadow-md mb-1 md:mb-2">
             <i class="fa-solid fa-stethoscope text-3xl md:text-5xl opacity-90"></i>
           </div>
-          <h3 class="text-lg md:text-xl font-black uppercase tracking-tight">Gestione Sicura</h3>
+          <h3 class="text-lg md:text-xl font-black uppercase tracking-tight">{{ $t('about.safeManagementTitle') }}</h3>
           <p class="text-xs md:text-sm opacity-80 max-w-lg leading-relaxed">
-            GliceChart è uno strumento di supporto basato su dati e algoritmi. Consulta sempre il tuo medico per
-            decisioni terapeutiche.
+            {{ $t('medical.globalDisclaimer') }}
           </p>
         </div>
       </div>
@@ -173,12 +158,10 @@
   </div>
 </template>
 
-
 <script setup>
 import { useGlucoseStore } from '../stores/glucose'
 const store = useGlucoseStore()
 </script>
 
 <style scoped>
-/* Stili specifici */
 </style>

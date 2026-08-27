@@ -8,8 +8,8 @@
             <i class="fa-solid fa-chart-line text-secondary text-2xl leading-none"></i>
           </div>
           <div>
-            <h1 class="text-3xl font-black uppercase tracking-tight leading-none italic">Predizione Glicemia</h1>
-            <p class="text-xs font-black opacity-30 uppercase tracking-[0.2em] mt-2">Algoritmo Predittivo v2.0</p>
+            <h1 class="text-3xl font-black uppercase tracking-tight leading-none italic">{{ $t('prediction.title') }}</h1>
+            <p class="text-xs font-black opacity-30 uppercase tracking-[0.2em] mt-2">{{ $t('prediction.subtitle') }}</p>
           </div>
         </div>
       </div>
@@ -19,7 +19,7 @@
     <div v-if="!store.readings.length && !store.loading"
       class="flex flex-col items-center justify-center py-20 opacity-30 gap-4">
       <i class="fa-solid fa-database text-4xl"></i>
-      <span class="text-base font-black uppercase tracking-widest">Dati insufficienti per la predizione</span>
+      <span class="text-base font-black uppercase tracking-widest">{{ $t('prediction.insufficientData') }}</span>
     </div>
 
     <!-- Main Chart -->
@@ -28,10 +28,8 @@
         <div class="card bg-base-200 shadow-sm border border-base-content/10 h-[450px]">
           <div class="card-body p-6">
             <div class="flex items-center justify-between mb-4">
-              <span class="text-xs font-black uppercase tracking-widest opacity-40">Andamento e Previsione (60
-                min)</span>
-              <div class="badge badge-secondary badge-outline font-black text-[10px] uppercase tracking-widest">Live
-                Forecast</div>
+              <span class="text-xs font-black uppercase tracking-widest opacity-40">{{ $t('prediction.forecast60min') }}</span>
+              <div class="badge badge-secondary badge-outline font-black text-[10px] uppercase tracking-widest">{{ $t('prediction.liveForecast') }}</div>
             </div>
             <div class="relative flex-1 h-full">
               <Line v-if="chartData" :data="chartData" :options="chartOptions" />
@@ -45,12 +43,12 @@
         <!-- Target Prediction -->
         <div class="card shadow-sm border border-base-content/10 overflow-hidden" :class="riskColorClass">
           <div class="card-body p-6 items-center text-center">
-            <span class="text-xs font-black uppercase tracking-[0.2em] opacity-60">Stima a 60 min</span>
+            <span class="text-xs font-black uppercase tracking-[0.2em] opacity-60">{{ $t('prediction.estimated60min') }}</span>
             <div class="flex items-baseline gap-2 mt-2">
               <span class="text-7xl font-black tracking-tighter italic">
                 {{ store.prediction?.t60 || '--' }}
               </span>
-              <span class="text-base font-bold opacity-60 uppercase">mg/dL</span>
+              <span class="text-base font-bold opacity-60 uppercase">{{ $t('common.mgDl') }}</span>
             </div>
 
             <div class="mt-4 grid grid-cols-3 gap-2 w-full border-t border-current/10 pt-4">
@@ -63,7 +61,7 @@
                 <span class="text-xl font-black italic leading-none">{{ store.prediction?.t30 || '--' }}</span>
               </div>
               <div class="flex flex-col">
-                <span class="text-[10px] font-black uppercase opacity-50 text-current">Trend</span>
+                <span class="text-[10px] font-black uppercase opacity-50 text-current">{{ $t('prediction.trend') }}</span>
                 <span class="text-xl font-black italic leading-none">{{ store.prediction?.roc > 0 ? '+' : '' }}{{
                   store.prediction?.roc || '0.00' }}</span>
               </div>
@@ -72,7 +70,7 @@
             <div class="mt-4 w-full">
               <div class="badge w-full py-4 font-black text-xs uppercase tracking-widest border-none"
                 :class="riskBadgeClass">
-                Rischio: {{ riskLabelText }}
+                {{ $t('prediction.risk') }}: {{ riskLabelText }}
               </div>
             </div>
           </div>
@@ -81,20 +79,20 @@
         <!-- How it works -->
         <div class="card bg-base-200 shadow-sm border border-base-content/10 flex-1">
           <div class="card-body p-6 gap-4">
-            <span class="text-xs font-black uppercase tracking-widest opacity-40">Stato Attuale (Smussato)</span>
+            <span class="text-xs font-black uppercase tracking-widest opacity-40">{{ $t('prediction.currentStateSmoothed') }}</span>
             <div class="space-y-3">
               <div class="flex items-center justify-between bg-base-300/30 p-3 rounded-2xl">
                 <div class="flex items-center gap-3">
                   <div class="w-2.5 h-2.5 rounded-full bg-secondary"></div>
-                  <span class="text-xs font-black uppercase opacity-60">Glicemia Media (5m)</span>
+                  <span class="text-xs font-black uppercase opacity-60">{{ $t('prediction.avgGlucose5m') }}</span>
                 </div>
-                <span class="text-sm font-black">{{ store.prediction?.current }} mg/dL</span>
+                <span class="text-sm font-black">{{ store.prediction?.current }} {{ $t('common.mgDl') }}</span>
               </div>
 
               <div class="flex items-center justify-between bg-base-300/30 p-3 rounded-2xl">
                 <div class="flex items-center gap-3">
                   <div class="w-2.5 h-2.5 rounded-full" :class="trendIconColor"></div>
-                  <span class="text-xs font-black uppercase opacity-60">Velocità (ROC)</span>
+                  <span class="text-xs font-black uppercase opacity-60">{{ $t('prediction.speedRoc') }}</span>
                 </div>
                 <span class="text-sm font-black">{{ store.prediction?.roc }} mg/m</span>
               </div>
@@ -102,22 +100,22 @@
               <div class="flex items-center justify-between bg-base-300/30 p-3 rounded-2xl">
                 <div class="flex items-center gap-3">
                   <div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
-                  <span class="text-xs font-black uppercase opacity-60">IOB Attiva</span>
+                  <span class="text-xs font-black uppercase opacity-60">{{ $t('prediction.activeIob') }}</span>
                 </div>
-                <span class="text-sm font-black">{{ store.iob.toFixed(1) }} U</span>
+                <span class="text-sm font-black">{{ store.iob.toFixed(1) }} {{ $t('common.unitSymbol') }}</span>
               </div>
 
               <div class="flex items-center justify-between bg-base-300/30 p-3 rounded-2xl">
                 <div class="flex items-center gap-3">
                   <div class="w-2.5 h-2.5 rounded-full bg-accent"></div>
-                  <span class="text-xs font-black uppercase opacity-60">COB Attivi</span>
+                  <span class="text-xs font-black uppercase opacity-60">{{ $t('prediction.activeCob') }}</span>
                 </div>
-                <span class="text-sm font-black">{{ Math.round(store.cob) }} g</span>
+                <span class="text-sm font-black">{{ Math.round(store.cob) }} {{ $t('common.gramSymbol') }}</span>
               </div>
             </div>
 
             <p class="text-[11px] opacity-40 italic mt-auto leading-relaxed">
-              * Algoritmo Matematico v2.0 (Linear ROC + IOB/COB + Smoothing). Non utilizzare per decisioni mediche.
+              * {{ $t('prediction.disclaimer') }}
             </p>
           </div>
         </div>
@@ -129,40 +127,35 @@
       <div class="card-body p-6 gap-6">
         <div class="flex items-center gap-3">
           <i class="fa-solid fa-circle-info text-primary text-lg"></i>
-          <span class="text-sm font-black uppercase tracking-widest opacity-50">Come funziona la previsione? (Algoritmo
-            v2.0)</span>
+          <span class="text-sm font-black uppercase tracking-widest opacity-50">{{ $t('prediction.howItWorksTitle') }}</span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="flex flex-col gap-2">
-            <span class="text-xs font-black uppercase text-secondary italic">1. Smussamento</span>
+            <span class="text-xs font-black uppercase text-secondary italic">{{ $t('prediction.step1Title') }}</span>
             <p class="text-sm opacity-70 leading-relaxed">
-              Viene calcolata la media mobile delle ultime 5 letture (25 min) per ridurre il rumore del sensore ed
-              evitare previsioni troppo aggressive causate da singoli salti.
+              {{ $t('prediction.step1Desc') }}
             </p>
           </div>
 
           <div class="flex flex-col gap-2">
-            <span class="text-xs font-black uppercase text-secondary italic">2. Rate of Change (ROC)</span>
+            <span class="text-xs font-black uppercase text-secondary italic">{{ $t('prediction.step2Title') }}</span>
             <p class="text-sm opacity-70 leading-relaxed">
-              Si analizza la velocità di variazione (mg/dL al minuto) dell'ultima mezz'ora. Se la variazione è rapida (>
-              2 mg/dL/m), viene applicato un fattore correttivo del +15%.
+              {{ $t('prediction.step2Desc') }}
             </p>
           </div>
 
           <div class="flex flex-col gap-2">
-            <span class="text-xs font-black uppercase text-secondary italic">3. Impatto Insulina (IOB)</span>
+            <span class="text-xs font-black uppercase text-secondary italic">{{ $t('prediction.step3Title') }}</span>
             <p class="text-sm opacity-70 leading-relaxed">
-              Utilizza la tua <strong>Sensibilità (ISF)</strong> impostata per sottrarre l'effetto dell'insulina che
-              deve ancora agire nei prossimi 60 minuti dalla proiezione lineare.
+              {{ $t('prediction.step3Desc') }}
             </p>
           </div>
 
           <div class="flex flex-col gap-2">
-            <span class="text-xs font-black uppercase text-secondary italic">4. Impatto Carboidrati (COB)</span>
+            <span class="text-xs font-black uppercase text-secondary italic">{{ $t('prediction.step4Title') }}</span>
             <p class="text-sm opacity-70 leading-relaxed">
-              Calcola il rialzo previsto in base al tuo <strong>Rapporto I/C</strong>. Ogni grammo di carboidrati
-              residui alza la proiezione seguendo una curva di assorbimento lineare.
+              {{ $t('prediction.step4Desc') }}
             </p>
           </div>
         </div>
@@ -171,7 +164,7 @@
 
         <div class="bg-base-300/30 p-5 rounded-2xl border border-base-content/5">
           <p class="text-xs font-bold opacity-40 uppercase tracking-widest text-center italic">
-            Formula: Glicemia_Predetta = (Glicemia_Media + ROC * Minuti) - Impatto_Insulina_Futuro + Impatto_CHO_Futuro
+            {{ $t('prediction.formula') }}
           </p>
         </div>
       </div>
@@ -179,9 +172,9 @@
   </div>
 </template>
 
-
 <script setup>
 import { onMounted, onUnmounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useGlucoseStore } from '../stores/glucose'
 import { Line } from 'vue-chartjs'
 import {
@@ -192,9 +185,9 @@ import annotationPlugin from 'chartjs-plugin-annotation'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler, annotationPlugin)
 
+const { t, locale } = useI18n()
 const store = useGlucoseStore()
 
-// ── Auto-refresh ogni 60s ─────────────────────────────────────────────────────
 let interval = null
 onMounted(async () => {
   await store.fetchAll()
@@ -215,27 +208,28 @@ const riskBadgeClass = computed(() => {
 })
 
 const riskLabelText = computed(() => {
-  const labels = { high: 'ALTO', normal: 'MEDIO', low: 'BASSO' }
-  return labels[store.prediction?.risk] || 'N/A'
+  const r = store.prediction?.risk
+  if (r === 'high') return t('prediction.highRisk')
+  if (r === 'normal') return t('prediction.mediumRisk')
+  if (r === 'low') return t('prediction.lowRisk')
+  return 'N/A'
 })
 
 const trendIconColor = computed(() => {
-  const t = store.prediction?.trend
-  if (t?.includes('fast')) return 'bg-error'
-  if (t?.includes('rising') || t?.includes('falling')) return 'bg-warning'
+  const tr = store.prediction?.trend
+  if (tr?.includes('fast')) return 'bg-error'
+  if (tr?.includes('rising') || tr?.includes('falling')) return 'bg-warning'
   return 'bg-success'
 })
 
 const chartData = computed(() => {
   if (!store.readings.length) return null
 
-  // Dati passati (ultimi 120 min)
   const pastData = store.readings.map(r => ({
     x: new Date(r.timestamp).getTime(),
     y: r.glucose
   }))
 
-  // Punti predizione (15, 30, 60 min)
   const nowTs = new Date().getTime()
   const predictionData = [
     { x: nowTs, y: store.prediction?.current },
@@ -247,7 +241,7 @@ const chartData = computed(() => {
   return {
     datasets: [
       {
-        label: 'Glicemia Reale',
+        label: t('prediction.realGlucoseLabel'),
         data: pastData,
         borderColor: '#6366f1',
         backgroundColor: 'rgba(99, 102, 241, 0.05)',
@@ -256,7 +250,7 @@ const chartData = computed(() => {
         pointRadius: 1
       },
       {
-        label: 'Predizione',
+        label: t('prediction.predictionLabel'),
         data: predictionData,
         borderColor: '#f43f5e',
         borderWidth: 3,
@@ -272,8 +266,9 @@ const chartData = computed(() => {
 
 const chartOptions = computed(() => {
   const nowTs = new Date().getTime()
-  const xMin = nowTs - 90 * 60000 // Mostriamo 90 min di storia
-  const xMax = nowTs + 70 * 60000 // E 70 min di futuro
+  const xMin = nowTs - 90 * 60000
+  const xMax = nowTs + 70 * 60000
+  const activeLoc = locale.value === 'en' ? 'en-US' : 'it-IT'
 
   return {
     responsive: true,
@@ -285,7 +280,7 @@ const chartOptions = computed(() => {
         min: xMin,
         max: xMax,
         ticks: {
-          callback: (val) => new Date(val).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+          callback: (val) => new Date(val).toLocaleTimeString(activeLoc, { hour: '2-digit', minute: '2-digit' }),
           font: { size: 9, family: 'DM Mono' },
           maxTicksLimit: 10
         },
@@ -305,8 +300,8 @@ const chartOptions = computed(() => {
         padding: 12,
         titleFont: { size: 12, weight: 'bold' },
         callbacks: {
-          title: (items) => new Date(items[0].parsed.x).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
-          label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y} mg/dL`
+          title: (items) => new Date(items[0].parsed.x).toLocaleTimeString(activeLoc, { hour: '2-digit', minute: '2-digit' }),
+          label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y} ${t('common.mgDl')}`
         }
       },
       annotation: {
@@ -320,7 +315,7 @@ const chartOptions = computed(() => {
             borderDash: [2, 2],
             label: {
               display: true,
-              content: 'ADESSO',
+              content: t('prediction.nowLine'),
               position: 'start',
               backgroundColor: '#475569',
               font: { size: 8, weight: 'bold' }

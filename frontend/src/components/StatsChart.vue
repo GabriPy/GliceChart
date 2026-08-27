@@ -1,7 +1,7 @@
 <template>
   <div class="card bg-base-200/70 backdrop-blur-xl shadow-xl border border-white/10 rounded-3xl overflow-hidden">
     <div class="card-body gap-4 p-6">
-      <span class="text-xs uppercase tracking-widest opacity-60 font-semibold">{{ title }}</span>
+      <span class="text-xs uppercase tracking-widest opacity-60 font-semibold">{{ title || $t('charts.statsTitle') }}</span>
       <div class="relative h-[260px] w-full bg-base-300/20 rounded-2xl p-2">
         <component :is="chartComponent" :data="chartData" :options="chartOptions" />
       </div>
@@ -11,6 +11,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Bar, Pie, Doughnut } from 'vue-chartjs'
 import {
   Chart as ChartJS, CategoryScale, LinearScale,
@@ -20,8 +21,10 @@ import { useGlucoseStore } from '../stores/glucose'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler, Legend, ArcElement, BarElement, Title)
 
+const { t } = useI18n()
+
 const props = defineProps({
-  title: { type: String, default: 'Statistiche' },
+  title: { type: String, default: '' },
   type: { type: String, default: 'bar' },
   data: { type: Object, default: null },
   readings: { type: Array, default: null }
@@ -40,13 +43,10 @@ const chartComponent = computed(() => {
 const chartData = computed(() => {
   if (props.data) return props.data
   
-  // Dati di esempio per distribuzione range o fasce orarie
   const readings = props.readings || store.readings
   if (!readings.length) return { datasets: [] }
   
-  // Se il titolo contiene "Fasce Orarie" o "Hourly", calcola dati orari per percentuali in range
-  if (props.title.includes('Fasce Orarie') || props.title.includes('Hourly')) {
-    // Inizializza array per 24 ore, con contatori per ogni range
+  if (props.type === 'bar' && (props.title.includes('Fasce Orarie') || props.title.includes('Hourly'))) {
     const hourlyData = Array.from({ length: 24 }, () => ({ low: 0, inRange: 0, high: 0, total: 0 }))
     
     readings.forEach(r => {
@@ -63,13 +63,11 @@ const chartData = computed(() => {
       }
     })
     
-    // Crea labels per le 24 ore
     const labels = Array.from({ length: 24 }, (_, idx) => `${idx.toString().padStart(2, '0')}:00`)
     
-    // Crea 3 dataset: uno per ogni range (percentuali)
     const datasets = [
       {
-        label: 'Basso (%)',
+        label: t('charts.lowPct'),
         data: hourlyData.map(h => h.total > 0 ? Math.round((h.low / h.total) * 100) : null),
         backgroundColor: 'rgba(59, 130, 246, 0.8)',
         borderColor: 'rgba(59, 130, 246, 1)',
@@ -78,7 +76,7 @@ const chartData = computed(() => {
         borderSkipped: false
       },
       {
-        label: 'In Range (%)',
+        label: t('charts.inRangePct'),
         data: hourlyData.map(h => h.total > 0 ? Math.round((h.inRange / h.total) * 100) : null),
         backgroundColor: 'rgba(34, 197, 94, 0.8)',
         borderColor: 'rgba(34, 197, 94, 1)',
@@ -87,7 +85,7 @@ const chartData = computed(() => {
         borderSkipped: false
       },
       {
-        label: 'Alto (%)',
+        label: t('charts.highPct'),
         data: hourlyData.map(h => h.total > 0 ? Math.round((h.high / h.total) * 100) : null),
         backgroundColor: 'rgba(239, 68, 68, 0.8)',
         borderColor: 'rgba(239, 68, 68, 1)',
@@ -100,19 +98,25 @@ const chartData = computed(() => {
     return { labels, datasets }
   }
   
-  // Altrimenti, mostra la distribuzione range (default)
-  const inRange = readings.filter(r => 
+  const total = readings.length
+  const inRangeCount = readings.filter(r =>
     r.glucose >= store.settings.tir_min && r.glucose <= store.settings.tir_max
   ).length
-  const low = readings.filter(r => r.glucose < store.settings.tir_min).length
-  const high = readings.filter(r => r.glucose > store.settings.tir_max).length
-  
+  const lowCount = readings.filter(r => r.glucose < store.settings.tir_min).length
+  const highCount = readings.filter(r => r.glucose > store.settings.tir_max).length
+
+  const lowPct = total ? Math.round((lowCount / total) * 100) : 0
+  const highPct = total ? Math.round((highCount / total) * 100) : 0
+  const inRangePct = total ? Math.max(0, 100 - lowPct - highPct) : 0
+
+  const labels = [t('charts.low'), t('charts.inRange'), t('charts.high')]
+
   if (props.type === 'bar') {
     return {
-      labels: ['Basso', 'In Range', 'Alto'],
+      labels,
       datasets: [{
-        label: 'Numero di letture',
-        data: [low, inRange, high],
+        label: t('charts.readingsCountLabel'),
+        data: [lowCount, inRangeCount, highCount],
         backgroundColor: [
           'rgba(59, 130, 246, 0.8)',
           'rgba(34, 197, 94, 0.8)',
@@ -129,12 +133,12 @@ const chartData = computed(() => {
       }]
     }
   }
-  
+
   return {
-    labels: ['Basso', 'In Range', 'Alto'],
+    labels,
     datasets: [{
-      label: 'Percentuale',
-      data: [low, inRange, high],
+      label: t('charts.percentageLabel'),
+      data: [lowPct, inRangePct, highPct],
       backgroundColor: [
         'rgba(59, 130, 246, 0.8)',
         'rgba(34, 197, 94, 0.8)',
@@ -179,8 +183,7 @@ const chartOptions = computed(() => {
   }
   
   if (props.type === 'bar') {
-    // Se è il grafico delle fasce orarie, imposta le scale in modo che siano impilate e la y vada da 0 a 100
-    if (props.title.includes('Fasce Orarie') || props.title.includes('Hourly')) {
+    if (props.type === 'bar' && (props.title.includes('Fasce Orarie') || props.title.includes('Hourly'))) {
       return {
         ...commonOptions,
         scales: {

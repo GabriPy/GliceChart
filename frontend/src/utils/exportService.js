@@ -1,13 +1,18 @@
 import Papa from 'papaparse'
 import { jsPDF } from 'jspdf'
 import { autoTable } from 'jspdf-autotable'
+import { t, getLanguage } from '../i18n'
 
 /**
  * Servizio per export dati in CSV e PDF
- * Supporta export di glicemia, insulina, carboidrati, note e impostazioni
+ * Supporta export di glicemia, insulina, carboidrati, note e impostazioni con i18n
  */
 
 class ExportService {
+  static getLocale() {
+    return getLanguage() === 'en' ? 'en-US' : 'it-IT'
+  }
+
   static renderTable(doc, options) {
     autoTable(doc, options)
     return doc.lastAutoTable
@@ -35,8 +40,7 @@ class ExportService {
   static exportToCSV(data, filename, options = {}) {
     const {
       headers = null,
-      transform = null,
-      dateFormat = 'it-IT'
+      transform = null
     } = options
 
     const csvData = transform ? data.map(transform) : data
@@ -69,14 +73,14 @@ class ExportService {
    */
   static exportToPDF(data, filename, options = {}) {
     const {
-      title = 'Report Dati',
+      title = t('exportReports.defaultTitle'),
       headers = null,
       transform = null,
       columns = null,
       pageSize = 'a4',
       orientation = 'portrait',
       styles = {},
-      subtitle = 'Esportazione dati',
+      subtitle = t('exportReports.defaultSubtitle'),
       dateRange = null
     } = options
 
@@ -101,11 +105,11 @@ class ExportService {
       doc.setFontSize(12)
       doc.setTextColor(55, 65, 81)
       doc.setFont('helvetica', 'bold')
-      doc.text('Nessun dato nel periodo selezionato', 20, headerBottom + 20)
+      doc.text(t('exportReports.noDataInPeriod'), 20, headerBottom + 20)
       doc.setFontSize(9)
       doc.setTextColor(120, 120, 120)
       doc.setFont('helvetica', 'normal')
-      doc.text('Prova ad ampliare il periodo o verifica che siano presenti record da esportare.', 20, headerBottom + 27)
+      doc.text(t('exportReports.noDataInPeriodHelp'), 20, headerBottom + 27)
       this.drawPdfFooter(doc, 'GliceChart Export')
       doc.save(`${filename}_${this.getTimestamp()}.pdf`)
       return
@@ -156,18 +160,24 @@ class ExportService {
   static exportGlucoseReadings(readings, format = 'csv', dateRange = null, settings = {}) {
     const effectiveRange = this.getEffectiveDateRange(dateRange)
     const filteredReadings = this.filterByDateRange(readings, effectiveRange)
-    
+    const loc = this.getLocale()
+
+    const colDateTime = t('exportReports.csvHeaders.dateTime')
+    const colGlucose = t('exportReports.csvHeaders.glucose')
+    const colTrend = t('exportReports.csvHeaders.trend')
+    const colRawTrend = t('exportReports.csvHeaders.rawTrend')
+
     const transform = (r) => ({
-      'Data/Ora': new Date(r.timestamp).toLocaleString('it-IT'),
-      'Glicemia (mg/dL)': r.glucose,
-      'Trend': r.trend,
-      'Trend Raw': r.raw_trend || ''
+      [colDateTime]: new Date(r.timestamp).toLocaleString(loc),
+      [colGlucose]: r.glucose,
+      [colTrend]: r.trend,
+      [colRawTrend]: r.raw_trend || ''
     })
 
-    const headers = ['Data/Ora', 'Glicemia (mg/dL)', 'Trend', 'Trend Raw']
+    const headers = [colDateTime, colGlucose, colTrend, colRawTrend]
 
     if (format === 'csv') {
-      this.exportToCSV(filteredReadings, 'glicemia', {
+      this.exportToCSV(filteredReadings, 'glucose', {
         headers,
         transform
       })
@@ -179,9 +189,11 @@ class ExportService {
   static exportGlucosePDF(readings, dateRange, settings = {}) {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
     const margin = 14
+    const loc = this.getLocale()
+
     let yPos = this.drawPdfHeader(doc, {
-      title: 'Report Glicemia',
-      subtitle: 'Andamento glicemico con statistiche e grafici',
+      title: t('exportReports.glucoseTitle'),
+      subtitle: t('exportReports.glucoseSubtitle'),
       count: readings.length,
       dateRange
     }) + 6
@@ -189,10 +201,10 @@ class ExportService {
     if (readings.length > 0) {
       const stats = this.calculateGlucoseStats(readings, settings)
       yPos = this.ensurePageSpace(doc, yPos, 34)
-      this.drawStatCard(doc, margin, yPos, 40, 25, stats.avgGlucose, 'mg/dL', 'Media Glicemia', [99, 102, 241])
-      this.drawStatCard(doc, margin + 45, yPos, 40, 25, `${stats.tir}%`, '', 'Time in Range', [34, 197, 94])
-      this.drawStatCard(doc, margin + 90, yPos, 40, 25, `${stats.minGlucose}/${stats.maxGlucose}`, 'mg/dL', 'Min / Max', [249, 115, 22])
-      this.drawStatCard(doc, margin + 135, yPos, 40, 25, readings.length, '', 'Totale Letture', [107, 114, 128])
+      this.drawStatCard(doc, margin, yPos, 40, 25, stats.avgGlucose, 'mg/dL', t('exportReports.avgGlucose'), [99, 102, 241])
+      this.drawStatCard(doc, margin + 45, yPos, 40, 25, `${stats.tir}%`, '', t('exportReports.tir'), [34, 197, 94])
+      this.drawStatCard(doc, margin + 90, yPos, 40, 25, `${stats.minGlucose}/${stats.maxGlucose}`, 'mg/dL', t('exportReports.minMax'), [249, 115, 22])
+      this.drawStatCard(doc, margin + 135, yPos, 40, 25, readings.length, '', t('exportReports.totalReadings'), [107, 114, 128])
       yPos += 35
 
       yPos = this.ensurePageSpace(doc, yPos, 68)
@@ -212,7 +224,7 @@ class ExportService {
       doc.setFontSize(12)
       doc.setTextColor(55, 65, 81)
       doc.setFont('helvetica', 'bold')
-      doc.text('Nessun dato nel periodo selezionato', margin + 6, yPos + 14)
+      doc.text(t('exportReports.noDataInPeriod'), margin + 6, yPos + 14)
       yPos += 38
     }
 
@@ -221,12 +233,16 @@ class ExportService {
     doc.setFontSize(14)
     doc.setTextColor(18, 18, 18)
     doc.setFont('helvetica', 'bold')
-    doc.text('Dettaglio Letture', margin, yPos)
+    doc.text(t('exportReports.readingsDetail'), margin, yPos)
     yPos += 8
 
-    const tableHeaders = ['Data/Ora', 'Glicemia (mg/dL)', 'Trend']
+    const tableHeaders = [
+      t('exportReports.csvHeaders.dateTime'),
+      t('exportReports.csvHeaders.glucose'),
+      t('exportReports.csvHeaders.trend')
+    ]
     const tableBody = readings.map((r) => [
-      new Date(r.timestamp).toLocaleString('it-IT'),
+      new Date(r.timestamp).toLocaleString(loc),
       r.glucose,
       r.trend || '-'
     ])
@@ -234,7 +250,7 @@ class ExportService {
     if (tableBody.length === 0) {
       doc.setFontSize(10)
       doc.setTextColor(150, 150, 150)
-      doc.text('Nessun dato disponibile', margin, yPos)
+      doc.text(t('common.noDataAvailable'), margin, yPos)
     } else {
       this.renderTable(doc, {
         startY: yPos,
@@ -259,8 +275,8 @@ class ExportService {
       })
     }
 
-    this.drawPdfFooter(doc, 'GliceChart - Report Glicemia')
-    doc.save(`glicemia_${this.getTimestamp()}.pdf`)
+    this.drawPdfFooter(doc, `GliceChart - ${t('exportReports.glucoseTitle')}`)
+    doc.save(`glucose_${this.getTimestamp()}.pdf`)
   }
 
   /**
@@ -272,26 +288,31 @@ class ExportService {
   static exportInsulin(insulin, format = 'csv', dateRange = null) {
     const effectiveRange = this.getEffectiveDateRange(dateRange)
     const filteredInsulin = this.filterByDateRange(insulin, effectiveRange)
-    
+    const loc = this.getLocale()
+
+    const colDateTime = t('exportReports.csvHeaders.dateTime')
+    const colType = t('exportReports.csvHeaders.insulinType')
+    const colUnits = t('exportReports.csvHeaders.units')
+
     const transform = (i) => ({
-      'Data/Ora': new Date(i.timestamp).toLocaleString('it-IT'),
-      'Tipo': i.type === 'rapid' ? 'Rapida' : 'Lenta',
-      'Unità': i.units
+      [colDateTime]: new Date(i.timestamp).toLocaleString(loc),
+      [colType]: i.type === 'rapid' ? t('home.rapid') : t('home.slow'),
+      [colUnits]: i.units
     })
 
-    const headers = ['Data/Ora', 'Tipo', 'Unità']
+    const headers = [colDateTime, colType, colUnits]
 
     if (format === 'csv') {
-      this.exportToCSV(filteredInsulin, 'insulina', {
+      this.exportToCSV(filteredInsulin, 'insulin', {
         headers,
         transform
       })
     } else {
-      this.exportToPDF(filteredInsulin, 'insulina', {
-        title: 'Report Insulina',
+      this.exportToPDF(filteredInsulin, 'insulin', {
+        title: t('exportReports.insulinTitle'),
         headers,
         transform,
-        subtitle: 'Somministrazioni registrate',
+        subtitle: t('exportReports.insulinSubtitle'),
         dateRange: effectiveRange
       })
     }
@@ -306,25 +327,29 @@ class ExportService {
   static exportCarbs(carbs, format = 'csv', dateRange = null) {
     const effectiveRange = this.getEffectiveDateRange(dateRange)
     const filteredCarbs = this.filterByDateRange(carbs, effectiveRange)
-    
+    const loc = this.getLocale()
+
+    const colDateTime = t('exportReports.csvHeaders.dateTime')
+    const colAmount = t('exportReports.csvHeaders.carbsAmount')
+
     const transform = (c) => ({
-      'Data/Ora': new Date(c.timestamp).toLocaleString('it-IT'),
-      'Carboidrati (g)': c.amount
+      [colDateTime]: new Date(c.timestamp).toLocaleString(loc),
+      [colAmount]: c.amount
     })
 
-    const headers = ['Data/Ora', 'Carboidrati (g)']
+    const headers = [colDateTime, colAmount]
 
     if (format === 'csv') {
-      this.exportToCSV(filteredCarbs, 'carboidrati', {
+      this.exportToCSV(filteredCarbs, 'carbs', {
         headers,
         transform
       })
     } else {
-      this.exportToPDF(filteredCarbs, 'carboidrati', {
-        title: 'Report Carboidrati',
+      this.exportToPDF(filteredCarbs, 'carbs', {
+        title: t('exportReports.carbsTitle'),
         headers,
         transform,
-        subtitle: 'Carboidrati registrati',
+        subtitle: t('exportReports.carbsSubtitle'),
         dateRange: effectiveRange
       })
     }
@@ -339,25 +364,29 @@ class ExportService {
   static exportNotes(notes, format = 'csv', dateRange = null) {
     const effectiveRange = this.getEffectiveDateRange(dateRange)
     const filteredNotes = this.filterByDateRange(notes, effectiveRange)
-    
+    const loc = this.getLocale()
+
+    const colDateTime = t('exportReports.csvHeaders.dateTime')
+    const colText = t('exportReports.csvHeaders.noteText')
+
     const transform = (n) => ({
-      'Data/Ora': new Date(n.timestamp).toLocaleString('it-IT'),
-      'Nota': n.text
+      [colDateTime]: new Date(n.timestamp).toLocaleString(loc),
+      [colText]: n.text
     })
 
-    const headers = ['Data/Ora', 'Nota']
+    const headers = [colDateTime, colText]
 
     if (format === 'csv') {
-      this.exportToCSV(filteredNotes, 'note', {
+      this.exportToCSV(filteredNotes, 'notes', {
         headers,
         transform
       })
     } else {
-      this.exportToPDF(filteredNotes, 'note', {
-        title: 'Report Note',
+      this.exportToPDF(filteredNotes, 'notes', {
+        title: t('exportReports.notesTitle'),
         headers,
         transform,
-        subtitle: 'Note registrate',
+        subtitle: t('exportReports.notesSubtitle'),
         dateRange: effectiveRange
       })
     }
@@ -374,13 +403,11 @@ class ExportService {
     const effectiveRange = this.getEffectiveDateRange(dateRange)
     
     if (format === 'csv') {
-      // Per CSV, crea file separati
       this.exportGlucoseReadings(readings, 'csv', effectiveRange, settings)
       this.exportInsulin(insulin, 'csv', effectiveRange)
       this.exportCarbs(carbs, 'csv', effectiveRange)
       this.exportNotes(notes, 'csv', effectiveRange)
     } else {
-      // Per PDF, crea un report multi-sezione
       this.exportCompletePDF(data, effectiveRange)
     }
   }
@@ -398,13 +425,14 @@ class ExportService {
     const filteredCarbs = this.filterByDateRange(carbs, effectiveRange)
     const filteredNotes = this.filterByDateRange(notes, effectiveRange)
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    const loc = this.getLocale()
 
     let yPos = 0
     const pageHeight = doc.internal.pageSize.height
     const margin = 14
     yPos = this.drawPdfHeader(doc, {
-      title: 'GliceChart',
-      subtitle: 'Report completo in stile dashboard',
+      title: t('exportReports.fullReportTitle'),
+      subtitle: t('exportReports.fullReportSubtitle'),
       count: filteredReadings.length,
       dateRange: effectiveRange
     }) + 6
@@ -414,17 +442,10 @@ class ExportService {
       const stats = this.calculateGlucoseStats(filteredReadings, settings)
       yPos = this.ensurePageSpace(doc, yPos, 34)
 
-      // Card 1: Media Glicemia
-      this.drawStatCard(doc, margin, yPos, 40, 25, stats.avgGlucose, 'mg/dL', 'Media Glicemia', [99, 102, 241])
-      
-      // Card 2: TIR
-      this.drawStatCard(doc, margin + 45, yPos, 40, 25, `${stats.tir}%`, '', 'Time in Range', [34, 197, 94])
-      
-      // Card 3: Min/Max
-      this.drawStatCard(doc, margin + 90, yPos, 40, 25, `${stats.minGlucose}/${stats.maxGlucose}`, 'mg/dL', 'Min / Max', [249, 115, 22])
-      
-      // Card 4: Record totali
-      this.drawStatCard(doc, margin + 135, yPos, 40, 25, filteredReadings.length, '', 'Totale Letture', [107, 114, 128])
+      this.drawStatCard(doc, margin, yPos, 40, 25, stats.avgGlucose, 'mg/dL', t('exportReports.avgGlucose'), [99, 102, 241])
+      this.drawStatCard(doc, margin + 45, yPos, 40, 25, `${stats.tir}%`, '', t('exportReports.tir'), [34, 197, 94])
+      this.drawStatCard(doc, margin + 90, yPos, 40, 25, `${stats.minGlucose}/${stats.maxGlucose}`, 'mg/dL', t('exportReports.minMax'), [249, 115, 22])
+      this.drawStatCard(doc, margin + 135, yPos, 40, 25, filteredReadings.length, '', t('exportReports.totalReadings'), [107, 114, 128])
       
       yPos += 35
 
@@ -456,31 +477,13 @@ class ExportService {
       doc.setFontSize(12)
       doc.setTextColor(55, 65, 81)
       doc.setFont('helvetica', 'bold')
-      doc.text('Nessuna lettura glicemica negli ultimi 30 giorni', margin + 6, yPos + 14)
+      doc.text(t('exportReports.noDataInPeriod'), margin + 6, yPos + 14)
       doc.setFontSize(9)
       doc.setTextColor(120, 120, 120)
       doc.setFont('helvetica', 'normal')
-      doc.text('Le tabelle sottostanti mostreranno solo i dati presenti nel periodo effettivo di export.', margin + 6, yPos + 21)
+      doc.text(t('exportReports.noDataInPeriodHelp'), margin + 6, yPos + 21)
       yPos += 40
     }
-
-    yPos = this.ensurePageSpace(doc, yPos, 20)
-    doc.setFontSize(12)
-    doc.setTextColor(24, 24, 27)
-    doc.setFont('helvetica', 'bold')
-    doc.text('Riepilogo Dati Esportati', margin, yPos)
-    yPos += 7
-
-    doc.setFontSize(9)
-    doc.setTextColor(82, 82, 91)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`Letture glicemia: ${filteredReadings.length}`, margin, yPos)
-    yPos += 5
-    doc.text(`Insulina: ${filteredInsulin.length} record`, margin, yPos)
-    yPos += 5
-    doc.text(`Carboidrati: ${filteredCarbs.length} record`, margin, yPos)
-    yPos += 5
-    doc.text(`Note: ${filteredNotes.length} record`, margin, yPos)
 
     doc.addPage()
     yPos = 20
@@ -503,7 +506,7 @@ class ExportService {
       if (filteredData.length === 0) {
         doc.setFontSize(10)
         doc.setTextColor(150, 150, 150)
-        doc.text('Nessun dato disponibile', margin, yPos)
+        doc.text(t('common.noDataAvailable'), margin, yPos)
         yPos += 10
         return
       }
@@ -538,37 +541,52 @@ class ExportService {
     }
 
     // Aggiungi tabelle
-    addTable('Glicemia', filteredReadings, ['Data/Ora', 'Glicemia', 'Trend'], (r) => [
-      new Date(r.timestamp).toLocaleString('it-IT'),
+    addTable(t('exportReports.readingsDetail'), filteredReadings, [
+      t('exportReports.csvHeaders.dateTime'),
+      t('exportReports.csvHeaders.glucose'),
+      t('exportReports.csvHeaders.trend')
+    ], (r) => [
+      new Date(r.timestamp).toLocaleString(loc),
       r.glucose,
-      r.trend
+      r.trend || '-'
     ])
 
-    addTable('Insulina', filteredInsulin, ['Data/Ora', 'Tipo', 'Unità'], (i) => [
-      new Date(i.timestamp).toLocaleString('it-IT'),
-      i.type === 'rapid' ? 'Rapida' : 'Lenta',
+    addTable(t('exportReports.insulinDetail'), filteredInsulin, [
+      t('exportReports.csvHeaders.dateTime'),
+      t('exportReports.csvHeaders.insulinType'),
+      t('exportReports.csvHeaders.units')
+    ], (i) => [
+      new Date(i.timestamp).toLocaleString(loc),
+      i.type === 'rapid' ? t('home.rapid') : t('home.slow'),
       i.units
     ])
 
-    addTable('Carboidrati', filteredCarbs, ['Data/Ora', 'Grammi'], (c) => [
-      new Date(c.timestamp).toLocaleString('it-IT'),
+    addTable(t('exportReports.carbsDetail'), filteredCarbs, [
+      t('exportReports.csvHeaders.dateTime'),
+      t('exportReports.csvHeaders.carbsAmount')
+    ], (c) => [
+      new Date(c.timestamp).toLocaleString(loc),
       c.amount
     ])
 
-    addTable('Note', filteredNotes, ['Data/Ora', 'Nota'], (n) => [
-      new Date(n.timestamp).toLocaleString('it-IT'),
+    addTable(t('exportReports.notesDetail'), filteredNotes, [
+      t('exportReports.csvHeaders.dateTime'),
+      t('exportReports.csvHeaders.noteText')
+    ], (n) => [
+      new Date(n.timestamp).toLocaleString(loc),
       n.text
     ])
 
-    this.drawPdfFooter(doc, 'GliceChart - Report Completo')
+    this.drawPdfFooter(doc, `GliceChart - ${t('exportReports.fullReportTitle')}`)
 
-    doc.save(`glicechart_report_completo_${this.getTimestamp()}.pdf`)
+    doc.save(`glicechart_complete_report_${this.getTimestamp()}.pdf`)
   }
 
   static drawPdfHeader(doc, { title, subtitle, count, dateRange = null }) {
     const pageWidth = doc.internal.pageSize.width
     const margin = 14
     const effectiveRange = dateRange ? this.getEffectiveDateRange(dateRange) : null
+    const loc = this.getLocale()
 
     doc.setFillColor(18, 18, 18)
     doc.rect(0, 0, pageWidth, 34, 'F')
@@ -580,22 +598,22 @@ class ExportService {
     doc.setFont('helvetica', 'bold')
     doc.text('GC', margin + 9, 17.5, { align: 'center' })
 
-    doc.setFontSize(20)
+    doc.setFontSize(18)
     doc.setFont('helvetica', 'bold')
     doc.text(String(title), margin + 24, 16)
 
-    doc.setFontSize(9)
+    doc.setFontSize(8)
     doc.setTextColor(212, 212, 216)
     doc.setFont('helvetica', 'normal')
     doc.text(String(subtitle), margin + 24, 23)
-    doc.text(`Generato il ${new Date().toLocaleDateString('it-IT')} alle ${new Date().toLocaleTimeString('it-IT')}`, margin + 24, 29)
+    doc.text(`${new Date().toLocaleDateString(loc)} ${new Date().toLocaleTimeString(loc)}`, margin + 24, 29)
 
     doc.setFillColor(255, 255, 255)
     doc.setTextColor(18, 18, 18)
     doc.roundedRect(pageWidth - 62, 9, 48, 9, 4, 4, 'F')
     doc.setFontSize(8)
     doc.setFont('helvetica', 'bold')
-    doc.text(`${count} record`, pageWidth - 38, 14.9, { align: 'center' })
+    doc.text(`${count} items`, pageWidth - 38, 14.9, { align: 'center' })
 
     if (effectiveRange) {
       doc.setFillColor(39, 39, 42)
@@ -625,7 +643,7 @@ class ExportService {
       doc.setFontSize(7)
       doc.setTextColor(113, 113, 122)
       doc.setFont('helvetica', 'normal')
-      doc.text(`Pagina ${i} di ${pageCount}`, margin, pageHeight - 5)
+      doc.text(`Page ${i} / ${pageCount}`, margin, pageHeight - 5)
       doc.text(String(label), pageWidth - margin, pageHeight - 5, { align: 'right' })
     }
   }
@@ -636,27 +654,30 @@ class ExportService {
    * @param {string} format - 'csv' o 'pdf'
    */
   static exportSettings(settings, format = 'csv') {
+    const colParam = t('exportReports.csvHeaders.settingKey')
+    const colVal = t('exportReports.csvHeaders.settingValue')
+
     const settingsRows = [
-      { 'Parametro': 'TIR Minimo', 'Valore': settings.tir_min },
-      { 'Parametro': 'TIR Massimo', 'Valore': settings.tir_max },
-      { 'Parametro': 'Soglia Rossa Sotto', 'Valore': settings.red_under },
-      { 'Parametro': 'Soglia Rossa Sopra', 'Valore': settings.red_over },
-      { 'Parametro': 'Durata Insulina Rapida (ore)', 'Valore': settings.rapid_duration },
-      { 'Parametro': 'Durata Insulina Lenta (ore)', 'Valore': settings.slow_duration },
-      { 'Parametro': 'Durata Carboidrati (ore)', 'Valore': settings.carb_duration },
-      { 'Parametro': 'Sensibilità Insulina', 'Valore': settings.insulin_sensitivity },
-      { 'Parametro': 'Ratio Carboidrati', 'Valore': settings.carb_ratio }
+      { [colParam]: t('settings.minTarget'), [colVal]: settings.tir_min },
+      { [colParam]: t('settings.maxTarget'), [colVal]: settings.tir_max },
+      { [colParam]: t('settings.lowThreshold'), [colVal]: settings.red_under },
+      { [colParam]: t('settings.highThreshold'), [colVal]: settings.red_over },
+      { [colParam]: t('settings.rapidDuration'), [colVal]: settings.rapid_duration },
+      { [colParam]: t('settings.slowDuration'), [colVal]: settings.slow_duration },
+      { [colParam]: t('settings.carbDuration'), [colVal]: settings.carb_duration },
+      { [colParam]: t('settings.insulinSensitivity'), [colVal]: settings.insulin_sensitivity },
+      { [colParam]: t('settings.carbRatio'), [colVal]: settings.carb_ratio }
     ]
 
-    const headers = ['Parametro', 'Valore']
+    const headers = [colParam, colVal]
 
     if (format === 'csv') {
-      this.exportToCSV(settingsRows, 'impostazioni', { headers })
+      this.exportToCSV(settingsRows, 'settings', { headers })
     } else {
-      this.exportToPDF(settingsRows, 'impostazioni', {
-        title: 'Report Impostazioni',
+      this.exportToPDF(settingsRows, 'settings', {
+        title: t('export.types.settings'),
         headers,
-        subtitle: 'Configurazione corrente dell\'app'
+        subtitle: t('settings.subtitle')
       })
     }
   }
@@ -681,19 +702,16 @@ class ExportService {
   }
 
   static formatDateRangeLabel(dateRange) {
-    if (!dateRange?.start || !dateRange?.end) return 'Ultimi 30 giorni'
+    if (!dateRange?.start || !dateRange?.end) return t('export.default30DaysNote')
+    const loc = this.getLocale()
 
-    const start = new Date(dateRange.start).toLocaleDateString('it-IT')
-    const end = new Date(dateRange.end).toLocaleDateString('it-IT')
+    const start = new Date(dateRange.start).toLocaleDateString(loc)
+    const end = new Date(dateRange.end).toLocaleDateString(loc)
     return `${start} - ${end}`
   }
 
-  /**
-   * Filtra dati per range di date
-   * @param {Array} data - Dati da filtrare
-   * @param {Object} dateRange - { start, end } in formato YYYY-MM-DD
-   */
   static filterByDateRange(data, dateRange) {
+    if (!data || !Array.isArray(data)) return []
     if (!dateRange || !dateRange.start || !dateRange.end) {
       return data
     }
@@ -707,18 +725,11 @@ class ExportService {
     })
   }
 
-  /**
-   * Estrae headers dai dati
-   * @param {Array} data - Dati
-   */
   static extractHeaders(data) {
-    if (data.length === 0) return []
+    if (!data || data.length === 0) return []
     return Object.keys(data[0])
   }
 
-  /**
-   * Genera timestamp per filename
-   */
   static getTimestamp() {
     const now = new Date()
     return now.toISOString().slice(0, 10).replace(/-/g, '_')
@@ -742,33 +753,21 @@ class ExportService {
     const highCount = readings.filter(r => r.glucose > tirMax).length
 
     return {
-      avgGlucose: Math.round(readings.reduce((sum, r) => sum + Number(r.glucose || 0), 0) / readings.length),
-      minGlucose: Math.min(...readings.map(r => Number(r.glucose || 0))),
-      maxGlucose: Math.max(...readings.map(r => Number(r.glucose || 0))),
-      tir: Math.round((inRangeCount / readings.length) * 100),
+      avgGlucose: Math.round(readings.reduce((sum, r) => sum + Number(r.glucose || 0), 0) / (readings.length || 1)),
+      minGlucose: readings.length ? Math.min(...readings.map(r => Number(r.glucose || 0))) : 0,
+      maxGlucose: readings.length ? Math.max(...readings.map(r => Number(r.glucose || 0))) : 0,
+      tir: Math.round((inRangeCount / (readings.length || 1)) * 100),
       lowCount,
       inRangeCount,
       highCount,
-      lowPercentage: Math.round((lowCount / readings.length) * 100),
-      inRangePercentage: Math.round((inRangeCount / readings.length) * 100),
-      highPercentage: Math.round((highCount / readings.length) * 100),
+      lowPercentage: Math.round((lowCount / (readings.length || 1)) * 100),
+      inRangePercentage: Math.round((inRangeCount / (readings.length || 1)) * 100),
+      highPercentage: Math.round((highCount / (readings.length || 1)) * 100),
       tirMin,
       tirMax
     }
   }
 
-  /**
-   * Disegna una card statistica nel PDF
-   * @param {Object} doc - Documento jsPDF
-   * @param {number} x - Posizione X
-   * @param {number} y - Posizione Y
-   * @param {number} width - Larghezza card
-   * @param {number} height - Altezza card
-   * @param {string} value - Valore principale
-   * @param {string} unit - Unità di misura
-   * @param {string} label - Etichetta
-   * @param {Array} color - Colore [R, G, B]
-   */
   static drawStatCard(doc, x, y, width, height, value, unit, label, color) {
     doc.setFillColor(24, 24, 27)
     doc.roundedRect(x, y, width, height, 3, 3, 'F')
@@ -800,7 +799,7 @@ class ExportService {
     doc.setFontSize(12)
     doc.setTextColor(24, 24, 27)
     doc.setFont('helvetica', 'bold')
-    doc.text('Time In Range', x, y)
+    doc.text(t('exportReports.timeInRangeBreakdown'), x, y)
     y += 6
 
     doc.setFillColor(18, 18, 18)
@@ -814,13 +813,13 @@ class ExportService {
     doc.text(`${stats.tir}%`, x + 26, y + 18, { align: 'center' })
     doc.setFontSize(7)
     doc.setFont('helvetica', 'normal')
-    doc.text('nel target', x + 26, y + 25, { align: 'center' })
-    doc.text(`${stats.inRangeCount}/${readings.length} letture`, x + 26, y + 31, { align: 'center' })
+    doc.text(t('charts.inRange'), x + 26, y + 25, { align: 'center' })
+    doc.text(`${stats.inRangeCount}/${readings.length}`, x + 26, y + 31, { align: 'center' })
 
     const rows = [
-      { label: `Bassi < ${stats.tirMin}`, percentage: stats.lowPercentage, count: stats.lowCount, color: [239, 68, 68] },
-      { label: `In range ${stats.tirMin}-${stats.tirMax}`, percentage: stats.inRangePercentage, count: stats.inRangeCount, color: [34, 197, 94] },
-      { label: `Alti > ${stats.tirMax}`, percentage: stats.highPercentage, count: stats.highCount, color: [249, 115, 22] }
+      { label: `${t('charts.low')} < ${stats.tirMin}`, percentage: stats.lowPercentage, count: stats.lowCount, color: [239, 68, 68] },
+      { label: `${t('charts.inRange')} ${stats.tirMin}-${stats.tirMax}`, percentage: stats.inRangePercentage, count: stats.inRangeCount, color: [34, 197, 94] },
+      { label: `${t('charts.high')} > ${stats.tirMax}`, percentage: stats.highPercentage, count: stats.highCount, color: [249, 115, 22] }
     ]
 
     rows.forEach((row, index) => {
@@ -844,21 +843,12 @@ class ExportService {
       doc.setFontSize(6)
       doc.setTextColor(161, 161, 170)
       doc.setFont('helvetica', 'normal')
-      doc.text(`${row.count} letture`, x + 170, rowY + 5.8, { align: 'right' })
+      doc.text(`${row.count}`, x + 170, rowY + 5.8, { align: 'right' })
     })
 
     return y + 50
   }
 
-  /**
-   * Disegna grafico distribuzione glicemia
-   * @param {Object} doc - Documento jsPDF
-   * @param {number} x - Posizione X
-   * @param {number} y - Posizione Y
-   * @param {Array} readings - Letture glicemiche
-   * @param {Object} settings - Impostazioni
-   * @returns {number} Nuova posizione Y
-   */
   static downsampleReadings(readings, maxPoints = 80) {
     if (readings.length <= maxPoints) return readings
 
@@ -882,11 +872,12 @@ class ExportService {
     const tirMax = settings?.tir_max || 180
     const chartWidth = 182
     const chartHeight = 58
+    const loc = this.getLocale()
 
     doc.setFontSize(12)
     doc.setTextColor(24, 24, 27)
     doc.setFont('helvetica', 'bold')
-    doc.text('Andamento Glicemico', x, y)
+    doc.text(t('charts.currentTrend'), x, y)
     y += 6
 
     const chartY = y
@@ -948,8 +939,8 @@ class ExportService {
     doc.text(String(tirMin), plotX - 2, tirBottomY + 2, { align: 'right' })
     doc.text(String(Math.round(minG)), plotX - 2, plotY + plotH, { align: 'right' })
 
-    const firstDate = new Date(points[0].timestamp).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
-    const lastDate = new Date(points[points.length - 1].timestamp).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
+    const firstDate = new Date(points[0].timestamp).toLocaleDateString(loc, { day: '2-digit', month: 'short' })
+    const lastDate = new Date(points[points.length - 1].timestamp).toLocaleDateString(loc, { day: '2-digit', month: 'short' })
     doc.text(firstDate, plotX, chartY + chartHeight - 2)
     doc.text(lastDate, plotX + plotW, chartY + chartHeight - 2, { align: 'right' })
 
@@ -964,14 +955,14 @@ class ExportService {
     doc.setFontSize(12)
     doc.setTextColor(24, 24, 27)
     doc.setFont('helvetica', 'bold')
-    doc.text('Parametri Terapeutici', x, y)
+    doc.text(t('settings.title'), x, y)
     y += 6
 
     const items = [
-      { label: 'Target glicemia', value: `${settings.tir_min}-${settings.tir_max} mg/dL` },
-      { label: 'Sensibilita insulina', value: `${settings.insulin_sensitivity} mg/dL/U` },
-      { label: 'Ratio carboidrati', value: `1U / ${settings.carb_ratio}g` },
-      { label: 'Insulina rapida/lenta', value: `${settings.rapid_duration}h / ${settings.slow_duration}h` }
+      { label: t('settings.tirCardTitle'), value: `${settings.tir_min}-${settings.tir_max} mg/dL` },
+      { label: t('settings.insulinSensitivity'), value: `${settings.insulin_sensitivity} mg/dL/U` },
+      { label: t('settings.carbRatio'), value: `1U / ${settings.carb_ratio}g` },
+      { label: t('settings.rapidDuration') + ' / ' + t('settings.slowDuration'), value: `${settings.rapid_duration}h / ${settings.slow_duration}h` }
     ]
 
     items.forEach((item, index) => {
@@ -999,11 +990,10 @@ class ExportService {
     const tirMin = settings?.tir_min || 70
     const tirMax = settings?.tir_max || 180
     
-    // Calcola distribuzione
     const ranges = [
-      { label: 'Basso (<70)', min: 0, max: tirMin - 1, color: [239, 68, 68] },
-      { label: 'Target (70-180)', min: tirMin, max: tirMax, color: [34, 197, 94] },
-      { label: 'Alto (>180)', min: tirMax + 1, max: 400, color: [249, 115, 22] }
+      { label: `${t('charts.low')} (<${tirMin})`, min: 0, max: tirMin - 1, color: [239, 68, 68] },
+      { label: `${t('charts.inRange')} (${tirMin}-${tirMax})`, min: tirMin, max: tirMax, color: [34, 197, 94] },
+      { label: `${t('charts.high')} (>${tirMax})`, min: tirMax + 1, max: 400, color: [249, 115, 22] }
     ]
     
     const distribution = ranges.map(range => {
@@ -1011,42 +1001,36 @@ class ExportService {
       return { ...range, count, percentage: readings.length > 0 ? Math.round((count / readings.length) * 100) : 0 }
     })
     
-    // Titolo
     doc.setFontSize(12)
     doc.setTextColor(40, 40, 40)
     doc.setFont('helvetica', 'bold')
-    doc.text('Distribuzione Glicemia', x, y)
+    doc.text(t('exportReports.timeInRangeBreakdown'), x, y)
     y += 8
     
-    // Disegna barre
     const barWidth = 50
     const barHeight = 30
     const gap = 15
     const startX = x
-    const maxCount = Math.max(...distribution.map(d => d.count))
+    const maxCount = Math.max(...distribution.map(d => d.count), 1)
     
     distribution.forEach((item, index) => {
       const barX = startX + index * (barWidth + gap)
       const barY = y
       
-      // Background bar
       doc.setFillColor(248, 250, 252)
       doc.roundedRect(barX, barY, barWidth, barHeight, 3, 3, 'F')
       
-      // Value bar (proporzionale)
       const fillHeight = maxCount > 0 ? (item.count / maxCount) * (barHeight - 8) : 0
       if (fillHeight > 0) {
         doc.setFillColor(item.color[0], item.color[1], item.color[2])
         doc.roundedRect(barX, barY + barHeight - fillHeight - 4, barWidth, fillHeight, 2, 2, 'F')
       }
       
-      // Label sotto
       doc.setFontSize(6)
       doc.setTextColor(80, 80, 80)
       doc.setFont('helvetica', 'normal')
       doc.text(item.label, barX + barWidth / 2, barY + barHeight + 5, { align: 'center' })
       
-      // Percentuale sopra
       doc.setFontSize(8)
       doc.setTextColor(item.color[0], item.color[1], item.color[2])
       doc.setFont('helvetica', 'bold')
@@ -1056,16 +1040,7 @@ class ExportService {
     return y + barHeight + 15
   }
 
-  /**
-   * Disegna grafico distribuzione oraria
-   * @param {Object} doc - Documento jsPDF
-   * @param {number} x - Posizione X
-   * @param {number} y - Posizione Y
-   * @param {Array} readings - Letture glicemiche
-   * @returns {number} Nuova posizione Y
-   */
   static drawHourlyDistribution(doc, x, y, readings, settings) {
-    // Dividi in 6 fasce orarie (4 ore ciascuna)
     const timeRanges = [
       { label: '00-04', start: 0, end: 4 },
       { label: '04-08', start: 4, end: 8 },
@@ -1089,7 +1064,7 @@ class ExportService {
     doc.setFontSize(12)
     doc.setTextColor(24, 24, 27)
     doc.setFont('helvetica', 'bold')
-    doc.text('Distribuzione Oraria', x, y)
+    doc.text(t('exportReports.hourlyDistribution'), x, y)
     y += 6
 
     const chartWidth = 182
@@ -1130,18 +1105,14 @@ class ExportService {
     return chartY + chartHeight + 8
   }
 
-  /**
-   * Disegna grafico trend settimanale
-   * @param {Object} doc - Documento jsPDF
-   * @param {number} x - Posizione X
-   * @param {number} y - Posizione Y
-   * @param {Array} readings - Letture glicemiche
-   * @returns {number} Nuova posizione Y
-   */
   static drawWeeklyTrend(doc, x, y, readings, settings = {}) {
     const tirMin = settings?.tir_min || 70
     const tirMax = settings?.tir_max || 180
-    const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
+    const isEn = getLanguage() === 'en'
+    const days = isEn 
+      ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+      : ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
+
     const weeklyData = days.map((day, index) => {
       const dayReadings = readings.filter(r => new Date(r.timestamp).getDay() === index)
       const avg = dayReadings.length > 0 
@@ -1150,15 +1121,12 @@ class ExportService {
       return { day, avg, count: dayReadings.length }
     })
     
-    // Titolo
     doc.setFontSize(12)
     doc.setTextColor(40, 40, 40)
     doc.setFont('helvetica', 'bold')
-    doc.text('Trend Settimanale', x, y)
+    doc.text(t('exportReports.weeklyTrend'), x, y)
     y += 8
     
-    // Disegna mini bar chart
-    const chartWidth = 180
     const chartHeight = 35
     const startX = x
     const barWidth = 18
@@ -1170,11 +1138,9 @@ class ExportService {
       const barX = startX + index * (barWidth + gap)
       const barY = y + chartHeight
       
-      // Background bar
       doc.setFillColor(248, 250, 252)
       doc.roundedRect(barX, y, barWidth, chartHeight, 2, 2, 'F')
       
-      // Value bar
       if (item.avg > 0) {
         const fillHeight = (item.avg / maxAvg) * (chartHeight - 8)
         const color = this.getGlucoseColor(item.avg, tirMin, tirMax)
@@ -1182,14 +1148,12 @@ class ExportService {
         doc.setFillColor(color[0], color[1], color[2])
         doc.roundedRect(barX, barY - fillHeight - 4, barWidth, fillHeight, 2, 2, 'F')
         
-        // Valore
         doc.setFontSize(7)
         doc.setTextColor(color[0], color[1], color[2])
         doc.setFont('helvetica', 'bold')
         doc.text(String(item.avg), barX + barWidth / 2, barY - fillHeight - 7, { align: 'center' })
       }
       
-      // Label giorno
       doc.setFontSize(6)
       doc.setTextColor(100, 100, 100)
       doc.setFont('helvetica', 'normal')
@@ -1199,22 +1163,11 @@ class ExportService {
     return y + chartHeight + 15
   }
 
-  /**
-   * Disegna sezione riepilogo con icone
-   * @param {Object} doc - Documento jsPDF
-   * @param {number} x - Posizione X
-   * @param {number} y - Posizione Y
-   * @param {Array} readings - Letture glicemiche
-   * @param {Array} insulin - Record insulina
-   * @param {Array} carbs - Record carboidrati
-   * @param {Array} notes - Note
-   * @returns {number} Nuova posizione Y
-   */
   static drawSummaryIcons(doc, x, y, readings, insulin, carbs, notes) {
     doc.setFontSize(12)
     doc.setTextColor(24, 24, 27)
     doc.setFont('helvetica', 'bold')
-    doc.text('Attivita Registrate', x, y)
+    doc.text(t('exportReports.fullReportTitle'), x, y)
     y += 6
     
     const totalInsulin = insulin.reduce((sum, i) => sum + Number(i.units || 0), 0)
@@ -1222,10 +1175,10 @@ class ExportService {
     const rapidInsulin = insulin.filter(i => i.type === 'rapid').reduce((sum, i) => sum + Number(i.units || 0), 0)
     const slowInsulin = insulin.filter(i => i.type === 'slow').reduce((sum, i) => sum + Number(i.units || 0), 0)
 
-    this.drawMiniMetricCard(doc, x, y, 42, 24, totalInsulin.toFixed(1), 'U totali', 'Insulina', [99, 102, 241])
-    this.drawMiniMetricCard(doc, x + 46, y, 42, 24, String(totalCarbs), 'grammi', 'Carboidrati', [249, 115, 22])
-    this.drawMiniMetricCard(doc, x + 92, y, 42, 24, String(notes.length), 'record', 'Note', [107, 114, 128])
-    this.drawMiniMetricCard(doc, x + 138, y, 42, 24, `${rapidInsulin.toFixed(1)}/${slowInsulin.toFixed(1)}`, 'U R/L', 'Rapida/Lenta', [34, 197, 94])
+    this.drawMiniMetricCard(doc, x, y, 42, 24, totalInsulin.toFixed(1), 'U', t('exportReports.insulinTitle'), [99, 102, 241])
+    this.drawMiniMetricCard(doc, x + 46, y, 42, 24, String(totalCarbs), 'g', t('exportReports.carbsTitle'), [249, 115, 22])
+    this.drawMiniMetricCard(doc, x + 92, y, 42, 24, String(notes.length), '#', t('exportReports.notesTitle'), [107, 114, 128])
+    this.drawMiniMetricCard(doc, x + 138, y, 42, 24, `${rapidInsulin.toFixed(1)}/${slowInsulin.toFixed(1)}`, 'U', `${t('home.rapid')}/${t('home.slow')}`, [34, 197, 94])
 
     return y + 32
   }
@@ -1256,34 +1209,6 @@ class ExportService {
     if (value < tirMin) return [239, 68, 68]
     if (value > tirMax) return [249, 115, 22]
     return [34, 197, 94]
-  }
-
-  /**
-   * Disegna icona con valore
-   * @param {Object} doc - Documento jsPDF
-   * @param {number} x - Posizione X
-   * @param {number} y - Posizione Y
-   * @param {string} icon - Emoji icona
-   * @param {string} value - Valore
-   * @param {string} label - Etichetta
-   * @param {Array} color - Colore [R, G, B]
-   */
-  static drawIcon(doc, x, y, icon, value, label, color) {
-    // Icona emoji
-    doc.setFontSize(12)
-    doc.text(String(icon), x, y)
-    
-    // Valore
-    doc.setFontSize(10)
-    doc.setTextColor(color[0], color[1], color[2])
-    doc.setFont('helvetica', 'bold')
-    doc.text(String(value), x, y + 8)
-    
-    // Label
-    doc.setFontSize(6)
-    doc.setTextColor(100, 100, 100)
-    doc.setFont('helvetica', 'normal')
-    doc.text(String(label), x, y + 14)
   }
 }
 

@@ -4,6 +4,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import { t } from '../i18n'
 
 export const useGlucoseStore = defineStore('glucose', () => {
 
@@ -17,7 +18,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
   const current      = ref(null)
   const readings     = ref([])
   const allInsulin   = ref([]) // Dati completi (24h) per IOB
-  const allCarbs     = ref([])   // Dati completi (24h) per COB
+  const allCarbs     = ref([]) // Dati completi (24h) per COB
   const notes        = ref([])
   const sensors      = ref([])
   const selectedRange = ref(180)
@@ -74,7 +75,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
     carb_duration: 4,
     insulin_sensitivity: 60,
     carb_ratio: 15,
-    // Quick presets: two editable for insulin and carbs
     quick_insulin_1: 1,
     quick_insulin_2: 2,
     quick_carb_1: 10,
@@ -135,7 +135,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
       const elapsedMs = now - new Date(ins.timestamp).getTime()
       if (elapsedMs < 0 || elapsedMs >= durationMs) return total
       
-      // Decadimento lineare semplice: (1 - tempo_trascorso / durata_totale)
       const factor = 1 - (elapsedMs / durationMs)
       return total + (Number(ins.units) * factor)
     }, 0)
@@ -174,7 +173,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return 'text-success'
   }
 
-  // ── Predizione Glicemia (v4.5.1 - Algoritmo Migliorato) ──────────────────────
+  // ── Predizione Glicemia (Algoritmo Predittivo) ─────────────────────────────
   const prediction = computed(() => {
     if (!current.value || readings.value.length < 5) return null
 
@@ -185,30 +184,28 @@ export const useGlucoseStore = defineStore('glucose', () => {
     const smoothedCurrent = Math.round(recent5.reduce((a, b) => a + b.glucose, 0) / recent5.length)
 
     // 2. Calcolo ROC (Rate of Change) - ultimi 5-10 min
-    const firstReading = readings.value[readings.value.length - 5] // 5 letture fa (~20-25 min)
+    const firstReading = readings.value[readings.value.length - 5]
     const lastReading = readings.value[readings.value.length - 1]
     const dt = (new Date(lastReading.timestamp).getTime() - new Date(firstReading.timestamp).getTime()) / 60000
     const dg = lastReading.glucose - firstReading.glucose
-    let roc = dg / dt // mg/dL per minuto
+    let roc = dg / (dt || 1)
 
     // 3. Gestione trend rapido e amplificazione correttiva
     let correctionFactor = 1.0
     if (roc > 2.0 || roc < -2.0) correctionFactor = 1.15
     const adjustedRoc = roc * correctionFactor
 
-    // 4. Parametri Clinici (ISF e CR dinamici dalle impostazioni)
+    // 4. Parametri Clinici
     const ISF = Number(settings.value.insulin_sensitivity) || 60
     const carbRatio = Number(settings.value.carb_ratio) || 15
-    const CR = ISF / carbRatio // Quanta glicemia alza 1g di CHO (es. 60/15 = 4)
+    const CR = ISF / (carbRatio || 1)
     
     const insulinDurationMs = (Number(settings.value.rapid_duration) || 3) * 60 * 60 * 1000
     const carbDurationMs = (Number(settings.value.carb_duration) || 4) * 60 * 60 * 1000
 
     const predictAt = (minutes) => {
-      // A. Componente Lineare (ROC)
       let basePred = smoothedCurrent + (adjustedRoc * minutes)
 
-      // B. Componente Insulina (IOB futuro)
       let insulinEffect = 0
       allInsulin.value.forEach(ins => {
         if (ins.type !== 'rapid') return
@@ -221,7 +218,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
         insulinEffect += (Number(ins.units) * consumed * ISF)
       })
 
-      // C. Componente Carboidrati (COB futuro)
       let carbEffect = 0
       allCarbs.value.forEach(carb => {
         const elapsed = nowTs - new Date(carb.timestamp).getTime()
@@ -234,14 +230,13 @@ export const useGlucoseStore = defineStore('glucose', () => {
       })
 
       const finalVal = Math.round(basePred - insulinEffect + carbEffect)
-      return Math.max(40, Math.min(400, finalVal)) // Clamp di sicurezza
+      return Math.max(40, Math.min(400, finalVal))
     }
 
     const p15 = predictAt(15)
     const p30 = predictAt(30)
     const p60 = predictAt(60)
 
-    // D. Analisi Trend e Rischio
     let trendLabel = 'stable'
     if (roc > 2.0) trendLabel = 'fast_rising'
     else if (roc > 0.5) trendLabel = 'rising'
@@ -249,8 +244,8 @@ export const useGlucoseStore = defineStore('glucose', () => {
     else if (roc < -0.5) trendLabel = 'falling'
 
     let riskLevel = 'normal'
-    if (p15 < 70 || p30 < 70 || p60 < 70) riskLevel = 'high' // Rischio Ipo
-    else if (p15 > 180 || p30 > 180 || p60 > 180) riskLevel = 'high' // Rischio Iper
+    if (p15 < 70 || p30 < 70 || p60 < 70) riskLevel = 'high'
+    else if (p15 > 180 || p30 > 180 || p60 > 180) riskLevel = 'high'
     else if (roc > 1.5 || roc < -1.5) riskLevel = 'normal'
     else riskLevel = 'low'
 
@@ -265,19 +260,17 @@ export const useGlucoseStore = defineStore('glucose', () => {
     }
   })
 
-  // ── Analisi Pattern Intelligenti Evoluta (v4.5.2) ───────────────────────────
+  // ── Analisi Pattern Intelligenti ───────────────────────────────────────────
   const patterns = computed(() => {
     const allHistoryReadings = historyReadings.value || []
     const allHistoryNotes = historyNotes.value || []
-    if (allHistoryReadings.length < 288) return [] // Almeno 24h di dati
+    if (allHistoryReadings.length < 288) return []
 
     const discoveredPatterns = []
 
-    // 1. ANALISI PER FASCE ORARIE (Sovrapposizione giorni)
-    // Raggruppiamo l'ora in finestre di 2 ore per evitare pattern troppo simili tra ore vicine
+    // 1. ANALISI PER FASCE ORARIE
     const hourlyTrends = Array.from({ length: 12 }, () => ({ slopes: [], values: [], samples: [] }))
     
-    // Raggruppiamo i dati per fascia oraria di 2 ore
     allHistoryReadings.forEach((r, idx) => {
       if (idx === 0) return
       const date = new Date(r.timestamp)
@@ -286,7 +279,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       const prevG = allHistoryReadings[idx-1].glucose
       const currentG = r.glucose
       const dt = (date.getTime() - new Date(allHistoryReadings[idx-1].timestamp).getTime()) / 60000
-      if (dt > 0 && dt < 15 && bucketIndex >= 0 && bucketIndex < hourlyTrends.length) { // Solo se letture consecutive vicine
+      if (dt > 0 && dt < 15 && bucketIndex >= 0 && bucketIndex < hourlyTrends.length) {
         const slope = (currentG - prevG) / dt
         hourlyTrends[bucketIndex].slopes.push(slope)
         hourlyTrends[bucketIndex].values.push(currentG)
@@ -299,21 +292,29 @@ export const useGlucoseStore = defineStore('glucose', () => {
       const avgSlope = data.slopes.reduce((a, b) => a + b, 0) / data.slopes.length
       const consistency = data.slopes.filter(s => (avgSlope > 0 ? s > 0 : s < 0)).length / data.slopes.length
 
-      // Se c'è una pendenza significativa e coerente (> 60% delle volte)
       if (Math.abs(avgSlope) > 0.45 && consistency > 0.65) {
-        const type = avgSlope > 0 ? 'Salita Ricorrente' : 'Discesa Ricorrente'
         const startHour = bucketIndex * 2
         const endHour = startHour + 2
-        const timeStr = `${startHour.toString().padStart(2, '0')}-${endHour.toString().padStart(2, '0')}`
+        const timeStr = `${startHour.toString().padStart(2, '0')}:00-${endHour.toString().padStart(2, '0')}:00`
+        const speedFormatted = Math.abs(avgSlope).toFixed(2)
+
         const frequencyWindow = (days) => {
           const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000)
           return data.samples.filter(sample => sample.timestamp >= cutoff && (avgSlope > 0 ? sample.slope > 0 : sample.slope < 0)).length
         }
 
+        const title = avgSlope > 0 
+          ? t('patterns.recurringRiseTitle', { timeRange: timeStr })
+          : t('patterns.recurringDropTitle', { timeRange: timeStr })
+
+        const description = avgSlope > 0
+          ? t('patterns.recurringRiseDesc', { timeRange: timeStr, speed: speedFormatted })
+          : t('patterns.recurringDropDesc', { timeRange: timeStr, speed: speedFormatted })
+
         discoveredPatterns.push({
           id: `hour-${bucketIndex}`,
-          title: `${type} tra le ${timeStr}`,
-          description: `Nella fascia ${timeStr}, la tua glicemia tende a ${avgSlope > 0 ? 'salire' : 'scendere'} con una velocità media di ${Math.abs(avgSlope).toFixed(2)} mg/dL al minuto.`,
+          title,
+          description,
           icon: avgSlope > 0 ? 'fi-sr-trending-up' : 'fi-sr-trending-down',
           color: avgSlope > 0 ? 'warning' : 'info',
           intensity: Math.min(100, Math.abs(avgSlope) * 50),
@@ -325,20 +326,20 @@ export const useGlucoseStore = defineStore('glucose', () => {
       }
     })
 
-    // 2. ANALISI CORRELAZIONE NOTE (Qualsiasi nota ricorrente)
+    // 2. ANALISI CORRELAZIONE NOTE
     const uniqueNotes = [...new Set(allHistoryNotes.map(n => n.text?.toLowerCase().trim()))]
     
     uniqueNotes.forEach(noteText => {
       if (!noteText || noteText.length < 3) return
       const occurrences = allHistoryNotes.filter(n => n.text?.toLowerCase().trim() === noteText)
-      if (occurrences.length < 2) return // Almeno 2 volte per essere un pattern
+      if (occurrences.length < 2) return
 
       let totalRise = 0
       let validOccurrences = 0
 
       occurrences.forEach(occ => {
         const startTime = new Date(occ.timestamp).getTime()
-        const endTime = startTime + 3 * 60 * 60 * 1000 // Analizziamo le 3 ore successive
+        const endTime = startTime + 3 * 60 * 60 * 1000
         const postReadings = allHistoryReadings.filter(r => {
           const t = new Date(r.timestamp).getTime()
           return t >= startTime && t <= endTime
@@ -349,7 +350,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
           const peakG = Math.max(...postReadings.map(r => r.glucose))
           const dropG = Math.min(...postReadings.map(r => r.glucose))
           
-          // Se la variazione è significativa (> 30 mg/dL)
           if (Math.abs(peakG - startG) > 30 || Math.abs(startG - dropG) > 30) {
             totalRise += (peakG - startG) - (startG - dropG)
             validOccurrences++
@@ -367,9 +367,13 @@ export const useGlucoseStore = defineStore('glucose', () => {
 
           discoveredPatterns.push({
             id: `note-${noteText.replace(/\s+/g, '-')}`,
-            title: `Effetto "${noteText.toUpperCase()}"`,
-            description: `Dopo la nota "${noteText}", la glicemia ha mostrato una variazione media di ${avgImpact > 0 ? '+' : ''}${Math.round(avgImpact)} mg/dL nelle 3 ore successive.`,
-            icon: 'fi-sr- assessment',
+            title: t('patterns.noteEffectTitle', { note: noteText.toUpperCase() }),
+            description: t('patterns.noteEffectDesc', {
+              note: noteText,
+              sign: avgImpact > 0 ? '+' : '',
+              impact: Math.round(avgImpact)
+            }),
+            icon: 'fi-sr-assessment',
             color: avgImpact > 0 ? 'error' : 'success',
             intensity: Math.min(100, Math.abs(avgImpact)),
             confidence: Math.round((validOccurrences / occurrences.length) * 100),
@@ -388,7 +392,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   })
 
-  // Colore testo in base al valore mg/dL usando i target delle impostazioni
   const glucoseColor = computed(() => {
     if (!current.value) return 'text-base-content'
     return getStatusColor(current.value.glucose)
@@ -405,7 +408,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       current.value = data
       error.value = null
     } catch {
-      error.value = 'Impossibile raggiungere il backend'
+      error.value = t('errors.reachBackend')
     }
   }
 
@@ -414,8 +417,8 @@ export const useGlucoseStore = defineStore('glucose', () => {
     try {
       const [{ data: rData }, { data: iData }, { data: cData }, { data: nData }] = await Promise.all([
         axios.get('/api/readings', { params: { range: selectedRange.value } }),
-        axios.get('/api/insulin', { params: { range: 1440 } }), // Prendi sempre 24h per IOB/COB
-        axios.get('/api/carbs', { params: { range: 1440 } }),   // Prendi sempre 24h per IOB/COB
+        axios.get('/api/insulin', { params: { range: 1440 } }),
+        axios.get('/api/carbs', { params: { range: 1440 } }),
         axios.get('/api/notes', { params: { range: selectedRange.value } })
       ])
       readings.value = rData
@@ -425,7 +428,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       lastUpdated.value = new Date()
       error.value = null
     } catch {
-      error.value = 'Errore caricamento dati'
+      error.value = t('errors.loadData')
     } finally {
       chartLoading.value = false
     }
@@ -441,7 +444,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       })
       await fetchReadings()
     } catch {
-      error.value = 'Errore aggiunta nota'
+      error.value = t('errors.addNote')
     } finally {
       loading.value = false
     }
@@ -453,7 +456,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       await axios.delete(`/api/notes/${id}`)
       await fetchReadings()
     } catch {
-      error.value = 'Errore eliminazione nota'
+      error.value = t('errors.removeNote')
     } finally {
       loading.value = false
     }
@@ -465,7 +468,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       await axios.put(`/api/notes/${id}`, { timestamp, text })
       await fetchReadings()
     } catch {
-      error.value = 'Errore modifica nota'
+      error.value = t('errors.editNote')
     } finally {
       loading.value = false
     }
@@ -481,7 +484,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       })
       await fetchReadings()
     } catch {
-      error.value = 'Errore aggiunta carboidrati'
+      error.value = t('errors.addCarb')
     } finally {
       loading.value = false
     }
@@ -493,7 +496,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       await axios.delete(`/api/carbs/${id}`)
       await fetchReadings()
     } catch {
-      error.value = 'Errore eliminazione carboidrati'
+      error.value = t('errors.removeCarb')
     } finally {
       loading.value = false
     }
@@ -505,7 +508,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       await axios.put(`/api/carbs/${id}`, { timestamp, amount })
       await fetchReadings()
     } catch {
-      error.value = 'Errore modifica carboidrati'
+      error.value = t('errors.editCarb')
     } finally {
       loading.value = false
     }
@@ -529,7 +532,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
         }
       }
     } catch {
-      error.value = 'Errore caricamento impostazioni'
+      error.value = t('errors.loadSettings')
     }
   }
 
@@ -550,13 +553,13 @@ export const useGlucoseStore = defineStore('glucose', () => {
       }
       error.value = null
     } catch {
-      error.value = 'Errore salvataggio impostazioni'
+      error.value = t('errors.saveSettings')
     } finally {
       loading.value = false
     }
   }
 
-  // ── Theme Management (moved to store) ──────────────────────────────────────
+  // ── Theme Management ───────────────────────────────────────────────────────
   const themes = ["light","dark","retro","forest","wireframe","coffee"]
   const theme = ref(localStorage.getItem('theme') || 'dark')
 
@@ -566,7 +569,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
     try { document.documentElement.setAttribute('data-theme', t) } catch (e) {}
   }
 
-  // Initialize document theme on store creation
   try { document.documentElement.setAttribute('data-theme', theme.value) } catch (e) {}
 
   async function fetchAll() {
@@ -594,7 +596,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       })
       await fetchReadings()
     } catch {
-      error.value = 'Errore aggiunta insulina'
+      error.value = t('errors.addInsulin')
     } finally {
       loading.value = false
     }
@@ -606,7 +608,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       await axios.delete(`/api/insulin/${id}`)
       await fetchReadings()
     } catch {
-      error.value = 'Errore eliminazione insulina'
+      error.value = t('errors.removeInsulin')
     } finally {
       loading.value = false
     }
@@ -618,7 +620,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       await axios.put(`/api/insulin/${id}`, { timestamp, type, units })
       await fetchReadings()
     } catch {
-      error.value = 'Errore modifica insulina'
+      error.value = t('errors.editInsulin')
     } finally {
       loading.value = false
     }
@@ -630,7 +632,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       await axios.post('/api/sync')
       await fetchAll()
     } catch {
-      error.value = 'Errore sync'
+      error.value = t('errors.sync')
     } finally {
       loading.value = false
     }
@@ -643,7 +645,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       sensors.value = data
       error.value = null
     } catch {
-      error.value = 'Errore caricamento sensori'
+      error.value = t('errors.loadSensors')
     }
   }
 
@@ -657,7 +659,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       })
       await fetchSensors()
     } catch {
-      error.value = 'Errore aggiunta sensore'
+      error.value = t('errors.addSensor')
     } finally {
       loading.value = false
     }
@@ -672,7 +674,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       })
       await fetchSensors()
     } catch {
-      error.value = 'Errore terminazione sensore'
+      error.value = t('errors.endSensor')
     } finally {
       loading.value = false
     }
@@ -684,13 +686,13 @@ export const useGlucoseStore = defineStore('glucose', () => {
       await axios.delete(`/api/sensors/${id}`)
       await fetchSensors()
     } catch {
-      error.value = 'Errore eliminazione sensore'
+      error.value = t('errors.deleteSensor')
     } finally {
       loading.value = false
     }
   }
 
-  async function fetchLongHistory(minutes = 4320) { // Default 3 giorni
+  async function fetchLongHistory(minutes = 4320) {
     historyLoading.value = true
     try {
       const [{ data: rData }, { data: iData }, { data: cData }, { data: nData }] = await Promise.all([
@@ -706,7 +708,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       historyNotes.value = nData
       error.value = null
     } catch {
-      error.value = 'Errore caricamento analisi'
+      error.value = t('errors.loadAnalysis')
     } finally {
       historyLoading.value = false
     }
@@ -729,7 +731,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
       historyNotes.value = nData
       error.value = null
     } catch {
-      error.value = 'Errore caricamento storico'
+      error.value = t('errors.loadHistory')
     } finally {
       historyLoading.value = false
     }
@@ -746,7 +748,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
     addNote, removeNote, editNote,
     fetchSensors, addSensor, endSensor, deleteSensor,
     fetchHistory, fetchLongHistory, fetchSettings, updateSettings, resetSettings, getStatusColor,
-    // Theme API
     themes, theme, setTheme
   }
 })

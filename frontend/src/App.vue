@@ -13,15 +13,9 @@
 
       <!-- Header con hamburger menu per mobile -->
       <div class="lg:hidden flex items-center justify-between p-4">
-        <label for="my-drawer" class="btn btn-square btn-ghost btn-sm">
+        <label for="my-drawer" class="btn btn-square btn-ghost btn-sm" :aria-label="$t('accessibility.openMenu')">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </label>
-        <!-- <div class="flex items-center gap-2">
-          <div class="flex items-center justify-center rounded-xl border border-primary/20 bg-primary/15 w-8 h-8 p-1.5">
-            <img src="./assets/favicon.png" alt="logo" class="object-contain w-5 h-5" />
-          </div>
-          <span class="text-sm font-black tracking-tight uppercase italic">Glice<span class="text-primary">Chart</span></span>
-        </div> -->
       </div>
 
       <!-- Main Content Area -->
@@ -32,7 +26,7 @@
           class="alert alert-error shadow-sm border border-error/20 text-[10px] font-black uppercase tracking-wider py-2 px-6">
           <AlertCircle class="h-3 w-3" />
           <span>{{ store.error }}</span>
-          <button class="btn btn-xs btn-circle btn-ghost" @click="store.error = null">
+          <button class="btn btn-xs btn-circle btn-ghost" @click="store.error = null" :aria-label="$t('common.close')">
             <X class="w-3 h-3" />
           </button>
         </div>
@@ -47,20 +41,20 @@
         <div class="flex flex-col items-center gap-2 pt-2 border-t border-base-content/5 mt-4">
           <div class="flex flex-wrap justify-center gap-x-6 gap-y-1">
             <div class="flex items-center gap-2">
-              <span class="text-[9px] font-black uppercase tracking-widest opacity-30">GliceChart è uno strumento di supporto basato su algoritmi matematici STANDARD. Per qualsiasi modifica terapeutica consultare prima il proprio medico.</span>
+              <span class="text-[9px] font-black uppercase tracking-widest opacity-30">{{ $t('medical.globalDisclaimer') }}</span>
             </div>
           </div>
           <div class="text-[8px] font-bold opacity-20 uppercase tracking-[0.3em]">
             GliceChart {{ APP_VERSION_LABEL }}
           </div>
-          <span class="text-[9px] font-black uppercase tracking-widest opacity-30">Made with ❤️ by Ghibiri</span>
+          <span class="text-[9px] font-black uppercase tracking-widest opacity-30">{{ $t('medical.credits') }}</span>
         </div>
       </main>
     </div>
 
     <!-- Drawer Side (Sidebar) -->
     <div class="drawer-side z-[200]">
-      <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+      <label for="my-drawer" :aria-label="$t('accessibility.closeSidebar')" class="drawer-overlay"></label>
       <Sidebar @close-drawer="closeDrawer" />
     </div>
   </div>

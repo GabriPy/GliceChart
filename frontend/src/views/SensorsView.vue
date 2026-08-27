@@ -18,9 +18,8 @@
             <i class="fa-solid fa-microchip text-primary text-xl md:text-2xl"></i>
           </div>
           <div>
-            <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">Storico Sensori</h2>
-            <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">Tracking &
-              Gestione</span>
+            <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{ $t('sensors.title') }}</h2>
+            <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{ $t('sensors.subtitle') }}</span>
           </div>
         </div>
       </div>
@@ -36,9 +35,8 @@
             <i class="fa-solid fa-plus text-success text-lg md:text-xl"></i>
           </div>
           <div>
-            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Nuovo Sensore</h3>
-            <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">Registrazione
-              Applicazione</span>
+            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('sensors.newSensorTitle') }}</h3>
+            <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('sensors.newSensorSubtitle') }}</span>
           </div>
         </div>
 
@@ -46,21 +44,21 @@
 
           <!-- Numero Seriale -->
           <div class="space-y-1 md:space-y-2">
-            <label class="text-[10px] font-black uppercase opacity-40">Numero Seriale</label>
+            <label class="text-[10px] font-black uppercase opacity-40">{{ $t('sensors.serialNumber') }}</label>
             <input type="text" v-model="newSensor.serial_number" placeholder="SN12345678"
               class="input input-bordered font-black input-xs md:input-sm w-full border-primary/30 focus:border-primary placeholder:opacity-30" />
           </div>
 
           <!-- Numero Lotto -->
           <div class="space-y-1 md:space-y-2">
-            <label class="text-[10px] font-black uppercase opacity-40">Numero Lotto</label>
+            <label class="text-[10px] font-black uppercase opacity-40">{{ $t('sensors.lotNumber') }}</label>
             <input type="text" v-model="newSensor.lot_number" placeholder="LOT12345"
               class="input input-bordered font-black input-xs md:input-sm w-full border-accent/30 focus:border-accent placeholder:opacity-30" />
           </div>
 
           <!-- Data Applicazione -->
           <div class="space-y-1 md:space-y-2">
-            <label class="text-[10px] font-black uppercase opacity-40">Data Applicazione</label>
+            <label class="text-[10px] font-black uppercase opacity-40">{{ $t('sensors.applicationDate') }}</label>
             <input type="datetime-local" v-model="newSensor.start_date"
               class="input input-bordered font-black input-xs md:input-sm w-full border-success/30 focus:border-success placeholder:opacity-30" />
           </div>
@@ -73,7 +71,7 @@
           :disabled="store.loading || !newSensor.serial_number">
           <span v-if="store.loading" class="loading loading-spinner loading-xs md:loading-sm"></span>
           <i v-else class="fa-solid fa-plus"></i>
-          Aggiungi Sensore
+          {{ $t('sensors.addSensorBtn') }}
         </button>
 
       </div>
@@ -90,7 +88,7 @@
             <i class="fa-solid fa-list text-primary text-lg md:text-xl"></i>
           </div>
           <div class="flex items-center gap-2">
-            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">Storico Completo</h3>
+            <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('sensors.fullHistoryTitle') }}</h3>
             <span class="px-2 py-0.5 rounded-md bg-primary/10 text-[9px] font-black text-primary">{{
               store.sensors.length }}</span>
           </div>
@@ -99,7 +97,7 @@
         <!-- Nessun sensore -->
         <div v-if="store.sensors.length === 0" class="text-center py-10 opacity-30">
           <i class="fa-solid fa-microchip text-4xl mb-2"></i>
-          <p class="text-[10px] font-black uppercase tracking-widest">Nessun sensore registrato</p>
+          <p class="text-[10px] font-black uppercase tracking-widest">{{ $t('sensors.noSensorsRegistered') }}</p>
         </div>
 
         <!-- Tabella -->
@@ -108,14 +106,14 @@
 
             <thead class="bg-base-100/50">
               <tr class="text-[10px] font-black uppercase opacity-50 tracking-widest">
-                <th class="text-center py-3">Seriale</th>
-                <th class="text-center py-3">Lotto</th>
-                <th class="text-center py-3">Inizio</th>
-                <th class="text-center py-3">Fine Prevista</th>
-                <th class="text-center py-3">Stato</th>
-                <th class="text-center py-3">Tempo</th>
-                <th class="text-center py-3">Note</th>
-                <th class="text-center py-3">Azioni</th>
+                <th class="text-center py-3">{{ $t('sensors.serial') }}</th>
+                <th class="text-center py-3">{{ $t('sensors.lot') }}</th>
+                <th class="text-center py-3">{{ $t('sensors.start') }}</th>
+                <th class="text-center py-3">{{ $t('sensors.expectedEnd') }}</th>
+                <th class="text-center py-3">{{ $t('sensors.status') }}</th>
+                <th class="text-center py-3">{{ $t('sensors.timeRemaining') }}</th>
+                <th class="text-center py-3">{{ $t('sensors.notes') }}</th>
+                <th class="text-center py-3">{{ $t('common.actions') }}</th>
               </tr>
             </thead>
 
@@ -149,17 +147,17 @@
                   <div class="flex flex-col items-center gap-1">
                     <span v-if="!sensor.actual_end_date"
                       class="px-2 py-0.5 rounded-md bg-success/10 text-success border border-success/20 text-[9px] font-black uppercase tracking-widest">
-                      Attivo
+                      {{ $t('sensors.statusActive') }}
                     </span>
 
                     <span v-else
                       class="px-2 py-0.5 rounded-md bg-error/10 text-error border border-error/20 text-[9px] font-black uppercase tracking-widest">
-                      Scaduto
+                      {{ $t('sensors.statusExpired') }}
                     </span>
 
                     <span v-if="sensor.actual_end_date && isEarlyEnd(sensor)"
                       class="px-2 py-0.5 rounded-md bg-warning/10 text-warning border border-warning/20 text-[8px] font-black uppercase tracking-widest">
-                      Terminato prima
+                      {{ $t('sensors.statusTerminatedEarly') }}
                     </span>
                   </div>
                 </td>
@@ -187,13 +185,13 @@
 
                     <!-- Termina -->
                     <button v-if="!sensor.actual_end_date" @click="showEndModal(sensor)"
-                      class="btn btn-ghost btn-xs btn-circle text-warning" title="Termina sensore">
+                      class="btn btn-ghost btn-xs btn-circle text-warning" :title="$t('sensors.endSensorBtn')">
                       <i class="fa-solid fa-flag-checkered text-[10px]"></i>
                     </button>
 
                     <!-- Elimina -->
                     <button @click="openDeleteModal(sensor.id)" class="btn btn-ghost btn-xs btn-circle text-error"
-                      title="Elimina">
+                      :title="$t('common.delete')">
                       <i class="fa-solid fa-trash text-[10px]"></i>
                     </button>
 
@@ -222,46 +220,45 @@
           </div>
           <div>
             <h3 class="text-base md:text-lg font-black uppercase tracking-tight leading-none">
-              Termina Sensore
+              {{ $t('sensors.endSensorTitle') }}
             </h3>
             <span class="text-[9px] md:text-[10px] font-black opacity-40 uppercase tracking-widest">
-              Chiusura Anticipata o Scadenza
+              {{ $t('sensors.endSensorSubtitle') }}
             </span>
           </div>
         </div>
 
         <p class="text-xs md:text-sm opacity-70 mb-4 leading-relaxed">
-          Il sensore verrà spostato nello storico con la data odierna.
-          Puoi aggiungere una nota per indicare il motivo della terminazione anticipata.
+          {{ $t('sensors.endSensorExplanation') }}
         </p>
 
         <!-- Nota -->
         <div class="space-y-1 md:space-y-2 mb-6">
-          <label class="text-[10px] font-black uppercase opacity-40">Nota (opzionale)</label>
+          <label class="text-[10px] font-black uppercase opacity-40">{{ $t('sensors.noteOptional') }}</label>
           <textarea v-model="endNote"
             class="textarea textarea-bordered h-28 text-xs font-black border-warning/30 focus:border-warning w-full rounded-lg md:rounded-xl shadow-sm"
-            placeholder="Spiega perché il sensore è durato meno di 15 giorni..."></textarea>
+            :placeholder="$t('sensors.earlyEndPlaceholder')"></textarea>
         </div>
 
         <!-- Pulsanti -->
         <div class="flex justify-end gap-2">
           <button @click="closeEndModal"
             class="btn btn-ghost btn-sm md:btn-md px-4 font-black uppercase tracking-widest opacity-60 hover:opacity-100">
-            Annulla
+            {{ $t('common.cancel') }}
           </button>
 
           <button @click="confirmEndSensor"
             class="btn btn-warning btn-sm md:btn-md px-6 font-black uppercase tracking-widest shadow-md md:shadow-lg shadow-warning/40"
             :disabled="store.loading">
             <span v-if="store.loading" class="loading loading-spinner loading-xs md:loading-sm"></span>
-            <span v-else>Conferma</span>
+            <span v-else>{{ $t('common.confirm') }}</span>
           </button>
         </div>
 
       </div>
 
       <form method="dialog" class="modal-backdrop">
-        <button @click="closeEndModal">close</button>
+        <button @click="closeEndModal">{{ $t('common.close') }}</button>
       </form>
     </dialog>
 
@@ -277,48 +274,49 @@
           </div>
           <div>
             <h3 class="text-base md:text-lg font-black uppercase tracking-tight leading-none">
-              Elimina Sensore
+              {{ $t('sensors.deleteSensorTitle') }}
             </h3>
             <span class="text-[9px] md:text-[10px] font-black opacity-40 uppercase tracking-widest">
-              Rimozione Definitiva
+              {{ $t('sensors.deleteSensorSubtitle') }}
             </span>
           </div>
         </div>
 
         <p class="text-xs md:text-sm opacity-70 mb-6 leading-relaxed">
-          Sei sicuro di voler eliminare questo sensore? Questa azione non può essere annullata.
+          {{ $t('sensors.deleteConfirmation') }}
         </p>
 
         <!-- Buttons -->
         <div class="flex gap-3 justify-end">
           <button @click="closeDeleteModal"
             class="btn btn-ghost btn-sm md:btn-md font-black uppercase tracking-widest">
-            Annulla
+            {{ $t('common.cancel') }}
           </button>
 
           <button @click="confirmDeleteSensor"
             class="btn btn-error btn-sm md:btn-md px-6 font-black uppercase tracking-widest shadow-md md:shadow-lg shadow-error/40"
             :disabled="store.loading">
             <span v-if="store.loading" class="loading loading-spinner loading-xs md:loading-sm"></span>
-            <span v-else>Elimina</span>
+            <span v-else>{{ $t('common.delete') }}</span>
           </button>
         </div>
 
       </div>
 
       <form method="dialog" class="modal-backdrop">
-        <button @click="closeDeleteModal">close</button>
+        <button @click="closeDeleteModal">{{ $t('common.close') }}</button>
       </form>
     </dialog>
 
   </div>
 </template>
 
-
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useGlucoseStore } from '../stores/glucose'
 
+const { t, locale } = useI18n()
 const store = useGlucoseStore()
 const endModal = ref(null)
 const deleteModal = ref(null)
@@ -337,8 +335,10 @@ onMounted(async () => {
 })
 
 function formatDate(dateStr) {
+  if (!dateStr) return '-'
   const date = new Date(dateStr)
-  return date.toLocaleDateString('it-IT', {
+  const activeLoc = locale.value === 'en' ? 'en-US' : 'it-IT'
+  return date.toLocaleDateString(activeLoc, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -354,9 +354,9 @@ function getCountdown(endDateStr) {
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
   const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
 
-  if (diffMs <= 0) return 'Scaduto'
-  if (diffDays > 0) return `${diffDays}g ${diffHours}h rimanenti`
-  return `${diffHours}h rimanenti`
+  if (diffMs <= 0) return t('sensors.expired')
+  if (diffDays > 0) return t('sensors.countdownDaysHours', { days: diffDays, hours: diffHours })
+  return t('sensors.countdownHours', { hours: diffHours })
 }
 
 function isEarlyEnd(sensor) {
