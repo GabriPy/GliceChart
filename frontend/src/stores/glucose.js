@@ -58,7 +58,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
     quick_carb_2: 20,
     telegram_enabled: false,
     telegram_high_low_alerts: true,
-    telegram_prediction_alerts: true,
     telegram_insulin_alerts: false,
     telegram_carb_alerts: false,
     telegram_daily_summary: false,
@@ -81,7 +80,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
     quick_carb_2: 20,
     telegram_enabled: false,
     telegram_high_low_alerts: true,
-    telegram_prediction_alerts: true,
     telegram_insulin_alerts: false,
     telegram_carb_alerts: false,
     telegram_daily_summary: false,
@@ -172,93 +170,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
     // 3. Verde (In range)
     return 'text-success'
   }
-
-  // ── Predizione Glicemia (Algoritmo Predittivo) ─────────────────────────────
-  const prediction = computed(() => {
-    if (!current.value || readings.value.length < 5) return null
-
-    const nowTs = new Date().getTime()
-    
-    // 1. Smussamento (Media mobile ultimi 5 valori)
-    const recent5 = readings.value.slice(-5)
-    const smoothedCurrent = Math.round(recent5.reduce((a, b) => a + b.glucose, 0) / recent5.length)
-
-    // 2. Calcolo ROC (Rate of Change) - ultimi 5-10 min
-    const firstReading = readings.value[readings.value.length - 5]
-    const lastReading = readings.value[readings.value.length - 1]
-    const dt = (new Date(lastReading.timestamp).getTime() - new Date(firstReading.timestamp).getTime()) / 60000
-    const dg = lastReading.glucose - firstReading.glucose
-    let roc = dg / (dt || 1)
-
-    // 3. Gestione trend rapido e amplificazione correttiva
-    let correctionFactor = 1.0
-    if (roc > 2.0 || roc < -2.0) correctionFactor = 1.15
-    const adjustedRoc = roc * correctionFactor
-
-    // 4. Parametri Clinici
-    const ISF = Number(settings.value.insulin_sensitivity) || 60
-    const carbRatio = Number(settings.value.carb_ratio) || 15
-    const CR = ISF / (carbRatio || 1)
-    
-    const insulinDurationMs = (Number(settings.value.rapid_duration) || 3) * 60 * 60 * 1000
-    const carbDurationMs = (Number(settings.value.carb_duration) || 4) * 60 * 60 * 1000
-
-    const predictAt = (minutes) => {
-      let basePred = smoothedCurrent + (adjustedRoc * minutes)
-
-      let insulinEffect = 0
-      allInsulin.value.forEach(ins => {
-        if (ins.type !== 'rapid') return
-        const elapsed = nowTs - new Date(ins.timestamp).getTime()
-        if (elapsed < 0 || elapsed >= insulinDurationMs) return
-        
-        const currentFactor = 1 - (elapsed / insulinDurationMs)
-        const futureFactor = 1 - ((elapsed + minutes * 60 * 1000) / insulinDurationMs)
-        const consumed = currentFactor - Math.max(0, futureFactor)
-        insulinEffect += (Number(ins.units) * consumed * ISF)
-      })
-
-      let carbEffect = 0
-      allCarbs.value.forEach(carb => {
-        const elapsed = nowTs - new Date(carb.timestamp).getTime()
-        if (elapsed < 0 || elapsed >= carbDurationMs) return
-        
-        const currentFactor = 1 - (elapsed / carbDurationMs)
-        const futureFactor = 1 - ((elapsed + minutes * 60 * 1000) / carbDurationMs)
-        const consumed = currentFactor - Math.max(0, futureFactor)
-        carbEffect += (Number(carb.amount) * consumed * CR)
-      })
-
-      const finalVal = Math.round(basePred - insulinEffect + carbEffect)
-      return Math.max(40, Math.min(400, finalVal))
-    }
-
-    const p15 = predictAt(15)
-    const p30 = predictAt(30)
-    const p60 = predictAt(60)
-
-    let trendLabel = 'stable'
-    if (roc > 2.0) trendLabel = 'fast_rising'
-    else if (roc > 0.5) trendLabel = 'rising'
-    else if (roc < -2.0) trendLabel = 'fast_falling'
-    else if (roc < -0.5) trendLabel = 'falling'
-
-    let riskLevel = 'normal'
-    if (p15 < 70 || p30 < 70 || p60 < 70) riskLevel = 'high'
-    else if (p15 > 180 || p30 > 180 || p60 > 180) riskLevel = 'high'
-    else if (roc > 1.5 || roc < -1.5) riskLevel = 'normal'
-    else riskLevel = 'low'
-
-    return {
-      current: smoothedCurrent,
-      t15: p15,
-      t30: p30,
-      t60: p60,
-      roc: roc.toFixed(2),
-      trend: trendLabel,
-      risk: riskLevel
-    }
-  })
 
   // ── Analisi Pattern Intelligenti ───────────────────────────────────────────
   const patterns = computed(() => {
@@ -524,7 +435,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
           ...data,
           telegram_enabled: normalizeBooleanSetting(data.telegram_enabled, false),
           telegram_high_low_alerts: normalizeBooleanSetting(data.telegram_high_low_alerts, true),
-          telegram_prediction_alerts: normalizeBooleanSetting(data.telegram_prediction_alerts, true),
           telegram_insulin_alerts: normalizeBooleanSetting(data.telegram_insulin_alerts, false),
           telegram_carb_alerts: normalizeBooleanSetting(data.telegram_carb_alerts, false),
           telegram_daily_summary: normalizeBooleanSetting(data.telegram_daily_summary, false),
@@ -741,7 +651,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     current, readings, insulinRecords, carbRecords, notes, sensors, selectedRange, carbDraftAmount, loading, chartLoading, error, lastUpdated,
     settings,
     historyReadings, historyInsulin, historyChartInsulin, historyCarbs, historyNotes, historyLoading,
-    glucoseColor, minutesAgo, stats, historyStats, iob, cob, prediction, patterns,
+    glucoseColor, minutesAgo, stats, historyStats, iob, cob, patterns,
     fetchCurrent, fetchReadings, fetchAll, setRange, syncNow, 
     addInsulin, removeInsulin, editInsulin,
     addCarb, removeCarb, editCarb,

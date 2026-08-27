@@ -156,12 +156,6 @@
                 </div>
               </div>
 
-              <!-- Parametri Predizione -->
-              <div class="space-y-3 md:space-y-4">
-                <div class="flex items-center gap-2 mb-2">
-                  <i class="fa-solid fa-calculator text-secondary text-sm"></i>
-                  <span class="text-[10px] font-black uppercase opacity-50">{{ $t('settings.predictionParamsTitle') }}</span>
-                </div>
                 <div class="space-y-2 md:space-y-3">
                   <div class="space-y-1 md:space-y-2">
                     <label class="text-[9px] font-black uppercase opacity-40">{{ $t('settings.insulinSensitivity') }}</label>
@@ -181,7 +175,6 @@
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         </div>
 
@@ -312,13 +305,6 @@
                 <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{ $t('settings.alertHighLow') }}</span>
                 <input v-model="form.telegram_high_low_alerts" :disabled="!form.telegram_enabled" type="checkbox"
                   class="toggle toggle-error toggle-xs md:toggle-sm flex-shrink-0" />
-              </label>
-
-              <label
-                class="label cursor-pointer justify-between gap-2 p-2 md:p-3 bg-base-100/30 rounded-lg hover:bg-base-100/50 transition-colors shadow-sm hover:shadow-md">
-                <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{ $t('settings.riskPredictionAlert') }}</span>
-                <input v-model="form.telegram_prediction_alerts" :disabled="!form.telegram_enabled" type="checkbox"
-                  class="toggle toggle-warning toggle-xs md:toggle-sm flex-shrink-0" />
               </label>
 
               <label

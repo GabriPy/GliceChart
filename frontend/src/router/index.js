@@ -7,7 +7,6 @@ const SettingsView = () => import('../views/SettingsView.vue')
 const PeriodicSummaryView = () => import('../views/PeriodicSummaryView.vue')
 const DietometerView = () => import('../views/DietometerView.vue')
 const AboutView = () => import('../views/AboutView.vue')
-const PredictionView = () => import('../views/PredictionView.vue')
 const PatternsView = () => import('../views/PatternsView.vue')
 const SensorsView = () => import('../views/SensorsView.vue')
 
@@ -24,11 +23,6 @@ const router = createRouter({
       name: 'calendar',
       component: CalendarView
     },
-    // {
-    //   path: '/prediction',
-    //   name: 'prediction',
-    //   component: PredictionView
-    // },
     {
       path: '/patterns',
       name: 'patterns',

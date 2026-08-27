@@ -48,7 +48,6 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 
 let lastTelegramHighLowState = null;
-let lastTelegramPredictionState = null;
 let lastDailySummaryDate = null;
 
 // ── Middleware ────────────────────────────────────────────────────────────────
@@ -411,9 +410,9 @@ app.get('/api/settings', async (req, res) => {
 });
 
 app.put('/api/settings', async (req, res) => {
-  const { tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio, quick_insulin_1, quick_insulin_2, quick_carb_1, quick_carb_2, telegram_enabled, telegram_high_low_alerts, telegram_prediction_alerts, telegram_insulin_alerts, telegram_carb_alerts, telegram_daily_summary, telegram_daily_summary_time } = req.body;
+  const { tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio, quick_insulin_1, quick_insulin_2, quick_carb_1, quick_carb_2, telegram_enabled, telegram_high_low_alerts, telegram_insulin_alerts, telegram_carb_alerts, telegram_daily_summary, telegram_daily_summary_time } = req.body;
   try {
-    const ok = await updateSettings({ tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio, quick_insulin_1, quick_insulin_2, quick_carb_1, quick_carb_2, telegram_enabled, telegram_high_low_alerts, telegram_prediction_alerts, telegram_insulin_alerts, telegram_carb_alerts, telegram_daily_summary, telegram_daily_summary_time });
+    const ok = await updateSettings({ tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio, quick_insulin_1, quick_insulin_2, quick_carb_1, quick_carb_2, telegram_enabled, telegram_high_low_alerts, telegram_insulin_alerts, telegram_carb_alerts, telegram_daily_summary, telegram_daily_summary_time });
     res.json({ ok });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -496,7 +495,6 @@ async function getTelegramSettings() {
   return {
     enabled: Boolean(settings?.telegram_enabled),
     highLow: settings?.telegram_high_low_alerts !== false,
-    prediction: settings?.telegram_prediction_alerts !== false,
     insulin: Boolean(settings?.telegram_insulin_alerts),
     carbs: Boolean(settings?.telegram_carb_alerts),
     dailySummary: Boolean(settings?.telegram_daily_summary)
@@ -548,35 +546,6 @@ async function sendTelegramHighLowAlert(latest) {
   lastTelegramHighLowState = state;
 
   const text = `🚨 <b>GliceChart</b>\nLivello glicemico fuori soglia: <b>${glucose} mg/dL</b>\n${state === 'low' ? 'Ipoglicemia' : 'Iperglicemia'} rilevata\n${formatTelegramTime(latest?.timestamp)}`;
-  await sendTelegramMessage(text);
-}
-
-async function sendTelegramPredictionAlert(latest) {
-  const settings = await getTelegramSettings();
-  if (!settings.enabled || !settings.prediction) return;
-
-  const glucose = Number(latest?.glucose);
-  const currentSettings = await getSettings();
-  const tirMin = Number(currentSettings?.tir_min ?? 70);
-  const tirMax = Number(currentSettings?.tir_max ?? 180);
-
-  const predicted = {
-    t15: glucose + 5,
-    t30: glucose + 10,
-    t60: glucose + 15
-  };
-
-  const isHighRisk = predicted.t15 < tirMin || predicted.t30 < tirMin || predicted.t60 < tirMin || predicted.t15 > tirMax || predicted.t30 > tirMax || predicted.t60 > tirMax;
-  if (!isHighRisk) {
-    lastTelegramPredictionState = 'normal';
-    return;
-  }
-
-  const state = 'high';
-  if (state === lastTelegramPredictionState) return;
-  lastTelegramPredictionState = state;
-
-  const text = `⚠️ <b>GliceChart</b>\nRischio previsione glicemica elevato nei prossimi 60 min\nAttuale: <b>${glucose} mg/dL</b>\nValore previsto: <b>${predicted.t30} mg/dL</b>\nConsidera controllo e azione tempestiva.`;
   await sendTelegramMessage(text);
 }
 
@@ -635,7 +604,6 @@ async function syncReadings() {
     if (readings.length) {
       const latest = await getLatestReading();
       await sendTelegramHighLowAlert(latest);
-      await sendTelegramPredictionAlert(latest);
     }
   } catch (e) {
     console.error('❌ Sync fallita:', e.message);
