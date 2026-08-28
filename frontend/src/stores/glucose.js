@@ -15,18 +15,18 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return Boolean(value)
   }
 
-  const current      = ref(null)
-  const readings     = ref([])
-  const allInsulin   = ref([]) // Dati completi (24h) per IOB
-  const allCarbs     = ref([]) // Dati completi (24h) per COB
-  const notes        = ref([])
-  const sensors      = ref([])
+  const current = ref(null)
+  const readings = ref([])
+  const allInsulin = ref([]) // Dati completi (24h) per IOB
+  const allCarbs = ref([]) // Dati completi (24h) per COB
+  const notes = ref([])
+  const sensors = ref([])
   const selectedRange = ref(180)
   const carbDraftAmount = ref(0)
-  const loading      = ref(false)
+  const loading = ref(false)
   const chartLoading = ref(false)
-  const error        = ref(null)
-  const lastUpdated  = ref(null)
+  const error = ref(null)
+  const lastUpdated = ref(null)
 
   // Record filtrati per il range selezionato (UI)
   const insulinRecords = computed(() => {
@@ -93,31 +93,31 @@ export const useGlucoseStore = defineStore('glucose', () => {
 
   // Dati storici (Calendario)
   const historyReadings = ref([])
-  const historyInsulin  = ref([])
+  const historyInsulin = ref([])
   const historyChartInsulin = ref([])
-  const historyCarbs    = ref([])
-  const historyNotes    = ref([])
-  const historyLoading  = ref(false)
+  const historyCarbs = ref([])
+  const historyNotes = ref([])
+  const historyLoading = ref(false)
 
   // ── Helper Statistiche ──────────────────────────────────────────────────────
   function calculateStats(data) {
     if (!data || !data.length) return null
-    
+
     const values = data.map(r => r.glucose)
     const avg = Math.round(values.reduce((a, b) => a + b, 0) / values.length)
     const min = Math.min(...values)
     const max = Math.max(...values)
-    
+
     // Time in Range (TIR) usando i limiti delle impostazioni
     const inRange = data.filter(r => r.glucose >= settings.value.tir_min && r.glucose <= settings.value.tir_max).length
     const tir = Math.round((inRange / data.length) * 100)
-    
+
     return { avg, min, max, tir }
   }
 
   // Statistiche correnti (Homepage)
   const stats = computed(() => calculateStats(readings.value))
-  
+
   // Statistiche storiche (Calendario)
   const historyStats = computed(() => calculateStats(historyReadings.value))
 
@@ -129,10 +129,10 @@ export const useGlucoseStore = defineStore('glucose', () => {
 
     return allInsulin.value.reduce((total, ins) => {
       if (ins.type !== 'rapid') return total // Solo la rapida contribuisce all'IOB standard
-      
+
       const elapsedMs = now - new Date(ins.timestamp).getTime()
       if (elapsedMs < 0 || elapsedMs >= durationMs) return total
-      
+
       const factor = 1 - (elapsedMs / durationMs)
       return total + (Number(ins.units) * factor)
     }, 0)
@@ -146,7 +146,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return allCarbs.value.reduce((total, carb) => {
       const elapsedMs = now - new Date(carb.timestamp).getTime()
       if (elapsedMs < 0 || elapsedMs >= durationMs) return total
-      
+
       const factor = 1 - (elapsedMs / durationMs)
       return total + (Number(carb.amount) * factor)
     }, 0)
@@ -163,10 +163,10 @@ export const useGlucoseStore = defineStore('glucose', () => {
 
     // 1. Rosso (Molto fuori range / Gravi)
     if (g <= redUnder || g >= redOver) return 'text-error'
-    
+
     // 2. Giallo (Fuori target / Warning)
     if (g < min || g > max) return 'text-warning'
-    
+
     // 3. Verde (In range)
     return 'text-success'
   }
@@ -181,15 +181,15 @@ export const useGlucoseStore = defineStore('glucose', () => {
 
     // 1. ANALISI PER FASCE ORARIE
     const hourlyTrends = Array.from({ length: 12 }, () => ({ slopes: [], values: [], samples: [] }))
-    
+
     allHistoryReadings.forEach((r, idx) => {
       if (idx === 0) return
       const date = new Date(r.timestamp)
       const hour = date.getHours()
       const bucketIndex = Math.floor(hour / 2)
-      const prevG = allHistoryReadings[idx-1].glucose
+      const prevG = allHistoryReadings[idx - 1].glucose
       const currentG = r.glucose
-      const dt = (date.getTime() - new Date(allHistoryReadings[idx-1].timestamp).getTime()) / 60000
+      const dt = (date.getTime() - new Date(allHistoryReadings[idx - 1].timestamp).getTime()) / 60000
       if (dt > 0 && dt < 15 && bucketIndex >= 0 && bucketIndex < hourlyTrends.length) {
         const slope = (currentG - prevG) / dt
         hourlyTrends[bucketIndex].slopes.push(slope)
@@ -214,7 +214,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
           return data.samples.filter(sample => sample.timestamp >= cutoff && (avgSlope > 0 ? sample.slope > 0 : sample.slope < 0)).length
         }
 
-        const title = avgSlope > 0 
+        const title = avgSlope > 0
           ? t('patterns.recurringRiseTitle', { timeRange: timeStr })
           : t('patterns.recurringDropTitle', { timeRange: timeStr })
 
@@ -239,7 +239,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
 
     // 2. ANALISI CORRELAZIONE NOTE
     const uniqueNotes = [...new Set(allHistoryNotes.map(n => n.text?.toLowerCase().trim()))]
-    
+
     uniqueNotes.forEach(noteText => {
       if (!noteText || noteText.length < 3) return
       const occurrences = allHistoryNotes.filter(n => n.text?.toLowerCase().trim() === noteText)
@@ -260,7 +260,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
           const startG = postReadings[0].glucose
           const peakG = Math.max(...postReadings.map(r => r.glucose))
           const dropG = Math.min(...postReadings.map(r => r.glucose))
-          
+
           if (Math.abs(peakG - startG) > 30 || Math.abs(startG - dropG) > 30) {
             totalRise += (peakG - startG) - (startG - dropG)
             validOccurrences++
@@ -455,7 +455,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
         ...newSettings,
         telegram_enabled: normalizeBooleanSetting(newSettings.telegram_enabled, false),
         telegram_high_low_alerts: normalizeBooleanSetting(newSettings.telegram_high_low_alerts, true),
-        telegram_prediction_alerts: normalizeBooleanSetting(newSettings.telegram_prediction_alerts, true),
         telegram_insulin_alerts: normalizeBooleanSetting(newSettings.telegram_insulin_alerts, false),
         telegram_carb_alerts: normalizeBooleanSetting(newSettings.telegram_carb_alerts, false),
         telegram_daily_summary: normalizeBooleanSetting(newSettings.telegram_daily_summary, false),
@@ -470,16 +469,16 @@ export const useGlucoseStore = defineStore('glucose', () => {
   }
 
   // ── Theme Management ───────────────────────────────────────────────────────
-  const themes = ["light","dark","retro","forest","wireframe","coffee"]
+  const themes = ["light", "dark", "retro", "forest", "wireframe", "coffee"]
   const theme = ref(localStorage.getItem('theme') || 'dark')
 
   function setTheme(t) {
     theme.value = t
     localStorage.setItem('theme', t)
-    try { document.documentElement.setAttribute('data-theme', t) } catch (e) {}
+    try { document.documentElement.setAttribute('data-theme', t) } catch (e) { }
   }
 
-  try { document.documentElement.setAttribute('data-theme', theme.value) } catch (e) {}
+  try { document.documentElement.setAttribute('data-theme', theme.value) } catch (e) { }
 
   async function fetchAll() {
     loading.value = true
@@ -652,7 +651,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     settings,
     historyReadings, historyInsulin, historyChartInsulin, historyCarbs, historyNotes, historyLoading,
     glucoseColor, minutesAgo, stats, historyStats, iob, cob, patterns,
-    fetchCurrent, fetchReadings, fetchAll, setRange, syncNow, 
+    fetchCurrent, fetchReadings, fetchAll, setRange, syncNow,
     addInsulin, removeInsulin, editInsulin,
     addCarb, removeCarb, editCarb,
     addNote, removeNote, editNote,

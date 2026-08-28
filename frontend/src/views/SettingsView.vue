@@ -155,26 +155,7 @@
                   </div>
                 </div>
               </div>
-
-                <div class="space-y-2 md:space-y-3">
-                  <div class="space-y-1 md:space-y-2">
-                    <label class="text-[9px] font-black uppercase opacity-40">{{ $t('settings.insulinSensitivity') }}</label>
-                    <div class="flex items-center gap-2">
-                      <input type="number" v-model.number="form.insulin_sensitivity"
-                        class="input input-bordered font-black flex-1 min-w-0 input-xs md:input-sm" />
-                      <span class="text-[9px] md:text-[10px] font-bold opacity-30 whitespace-nowrap flex-shrink-0">{{ $t('settings.mgDlPerUnit') }}</span>
-                    </div>
-                  </div>
-                  <div class="space-y-1 md:space-y-2">
-                    <label class="text-[9px] font-black uppercase opacity-40">{{ $t('settings.carbRatio') }}</label>
-                    <div class="flex items-center gap-2">
-                      <input type="number" v-model.number="form.carb_ratio"
-                        class="input input-bordered font-black flex-1 min-w-0 input-xs md:input-sm" />
-                      <span class="text-[9px] md:text-[10px] font-bold opacity-30 whitespace-nowrap flex-shrink-0">{{ $t('settings.gramsPerUnit') }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            </div>
           </div>
         </div>
 
@@ -482,7 +463,6 @@ const form = reactive({
   quick_carb_2: 20,
   telegram_enabled: false,
   telegram_high_low_alerts: true,
-  telegram_prediction_alerts: true,
   telegram_insulin_alerts: false,
   telegram_carb_alerts: false,
   telegram_daily_summary: false,
@@ -517,7 +497,6 @@ function updateFormFromStore() {
   form.quick_carb_2 = store.settings.quick_carb_2 ?? 20
   form.telegram_enabled = normalizeBoolean(store.settings.telegram_enabled, false)
   form.telegram_high_low_alerts = normalizeBoolean(store.settings.telegram_high_low_alerts, true)
-  form.telegram_prediction_alerts = normalizeBoolean(store.settings.telegram_prediction_alerts, true)
   form.telegram_insulin_alerts = normalizeBoolean(store.settings.telegram_insulin_alerts, false)
   form.telegram_carb_alerts = normalizeBoolean(store.settings.telegram_carb_alerts, false)
   form.telegram_daily_summary = normalizeBoolean(store.settings.telegram_daily_summary, false)
@@ -553,7 +532,6 @@ async function save() {
     quick_carb_2: form.quick_carb_2 || 20,
     telegram_enabled: form.telegram_enabled,
     telegram_high_low_alerts: form.telegram_high_low_alerts,
-    telegram_prediction_alerts: form.telegram_prediction_alerts,
     telegram_insulin_alerts: form.telegram_insulin_alerts,
     telegram_carb_alerts: form.telegram_carb_alerts,
     telegram_daily_summary: form.telegram_daily_summary,
