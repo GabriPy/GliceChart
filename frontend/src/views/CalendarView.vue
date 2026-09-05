@@ -1,0 +1,570 @@
+<template>
+  <div class="flex flex-col gap-4 md:gap-6 lg:gap-8 px-2 md:px-4 lg:px-0">
+
+    <!-- Header / Calendario -->
+    <div
+      class="relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
+      <div
+        class="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-primary/15 rounded-full blur-2xl md:blur-3xl opacity-70">
+      </div>
+      <div class="absolute bottom-0 left-0 w-32 md:w-48 h-32 md:h-48 bg-accent/15 rounded-xl md:blur-2xl opacity-70">
+      </div>
+
+      <div class="relative card-body p-4 md:p-6 lg:p-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 md:gap-6">
+          <div class="flex items-center gap-3 md:gap-4">
+            <div
+              class="p-3 md:p-4 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl md:rounded-2xl shadow-md md:shadow-lg shadow-primary/30">
+              <i class="fa-solid fa-calendar text-primary text-xl md:text-2xl"></i>
+            </div>
+            <div>
+              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{ $t('calendar.title') }}</h2>
+              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{ $t('calendar.subtitle') }}</span>
+            </div>
+          </div>
+
+          <div
+            class="flex items-center gap-2 bg-base-100/50 p-1.5 rounded-xl md:rounded-2xl border border-base-content/10 shadow-sm">
+            <button @click="changeDate(-1)" class="btn btn-ghost btn-xs btn-circle font-black" :title="$t('calendar.prevDay')" :aria-label="$t('calendar.prevDay')">
+              <i class="fa-solid fa-angle-left"></i>
+            </button>
+
+            <div class="flex items-center gap-2">
+              <input type="date" v-model="selectedDate"
+                class="bg-transparent border-none text-xs font-black uppercase tracking-widest focus:ring-0 cursor-pointer px-2"
+                @change="fetchDayData" />
+            </div>
+
+            <button @click="changeDate(1)" class="btn btn-ghost btn-xs btn-circle font-black" :title="$t('calendar.nextDay')" :aria-label="$t('calendar.nextDay')">
+              <i class="fa-solid fa-angle-right"></i>
+            </button>
+
+            <div class="divider divider-horizontal mx-0 opacity-20"></div>
+
+            <button @click="setToday" class="btn btn-ghost btn-xs px-2 font-black uppercase text-[8px] tracking-widest">
+              {{ $t('calendar.today') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grafico del Giorno -->
+    <div class="grid grid-cols-1">
+      <GlucoseChart :readings="store.historyReadings" :insulin="store.historyChartInsulin" :carbs="store.historyCarbs"
+        :notes="store.historyNotes" :title="$t('calendar.trendTitle', { date: formatDate(selectedDate) })" :loading="store.historyLoading"
+        fullDay :date="selectedDate" show-context-info />
+    </div>
+
+    <!-- Lista Insuline, Carboidrati e Note del Giorno -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+
+      <!-- Card Insuline -->
+      <div
+        class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10 overflow-hidden">
+        <div class="card-body p-0">
+          <div class="p-4 md:p-6 border-b border-base-content/10 flex items-center justify-between">
+            <div class="flex items-center gap-2 md:gap-3">
+              <div class="p-2 md:p-3 bg-primary/10 rounded-lg md:rounded-xl shadow-sm">
+                <i class="fa-solid fa-syringe text-primary text-lg md:text-xl"></i>
+              </div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('calendar.insulinSection') }}</h3>
+                <span class="px-2 py-0.5 rounded-md bg-primary/10 text-[9px] font-black text-primary">{{
+                  store.historyInsulin.length }}</span>
+              </div>
+            </div>
+            <button @click="startAdd('insulin')" class="btn btn-ghost btn-xs btn-circle text-primary shadow-sm" :title="$t('calendar.addInsulin')">
+              <i class="fa-solid fa-plus text-lg"></i>
+            </button>
+          </div>
+
+          <div class="p-4 md:p-6 max-h-[250px] overflow-y-auto scrollbar-hide">
+            <div v-if="store.historyLoading" class="flex flex-col gap-3">
+              <div v-for="n in 3" :key="n" class="h-16 bg-base-100/50 rounded-xl md:rounded-2xl animate-pulse"></div>
+            </div>
+
+            <div v-else class="space-y-2">
+              <div v-if="!store.historyInsulin.length" class="py-8 text-center opacity-20">
+                <span class="text-[10px] font-black uppercase tracking-widest">{{ $t('common.noDataAvailable') }}</span>
+              </div>
+
+              <div v-for="ins in sortedHistoryInsulin" :key="ins.id"
+                class="bg-base-100/50 p-3 rounded-xl md:rounded-2xl flex items-center justify-between border border-base-content/10 hover:border-primary/20 shadow-sm hover:shadow-md transition-all group">
+                <div class="flex items-center gap-4">
+                  <div class="w-1 h-8 rounded-full shadow-sm"
+                    :class="ins.type === 'rapid' ? 'bg-primary shadow-primary/30' : 'bg-secondary shadow-secondary/30'">
+                  </div>
+
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-2 leading-none">
+                      <span class="text-sm font-black tracking-tight">{{ ins.units.toString().replace(',', '.') }}{{ $t('common.unitSymbol') }}</span>
+                      <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-base-300/50 opacity-60">
+                        {{ ins.type === 'rapid' ? $t('home.rapid') : $t('home.slow') }}
+                      </span>
+                    </div>
+                    <span class="text-[9px] font-black opacity-30 uppercase tracking-wider mt-1">{{
+                      formatTime(ins.timestamp) }}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button @click="startEdit('insulin', ins)" class="btn btn-ghost btn-xs btn-circle text-info" :title="$t('common.edit')">
+                    <i class="fa-solid fa-pencil text-[10px]"></i>
+                  </button>
+                  <button @click="handleDelete('insulin', ins.id)" class="btn btn-ghost btn-xs btn-circle text-error" :title="$t('common.delete')">
+                    <i class="fa-solid fa-trash text-[10px]"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Carboidrati -->
+      <div
+        class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10 overflow-hidden">
+        <div class="card-body p-0">
+          <div class="p-4 md:p-6 border-b border-base-content/10 flex items-center justify-between">
+            <div class="flex items-center gap-2 md:gap-3">
+              <div class="p-2 md:p-3 bg-accent/10 rounded-lg md:rounded-xl shadow-sm">
+                <i class="fa-solid fa-bread-slice text-accent text-lg md:text-xl"></i>
+              </div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('calendar.carbsSection') }}</h3>
+                <span class="px-2 py-0.5 rounded-md bg-accent/10 text-[9px] font-black text-accent">{{
+                  store.historyCarbs.length }}</span>
+              </div>
+            </div>
+            <button @click="startAdd('carb')" class="btn btn-ghost btn-xs btn-circle text-accent shadow-sm" :title="$t('calendar.addCarb')">
+              <i class="fa-solid fa-plus text-lg"></i>
+            </button>
+          </div>
+
+          <div class="p-4 md:p-6 max-h-[250px] overflow-y-auto scrollbar-hide">
+            <div v-if="store.historyLoading" class="flex flex-col gap-3">
+              <div v-for="n in 3" :key="n" class="h-16 bg-base-100/50 rounded-xl md:rounded-2xl animate-pulse"></div>
+            </div>
+
+            <div v-else class="space-y-2">
+              <div v-if="!store.historyCarbs.length" class="py-8 text-center opacity-20">
+                <span class="text-[10px] font-black uppercase tracking-widest">{{ $t('common.noDataAvailable') }}</span>
+              </div>
+
+              <div v-for="carb in sortedHistoryCarbs" :key="carb.id"
+                class="bg-base-100/50 p-3 rounded-xl md:rounded-2xl flex items-center justify-between border border-base-content/10 hover:border-accent/20 shadow-sm hover:shadow-md transition-all group">
+                <div class="flex items-center gap-4">
+                  <div class="w-1 h-8 rounded-full bg-accent shadow-sm shadow-accent/30"></div>
+
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-2 leading-none">
+                      <span class="text-sm font-black tracking-tight text-accent">{{ carb.amount }}{{ $t('common.gramSymbol') }}</span>
+                      <span
+                        class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-base-300/50 opacity-60">CHO</span>
+                    </div>
+                    <span class="text-[9px] font-black opacity-30 uppercase tracking-wider mt-1">{{
+                      formatTime(carb.timestamp) }}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button @click="startEdit('carb', carb)" class="btn btn-ghost btn-xs btn-circle text-info" :title="$t('common.edit')">
+                    <i class="fa-solid fa-pencil text-[10px]"></i>
+                  </button>
+                  <button @click="handleDelete('carb', carb.id)" class="btn btn-ghost btn-xs btn-circle text-error" :title="$t('common.delete')">
+                    <i class="fa-solid fa-trash text-[10px]"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Note -->
+      <div
+        class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10 overflow-hidden">
+        <div class="card-body p-0">
+          <div class="p-4 md:p-6 border-b border-base-content/10 flex items-center justify-between">
+            <div class="flex items-center gap-2 md:gap-3">
+              <div class="p-2 md:p-3 bg-info/10 rounded-lg md:rounded-xl shadow-sm">
+                <i class="fa-solid fa-note-sticky text-info text-lg md:text-xl"></i>
+              </div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('calendar.notesSection') }}</h3>
+                <span class="px-2 py-0.5 rounded-md bg-info/10 text-[9px] font-black text-info">{{
+                  store.historyNotes.length }}</span>
+              </div>
+            </div>
+            <button @click="startAdd('note')" class="btn btn-ghost btn-xs btn-circle text-info shadow-sm" :title="$t('calendar.addNote')">
+              <i class="fa-solid fa-plus text-lg"></i>
+            </button>
+          </div>
+
+          <div class="p-4 md:p-6 max-h-[250px] overflow-y-auto scrollbar-hide">
+            <div v-if="store.historyLoading" class="flex flex-col gap-3">
+              <div v-for="n in 3" :key="n" class="h-16 bg-base-100/50 rounded-xl md:rounded-2xl animate-pulse"></div>
+            </div>
+
+            <div v-else class="space-y-2">
+              <div v-if="!store.historyNotes.length" class="py-8 text-center opacity-20">
+                <span class="text-[10px] font-black uppercase tracking-widest">{{ $t('common.noDataAvailable') }}</span>
+              </div>
+
+              <div v-for="note in sortedHistoryNotes" :key="note.id"
+                class="bg-base-100/50 p-3 rounded-xl md:rounded-2xl flex flex-col gap-1 border border-base-content/10 hover:border-info/20 shadow-sm hover:shadow-md transition-all group">
+                <div class="flex items-center justify-between">
+                  <span class="text-[9px] font-black opacity-30 uppercase tracking-wider">{{
+                    formatTime(note.timestamp) }}</span>
+
+                  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button @click="startEdit('note', note)" class="btn btn-ghost btn-xs btn-circle text-info" :title="$t('common.edit')">
+                      <i class="fa-solid fa-pencil text-[10px]"></i>
+                    </button>
+                    <button @click="handleDelete('note', note.id)" class="btn btn-ghost btn-xs btn-circle text-error" :title="$t('common.delete')">
+                      <i class="fa-solid fa-trash text-[10px]"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <p class="text-xs font-bold leading-tight opacity-80">{{ note.text }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistiche -->
+    <div class="w-full relative">
+      <div v-if="store.historyLoading"
+        class="absolute inset-0 z-10 bg-base-200/50 backdrop-blur-[2px] rounded-2xl md:rounded-3xl flex items-center justify-center">
+        <span class="loading loading-dots loading-md text-primary"></span>
+      </div>
+      <DailyStats :stats="store.historyStats" />
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      <StatsChart :title="$t('charts.hourlyDistribution')" type="bar" :readings="store.historyReadings" />
+      <StatsChart :title="$t('charts.timeInRangePie')" type="doughnut" :readings="store.historyReadings" />
+    </div>
+
+    <!-- Modal Modifica / Aggiunta -->
+    <dialog id="edit_modal" class="modal">
+      <div
+        class="modal-box bg-gradient-to-br from-base-200 to-base-300 border border-base-content/10 shadow-2xl shadow-black/10 rounded-2xl md:rounded-3xl p-4 md:p-6">
+        <div class="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+          <div class="p-2 md:p-3 rounded-lg md:rounded-xl shadow-sm"
+            :class="isEditing ? 'bg-primary/10' : 'bg-success/10'">
+            <i class="text-lg md:text-xl"
+              :class="isEditing ? 'fa-solid fa-pencil text-primary' : 'fa-solid fa-plus text-success'"></i>
+          </div>
+          <h3 class="font-black text-base md:text-lg uppercase tracking-tight leading-none">
+            {{ isEditing ? $t('calendar.editRecord') : $t('calendar.addRecord') }}
+          </h3>
+        </div>
+
+        <div v-if="editingItem" class="space-y-4">
+
+          <template v-if="editingItem.type === 'insulin'">
+            <div class="flex flex-col gap-1 md:gap-2">
+              <label class="text-[10px] font-black uppercase opacity-40">{{ $t('common.units') }}</label>
+              <input type="number" step="0.5" v-model.number="editForm.units"
+                class="input input-bordered bg-base-100/50 font-black text-lg md:text-xl shadow-sm" />
+            </div>
+
+            <div class="flex flex-col gap-1 md:gap-2">
+              <label class="text-[10px] font-black uppercase opacity-40">{{ $t('common.type') }}</label>
+              <select v-model="editForm.insulinType" class="select select-bordered bg-base-100/50 font-black shadow-sm">
+                <option value="rapid">{{ $t('home.rapid') }}</option>
+                <option value="slow">{{ $t('home.slow') }}</option>
+              </select>
+            </div>
+          </template>
+
+          <template v-else-if="editingItem.type === 'carb'">
+            <div class="flex flex-col gap-1 md:gap-2">
+              <label class="text-[10px] font-black uppercase opacity-40">{{ $t('common.quantity') }} ({{ $t('common.gramSymbol') }})</label>
+              <input type="number" v-model.number="editForm.amount"
+                class="input input-bordered bg-base-100/50 font-black text-lg md:text-xl shadow-sm" />
+            </div>
+          </template>
+
+          <template v-else-if="editingItem.type === 'note'">
+            <div class="flex flex-col gap-1 md:gap-2">
+              <label class="text-[10px] font-black uppercase opacity-40">{{ $t('notes.noteText') }}</label>
+              <textarea v-model="editForm.text"
+                class="textarea textarea-bordered bg-base-100/50 font-bold h-24 shadow-sm"></textarea>
+            </div>
+          </template>
+
+          <div class="flex flex-col gap-1 md:gap-2">
+            <label class="text-[10px] font-black uppercase opacity-40">{{ $t('common.time') }}</label>
+            <input type="time" v-model="editForm.time"
+              class="input input-bordered bg-base-100/50 font-black shadow-sm" />
+          </div>
+        </div>
+
+        <div class="modal-action gap-2">
+          <form method="dialog">
+            <button class="btn btn-ghost uppercase font-black text-xs">{{ $t('common.cancel') }}</button>
+          </form>
+
+          <button @click="handleSave"
+            class="btn btn-primary uppercase font-black text-xs px-8 shadow-md shadow-primary/40"
+            :disabled="store.loading">
+            <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
+            <template v-else>{{ $t('calendar.saveChanges') }}</template>
+          </button>
+        </div>
+      </div>
+
+      <form method="dialog" class="modal-backdrop">
+        <button>{{ $t('common.close') }}</button>
+      </form>
+    </dialog>
+
+    <!-- Modal Conferma Eliminazione -->
+    <dialog id="delete_modal" class="modal">
+      <div
+        class="modal-box bg-gradient-to-br from-base-200 to-base-300 border border-base-content/10 shadow-2xl shadow-black/10 rounded-2xl md:rounded-3xl p-4 md:p-6">
+        <div class="flex items-center gap-2 md:gap-3 mb-4">
+          <div class="p-2 md:p-3 bg-error/10 rounded-lg md:rounded-xl shadow-sm">
+            <i class="fa-solid fa-trash text-error text-lg md:text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-base md:text-lg font-black uppercase tracking-tight leading-none">
+              {{ $t('calendar.deleteRecordTitle') }}
+            </h3>
+            <span class="text-[9px] md:text-[10px] font-black opacity-40 uppercase tracking-widest">
+              {{ $t('calendar.permanentDeleteSubtitle') }}
+            </span>
+          </div>
+        </div>
+
+        <p class="text-xs md:text-sm opacity-70 mb-6 leading-relaxed">
+          {{ $t('calendar.deleteConfirmation') }}
+        </p>
+
+        <div class="modal-action gap-2">
+          <form method="dialog">
+            <button class="btn btn-ghost uppercase font-black text-xs">{{ $t('common.cancel') }}</button>
+          </form>
+
+          <button @click="confirmDelete"
+            class="btn btn-error uppercase font-black text-xs px-8 shadow-md shadow-error/40"
+            :disabled="store.loading">
+            <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
+            <span v-else>{{ $t('common.delete') }}</span>
+          </button>
+        </div>
+      </div>
+
+      <form method="dialog" class="modal-backdrop">
+        <button>{{ $t('common.close') }}</button>
+      </form>
+    </dialog>
+
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useGlucoseStore } from '../stores/glucose'
+import GlucoseChart from '../components/GlucoseChart.vue'
+import DailyStats from '../components/DailyStats.vue'
+import StatsChart from '../components/StatsChart.vue'
+
+const { t, locale } = useI18n()
+const store = useGlucoseStore()
+
+const editingItem = ref(null)
+const isEditing = ref(false)
+const deleteType = ref(null)
+const deleteId = ref(null)
+const editForm = reactive({
+  id: null,
+  units: 1,
+  insulinType: 'rapid',
+  amount: 10,
+  text: '',
+  time: '',
+  originalTimestamp: ''
+})
+
+watch(() => editForm.units, (newVal) => {
+  if (newVal === null || newVal === undefined) return
+  const rounded = Math.round(newVal * 2) / 2
+  if (rounded !== newVal) editForm.units = rounded
+})
+
+function startEdit(type, item) {
+  isEditing.value = true
+  editingItem.value = { ...item, type }
+  editForm.id = item.id
+  editForm.time = formatTime24h(item.timestamp)
+  editForm.originalTimestamp = item.timestamp
+
+  if (type === 'insulin') {
+    editForm.units = parseFloat(item.units)
+    editForm.insulinType = item.type
+  } else if (type === 'carb') {
+    editForm.amount = parseInt(item.amount)
+  } else if (type === 'note') {
+    editForm.text = item.text
+  }
+
+  document.getElementById('edit_modal').showModal()
+}
+
+function startAdd(type) {
+  isEditing.value = false
+  editingItem.value = { type }
+  editForm.id = null
+
+  const now = new Date()
+  const isToday = selectedDate.value === getLocalDateString(now)
+  editForm.time = isToday ? formatTime24h(now.toISOString()) : '12:00'
+
+  const [year, month, day] = selectedDate.value.split('-').map(Number)
+  const baseDate = new Date(year, month - 1, day)
+  editForm.originalTimestamp = baseDate.toISOString()
+
+  if (type === 'insulin') {
+    editForm.units = 1
+    editForm.insulinType = 'rapid'
+  } else if (type === 'carb') {
+    editForm.amount = 10
+  } else if (type === 'note') {
+    editForm.text = ''
+  }
+
+  document.getElementById('edit_modal').showModal()
+}
+
+async function handleSave() {
+  if (!editingItem.value) return
+
+  const [hours, minutes] = editForm.time.split(':')
+  const newDate = new Date(editForm.originalTimestamp)
+  newDate.setHours(parseInt(hours), parseInt(minutes), 0)
+  const timestamp = newDate.toISOString()
+
+  try {
+    if (editingItem.value.type === 'insulin') {
+      const roundedUnits = Math.round(parseFloat(editForm.units) * 2) / 2
+      if (isEditing.value) {
+        await store.editInsulin(editForm.id, {
+          timestamp,
+          type: editForm.insulinType,
+          units: roundedUnits
+        })
+      } else {
+        await store.addInsulin(editForm.insulinType, roundedUnits, timestamp)
+      }
+    } else if (editingItem.value.type === 'carb') {
+      if (isEditing.value) {
+        await store.editCarb(editForm.id, {
+          timestamp,
+          amount: parseInt(editForm.amount)
+        })
+      } else {
+        await store.addCarb(parseInt(editForm.amount), timestamp)
+      }
+    } else if (editingItem.value.type === 'note') {
+      if (isEditing.value) {
+        await store.editNote(editForm.id, {
+          timestamp,
+          text: editForm.text
+        })
+      } else {
+        await store.addNote(editForm.text, timestamp)
+      }
+    }
+
+    document.getElementById('edit_modal').close()
+    await fetchDayData()
+  } catch (err) {
+    console.error('Save error:', err)
+  }
+}
+
+async function handleDelete(type, id) {
+  deleteType.value = type
+  deleteId.value = id
+  document.getElementById('delete_modal').showModal()
+}
+
+async function confirmDelete() {
+  try {
+    if (deleteType.value === 'insulin') await store.removeInsulin(deleteId.value)
+    else if (deleteType.value === 'carb') await store.removeCarb(deleteId.value)
+    else if (deleteType.value === 'note') await store.removeNote(deleteId.value)
+
+    document.getElementById('delete_modal').close()
+    await fetchDayData()
+  } catch (err) {
+    console.error('Delete error:', err)
+  }
+}
+
+function formatTime24h(iso) {
+  const d = new Date(iso)
+  return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+}
+
+function getLocalDateString(date = new Date()) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const selectedDate = ref(getLocalDateString())
+
+const sortedHistoryInsulin = computed(() => {
+  return [...store.historyInsulin].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+})
+
+const sortedHistoryCarbs = computed(() => {
+  return [...store.historyCarbs].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+})
+
+const sortedHistoryNotes = computed(() => {
+  return [...store.historyNotes].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+})
+
+function formatTime(iso) {
+  const activeLoc = locale.value === 'en' ? 'en-US' : 'it-IT'
+  return new Date(iso).toLocaleTimeString(activeLoc, { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatDate(dateStr) {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const activeLoc = locale.value === 'en' ? 'en-US' : 'it-IT'
+  return new Date(year, month - 1, day).toLocaleDateString(activeLoc, { day: '2-digit', month: 'long', year: 'numeric' })
+}
+
+function changeDate(days) {
+  const [year, month, day] = selectedDate.value.split('-').map(Number)
+  const d = new Date(year, month - 1, day)
+  d.setDate(d.getDate() + days)
+  selectedDate.value = getLocalDateString(d)
+  fetchDayData()
+}
+
+function setToday() {
+  selectedDate.value = getLocalDateString()
+  fetchDayData()
+}
+
+async function fetchDayData() {
+  await store.fetchHistory(selectedDate.value)
+}
+
+onMounted(() => {
+  fetchDayData()
+})
+</script>
