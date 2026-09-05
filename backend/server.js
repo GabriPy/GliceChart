@@ -416,7 +416,8 @@ app.delete('/api/sensors/:id', async (req, res) => {
 app.get('/api/settings', async (req, res) => {
   try {
     const settings = await getSettings();
-    res.json(settings);
+    const { pin_hash, ...safe } = settings || {};
+    res.json(safe);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

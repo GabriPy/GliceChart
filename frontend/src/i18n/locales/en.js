@@ -60,6 +60,7 @@ export default {
     sensors: 'Sensor History',
     about: 'About',
     settings: 'Settings',
+    lock: 'Lock App',
     dashboardSubtitle: 'Dashboard {version}',
     toggleSidebar: 'Collapse/expand sidebar',
     syncTooltip: 'Sync data from Gluroo/Nightscout'

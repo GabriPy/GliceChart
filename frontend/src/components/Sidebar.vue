@@ -32,7 +32,8 @@
         <div class="tooltip" :data-tip="$t('navigation.home')">
           <Zap class="w-5 h-5" />
         </div>
-        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.home') }}</span>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.home')
+          }}</span>
       </router-link>
 
       <router-link to="/calendar" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
@@ -41,7 +42,8 @@
         <div class="tooltip" :data-tip="$t('navigation.calendar')">
           <Calendar class="w-5 h-5" />
         </div>
-        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.calendar') }}</span>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.calendar')
+          }}</span>
       </router-link>
 
       <router-link to="/patterns" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
@@ -50,7 +52,8 @@
         <div class="tooltip" :data-tip="$t('navigation.patterns')">
           <Brain class="w-5 h-5" />
         </div>
-        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.patterns') }}</span>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.patterns')
+          }}</span>
       </router-link>
 
       <router-link to="/dietometer"
@@ -60,7 +63,8 @@
         <div class="tooltip" :data-tip="$t('navigation.dietometer')">
           <Wheat class="w-5 h-5" />
         </div>
-        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.dietometer') }}</span>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{
+          $t('navigation.dietometer') }}</span>
       </router-link>
 
       <router-link to="/summary" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
@@ -69,7 +73,8 @@
         <div class="tooltip" :data-tip="$t('navigation.summary')">
           <FileText class="w-5 h-5" />
         </div>
-        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.summary') }}</span>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.summary')
+          }}</span>
       </router-link>
 
       <router-link to="/sensors" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
@@ -78,7 +83,8 @@
         <div class="tooltip" :data-tip="$t('navigation.sensors')">
           <Microchip class="w-5 h-5" />
         </div>
-        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.sensors') }}</span>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.sensors')
+          }}</span>
       </router-link>
 
       <router-link to="/about" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
@@ -87,7 +93,8 @@
         <div class="tooltip" :data-tip="$t('navigation.about')">
           <Info class="w-5 h-5" />
         </div>
-        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.about') }}</span>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.about')
+          }}</span>
       </router-link>
 
       <router-link to="/settings" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
@@ -96,8 +103,16 @@
         <div class="tooltip" :data-tip="$t('navigation.settings')">
           <Settings class="w-5 h-5" />
         </div>
-        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.settings') }}</span>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.settings')
+          }}</span>
       </router-link>
+
+      <!-- Lock Button -->
+        <button  v-if="store.pinEnabled" @click="lockApp"
+          class="btn btn-error btn-outline btn-xs w-full font-black uppercase tracking-widest gap-2 ">
+          <i class="fa-solid fa-lock"></i>
+          <span v-show="!collapsed">{{ $t('navigation.lock') }}</span>
+        </button>
     </nav>
 
     <!-- Footer Sidebar: Refresh + Language + Themes + Version -->
@@ -109,14 +124,16 @@
         </button>
 
         <div class="flex items-center gap-1" :class="collapsed ? 'justify-center w-full' : ''">
-          <button v-show="!collapsed" @click="doRefresh" class="btn btn-ghost btn-sm btn-circle" :title="$t('navigation.syncTooltip')" :aria-label="$t('navigation.syncTooltip')">
+          <button v-show="!collapsed" @click="doRefresh" class="btn btn-ghost btn-sm btn-circle"
+            :title="$t('navigation.syncTooltip')" :aria-label="$t('navigation.syncTooltip')">
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.loading }" />
           </button>
 
           <!-- Language switcher button -->
           <div v-show="!collapsed" class="relative">
             <button ref="langBtn" @click="toggleLangDropdown"
-              class="btn btn-ghost btn-sm gap-1.5 normal-case hover:bg-base-200 px-2" type="button" :title="$t('common.language')">
+              class="btn btn-ghost btn-sm gap-1.5 normal-case hover:bg-base-200 px-2" type="button"
+              :title="$t('common.language')">
               <Languages class="w-4 h-4" />
               <span class="font-bold text-xs uppercase tracking-widest opacity-60">{{ currentLangUpper }}</span>
             </button>
@@ -145,7 +162,8 @@
           <!-- Theme switcher button -->
           <div v-show="!collapsed" class="relative">
             <button ref="themeBtn" @click="toggleThemes"
-              class="btn btn-ghost btn-sm gap-1.5 normal-case hover:bg-base-200 px-2" type="button" :title="$t('common.theme')">
+              class="btn btn-ghost btn-sm gap-1.5 normal-case hover:bg-base-200 px-2" type="button"
+              :title="$t('common.theme')">
               <Palette class="w-4 h-4" />
               <span class="font-bold text-xs uppercase tracking-widest opacity-60">{{ $t('common.theme') }}</span>
             </button>
@@ -158,7 +176,8 @@
                     <button
                       class="flex items-center justify-between p-2 rounded-xl outline-none focus:outline-none transition-all duration-200 bg-base-100/50 hover:bg-base-200 w-full"
                       :class="{ 'ring-2 ring-primary ring-offset-2 ring-offset-base-300': currentThemeLocal === t }"
-                      @click="applyTheme(t)" :data-theme="t" :aria-label="$t('accessibility.selectTheme', { theme: t })">
+                      @click="applyTheme(t)" :data-theme="t"
+                      :aria-label="$t('accessibility.selectTheme', { theme: t })">
                       <div class="flex items-center gap-2">
                         <span class="w-4 h-3 rounded-sm" :class="['bg-primary']" aria-hidden="true"></span>
                         <span class="w-4 h-3 rounded-sm" :class="['bg-secondary']" aria-hidden="true"></span>
@@ -175,17 +194,12 @@
         </div>
         <div v-show="!collapsed" class="text-[10px] font-black opacity-40">{{ APP_VERSION_LABEL }}</div>
 
-        <!-- Lock Button -->
-        <div class="px-2 pb-2" v-if="store.pinEnabled">
-          <button @click="lockApp" class="btn btn-error btn-outline btn-xs w-full font-black uppercase tracking-widest gap-2">
-            <i class="fa-solid fa-lock"></i>
-            <span v-show="!collapsed">Blocca App</span>
-          </button>
-        </div>
+
       </div>
 
       <div class="flex items-center justify-center" v-show="collapsed">
-        <button @click="doRefresh" class="btn btn-ghost btn-sm btn-circle" :title="$t('navigation.syncTooltip')" :aria-label="$t('navigation.syncTooltip')">
+        <button @click="doRefresh" class="btn btn-ghost btn-sm btn-circle" :title="$t('navigation.syncTooltip')"
+          :aria-label="$t('navigation.syncTooltip')">
           <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.loading }" />
         </button>
       </div>
