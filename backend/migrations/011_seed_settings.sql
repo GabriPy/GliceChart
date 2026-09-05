@@ -1,0 +1,2 @@
+INSERT IGNORE INTO settings (id, tir_min, tir_max, red_under, red_over, rapid_duration, slow_duration, carb_duration, insulin_sensitivity, carb_ratio, quick_insulin_1, quick_insulin_2, quick_carb_1, quick_carb_2, telegram_enabled, telegram_high_low_alerts, telegram_prediction_alerts, telegram_insulin_alerts, telegram_carb_alerts, telegram_daily_summary, telegram_daily_summary_time)
+VALUES (1, 70, 180, 55, 250, 3, 24, 4, 60, 15, 1, 2, 10, 20, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, '21:00');

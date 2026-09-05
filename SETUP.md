@@ -92,6 +92,34 @@ npm run dev        # → http://localhost:5173 (proxy /api → :3001)
 
 ---
 
+## 🗄 Migrations
+
+Lo schema DB è gestito da file SQL numerati in `backend/migrations/`. Uno script Node applica solo le migration mancanti, in ordine, registrando ogni esecuzione nella tabella `schema_migrations`.
+
+### Comandi
+
+```bash
+# Applica tutte le migration mancanti
+cd backend && npm run migrate
+
+# In produzione: le migration girano automaticamente all'avvio del container
+```
+
+### Come creare una nuova migration
+
+1. Crea un file in `backend/migrations/` con nome progressivo, es. `012_add_column_foo.sql`
+2. Scrivi SQL puro: `CREATE TABLE`, `ALTER TABLE`, `INSERT`, etc.
+3. Lancia `npm run migrate` o riavvia il container
+
+### Regole
+
+- **Niente logica applicativa nelle migration**: solo schema e seed.
+- **Idempotenti**: usa `IF NOT EXISTS`, `INSERT IGNORE`, `ON DUPLICATE KEY UPDATE`.
+- **Ordine**: il numero progressivo garantisce l'ordine di esecuzione.
+- **Errore**: se una migration fallisce, lo script si ferma e segnala l'errore. Fixa il file e rilancia.
+
+---
+
 ## ❓ Troubleshooting
 
 | ❌ | ✅ |

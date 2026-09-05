@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS schema_migrations (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  filename    VARCHAR(255) NOT NULL UNIQUE,
+  executed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_filename (filename)
+);
