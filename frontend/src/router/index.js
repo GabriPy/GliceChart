@@ -10,6 +10,8 @@ const AboutView = () => import('../views/AboutView.vue')
 const PatternsView = () => import('../views/PatternsView.vue')
 const SensorsView = () => import('../views/SensorsView.vue')
 
+const ShareDashboardView = () => import('../views/ShareDashboardView.vue')
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [

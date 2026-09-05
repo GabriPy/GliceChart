@@ -1,5 +1,6 @@
 // db.js - Connessione e query MySQL
 const mysql = require('mysql2/promise');
+const crypto = require('crypto');
 
 let pool = null;
 
@@ -385,10 +386,66 @@ async function updateSettings({ tir_min, tir_max, red_under, red_over, rapid_dur
   return result.affectedRows > 0;
 }
 
-module.exports = { 
-  getPool, 
-  insertReading, 
-  getReadingsByMinutes, 
+function hashPin(pin) {
+  return crypto.createHash('sha256').update(String(pin)).digest('hex');
+}
+
+async function getPinHash() {
+  const p = await getPool();
+  try {
+    const [rows] = await p.execute(`SELECT pin_hash FROM settings WHERE id = 1`);
+    return rows[0]?.pin_hash || null;
+  } catch (e) {
+    // Se la colonna non esiste ancora (migration non applicata), restituisci null
+    return null;
+  }
+}
+
+async function setPinHash(pin) {
+  const p = await getPool();
+  const [result] = await p.execute(
+    `UPDATE settings SET pin_hash = ? WHERE id = 1`,
+    [hashPin(pin)]
+  );
+  return result.affectedRows > 0;
+}
+
+async function removePinHash() {
+  const p = await getPool();
+  const [result] = await p.execute(
+    `UPDATE settings SET pin_hash = NULL WHERE id = 1`
+  );
+  return result.affectedRows > 0;
+}
+
+function generateToken() {
+  return require('crypto').randomBytes(32).toString('hex');
+}
+
+async function createUnlockSession() {
+  const p = await getPool();
+  const token = generateToken();
+  await p.execute(`INSERT INTO sessions (id) VALUES (?)`, [token]);
+  return token;
+}
+
+async function validateUnlockSession(token) {
+  if (!token) return false;
+  const p = await getPool();
+  const [rows] = await p.execute(`SELECT 1 FROM sessions WHERE id = ?`, [token]);
+  return !!rows.length;
+}
+
+async function deleteUnlockSession(token) {
+  if (!token) return;
+  const p = await getPool();
+  await p.execute(`DELETE FROM sessions WHERE id = ?`, [token]);
+}
+
+module.exports = {
+  getPool,
+  insertReading,
+  getReadingsByMinutes,
   getLatestReading,
   insertInsulin,
   getInsulinByMinutes,
@@ -403,8 +460,8 @@ module.exports = {
   updateCarb,
   getCarbsByDate,
    insertNote,
-   deleteNote,
-   getNotesByMinutes,
+    deleteNote,
+    getNotesByMinutes,
   getNotesByDate,
   getDietFoods,
   insertDietFood,
@@ -413,5 +470,9 @@ module.exports = {
   endSensor,
   deleteSensor,
   getSettings,
-  updateSettings
+  updateSettings,
+  getPinHash,
+  setPinHash,
+  removePinHash,
+  hashPin
 };

@@ -57,12 +57,16 @@
       <label for="my-drawer" :aria-label="$t('accessibility.closeSidebar')" class="drawer-overlay"></label>
       <Sidebar @close-drawer="closeDrawer" />
     </div>
+
+    <!-- PIN Lock Overlay -->
+    <PinLock v-if="store.pinEnabled && !store.isUnlocked" />
   </div>
 </template>
 
 <script setup>
 import { useGlucoseStore } from './stores/glucose'
 import Sidebar from './components/Sidebar.vue'
+import PinLock from './components/PinLock.vue'
 import { APP_VERSION_LABEL } from './appVersion'
 import { AlertCircle, X } from 'lucide-vue-next'
 

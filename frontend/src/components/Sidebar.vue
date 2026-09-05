@@ -174,6 +174,14 @@
           </div>
         </div>
         <div v-show="!collapsed" class="text-[10px] font-black opacity-40">{{ APP_VERSION_LABEL }}</div>
+
+        <!-- Lock Button -->
+        <div class="px-2 pb-2" v-if="store.pinEnabled">
+          <button @click="lockApp" class="btn btn-error btn-outline btn-xs w-full font-black uppercase tracking-widest gap-2">
+            <i class="fa-solid fa-lock"></i>
+            <span v-show="!collapsed">Blocca App</span>
+          </button>
+        </div>
       </div>
 
       <div class="flex items-center justify-center" v-show="collapsed">
@@ -222,6 +230,11 @@ function toggle() {
 
 function doRefresh() {
   store.syncNow()
+}
+
+async function lockApp() {
+  await store.lock()
+  window.location.reload()
 }
 
 const emit = defineEmits(['close-drawer'])

@@ -17,8 +17,10 @@
               <i class="fa-solid fa-gear text-primary text-xl md:text-2xl"></i>
             </div>
             <div>
-              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{ $t('settings.title') }}</h2>
-              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{ $t('settings.subtitle') }}</span>
+              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{ $t('settings.title')
+                }}</h2>
+              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{
+                $t('settings.subtitle') }}</span>
             </div>
           </div>
         </div>
@@ -39,8 +41,10 @@
                   <i class="fa-solid fa-chart-line text-success text-lg md:text-xl"></i>
                 </div>
                 <div>
-                  <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('settings.tirCardTitle') }}</h3>
-                  <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('settings.tirCardSubtitle') }}</span>
+                  <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('settings.tirCardTitle') }}
+                  </h3>
+                  <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{
+                    $t('settings.tirCardSubtitle') }}</span>
                 </div>
               </div>
               <div class="flex items-center gap-2 px-3 py-1 bg-success/10 rounded-lg shadow-sm">
@@ -63,13 +67,13 @@
               <div class="absolute inset-0 flex items-center justify-between px-3 md:px-4 text-xs md:text-sm font-bold">
                 <span
                   class="bg-error/50 font-black px-2 py-1 rounded-lg backdrop-blur-sm border border-error/10 shadow-sm">{{
-                  form.red_under }}</span>
+                    form.red_under }}</span>
                 <span
                   class="bg-success/50 font-black drop-shadow-md px-3 py-1 rounded-lg backdrop-blur-sm border border-success/10 shadow-sm">{{
-                  form.tir_min }} - {{ form.tir_max }}</span>
+                    form.tir_min }} - {{ form.tir_max }}</span>
                 <span
                   class="bg-error/50 text-black font-black px-2 py-1 rounded-lg backdrop-blur-sm border border-error/10 shadow-sm">{{
-                  form.red_over }}</span>
+                    form.red_over }}</span>
               </div>
             </div>
 
@@ -107,8 +111,10 @@
                 <i class="fa-solid fa-syringe text-primary text-lg md:text-xl"></i>
               </div>
               <div>
-                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('settings.pharmaCardTitle') }}</h3>
-                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('settings.pharmaCardSubtitle') }}</span>
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('settings.pharmaCardTitle') }}
+                </h3>
+                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{
+                  $t('settings.pharmaCardSubtitle') }}</span>
               </div>
             </div>
 
@@ -117,7 +123,8 @@
               <div class="space-y-3 md:space-y-4">
                 <div class="flex items-center gap-2 mb-2">
                   <i class="fa-regular fa-clock text-primary text-sm"></i>
-                  <span class="text-[10px] font-black uppercase opacity-50">{{ $t('settings.actionDurationHours') }}</span>
+                  <span class="text-[10px] font-black uppercase opacity-50">{{ $t('settings.actionDurationHours')
+                    }}</span>
                 </div>
                 <div class="space-y-2 md:space-y-3">
                   <div class="flex items-center gap-2 md:gap-3">
@@ -126,7 +133,8 @@
                       <i class="fa-solid fa-bolt text-primary text-[9px] md:text-xs"></i>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <label class="text-[8px] md:text-[9px] font-black uppercase opacity-40">{{ $t('settings.rapidDuration') }}</label>
+                      <label class="text-[8px] md:text-[9px] font-black uppercase opacity-40">{{
+                        $t('settings.rapidDuration') }}</label>
                       <input type="number" v-model.number="form.rapid_duration"
                         class="input input-bordered font-black input-xs md:input-sm w-full" />
                     </div>
@@ -137,7 +145,8 @@
                       <i class="fa-regular fa-hourglass-half text-secondary text-[9px] md:text-xs"></i>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <label class="text-[8px] md:text-[9px] font-black uppercase opacity-40">{{ $t('settings.slowDuration') }}</label>
+                      <label class="text-[8px] md:text-[9px] font-black uppercase opacity-40">{{
+                        $t('settings.slowDuration') }}</label>
                       <input type="number" v-model.number="form.slow_duration"
                         class="input input-bordered font-black input-xs md:input-sm w-full" />
                     </div>
@@ -148,7 +157,8 @@
                       <i class="fa-solid fa-bread-slice text-accent text-[9px] md:text-xs"></i>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <label class="text-[8px] md:text-[9px] font-black uppercase opacity-40">{{ $t('settings.carbDuration') }}</label>
+                      <label class="text-[8px] md:text-[9px] font-black uppercase opacity-40">{{
+                        $t('settings.carbDuration') }}</label>
                       <input type="number" v-model.number="form.carb_duration"
                         class="input input-bordered font-black input-xs md:input-sm border-accent/30 w-full" />
                     </div>
@@ -168,14 +178,17 @@
                 <i class="fa-solid fa-bolt text-accent text-lg md:text-xl"></i>
               </div>
               <div>
-                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('settings.quickPresetsCardTitle') }}</h3>
-                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('settings.quickPresetsCardSubtitle') }}</span>
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{
+                  $t('settings.quickPresetsCardTitle') }}</h3>
+                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{
+                  $t('settings.quickPresetsCardSubtitle') }}</span>
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div class="space-y-2 md:space-y-3">
-                <label class="text-[10px] font-black uppercase opacity-50">{{ $t('settings.insulinUnitsLabel') }}</label>
+                <label class="text-[10px] font-black uppercase opacity-50">{{ $t('settings.insulinUnitsLabel')
+                  }}</label>
                 <div class="grid grid-cols-2 gap-2 md:gap-3">
                   <div class="space-y-1 min-w-0">
                     <label class="text-[9px] font-black opacity-30">{{ $t('settings.preset1') }}</label>
@@ -207,6 +220,83 @@
             </div>
           </div>
         </div>
+
+        <!-- PIN Lock Section - Full Width -->
+        <div
+          class="card w-full bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
+          <div class="card-body p-4 md:p-6 gap-4 md:gap-6 w-full">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
+              <div class="flex items-center gap-3 md:gap-4">
+                <div class="p-3 md:p-4 bg-warning/10 rounded-xl md:rounded-2xl shadow-sm">
+                  <i class="fa-solid fa-lock text-warning text-xl md:text-2xl"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm md:text-base font-black uppercase tracking-wider">{{ $t('pin.cardTitle') }}</h3>
+                  <span class="text-[10px] md:text-xs font-bold opacity-40 uppercase tracking-widest">{{
+                    $t('pin.cardSubtitle') }}</span>
+                </div>
+              </div>
+
+              <div v-if="store.pinEnabled"
+                class="flex items-center gap-2 px-3 py-1.5 bg-success/10 rounded-lg shadow-sm w-fit shrink-0">
+                <div class="w-2 h-2 rounded-full bg-success animate-pulse shadow-sm shadow-success/30"></div>
+                <span class="text-[10px] md:text-xs font-black uppercase tracking-widest">{{ $t('pin.enabled') }}</span>
+              </div>
+              <div v-else
+                class="flex items-center gap-2 px-3 py-1.5 bg-base-100/50 rounded-lg shadow-sm w-fit shrink-0">
+                <div class="w-2 h-2 rounded-full bg-error"></div>
+                <span class="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-60">{{
+                  $t('settings.inactiveStatus') }}</span>
+              </div>
+            </div>
+
+            <div class="divider my-0 opacity-10 w-full"></div>
+
+            <!-- Nessun PIN impostato -->
+            <div v-if="!store.pinEnabled" class="flex flex-col md:flex-row md:items-end gap-3 md:gap-4 w-full">
+              <div class="space-y-1.5 flex-1 max-w-full md:max-w-xs">
+                <label class="text-[10px] font-black uppercase opacity-40">{{ $t('pin.newPlaceholder') }}</label>
+                <input v-model="newPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+                  :placeholder="$t('pin.newPlaceholder')"
+                  class="input input-bordered font-black text-center tracking-[0.4em] text-lg input-md w-full" />
+              </div>
+              <button @click="savePin"
+                class="btn btn-warning btn-md font-black uppercase tracking-widest shadow-md shadow-warning/40 gap-2 w-full md:w-auto shrink-0"
+                :disabled="store.loading || !newPin">
+                <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
+                <i v-else class="fa-solid fa-check"></i>
+                {{ $t('pin.setBtn') }}
+              </button>
+            </div>
+
+            <!-- PIN già impostato -->
+            <div v-else class="flex flex-col md:flex-row md:items-end gap-3 md:gap-4 w-full">
+              <div class="space-y-1.5 flex-1 max-w-full md:max-w-xs">
+                <label class="text-[10px] font-black uppercase opacity-40">{{ $t('pin.editPinPlaceholder') }}</label>
+                <input v-model="currentPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+                  :placeholder="$t('pin.editPinPlaceholder')"
+                  class="input input-bordered font-black text-center tracking-[0.4em] text-lg input-md w-full" />
+              </div>
+              <div class="flex gap-2 w-full md:w-auto shrink-0">
+                <button @click="changePin"
+                  class="btn btn-primary btn-md font-black uppercase tracking-widest shadow-md shadow-primary/40 gap-2 flex-1 md:flex-none"
+                  :disabled="store.loading || !currentPin">
+                  <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
+                  <i v-else class="fa-solid fa-rotate"></i>
+                  {{ $t('pin.changeBtn') }}
+                </button>
+                <button @click="confirmRemovePin"
+                  class="btn btn-error btn-outline btn-md font-black uppercase tracking-widest gap-2 flex-1 md:flex-none"
+                  :disabled="store.loading">
+                  <i class="fa-solid fa-trash"></i>
+                  {{ $t('pin.removeBtn') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
       </div>
 
       <!-- Right Column - Secondary Settings -->
@@ -220,28 +310,24 @@
                 <i class="fa-solid fa-language text-primary text-lg md:text-xl"></i>
               </div>
               <div>
-                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('settings.languageCardTitle') }}</h3>
-                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('settings.languageCardSubtitle') }}</span>
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('settings.languageCardTitle')
+                  }}</h3>
+                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{
+                  $t('settings.languageCardSubtitle') }}</span>
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                @click="onSelectLanguage('it')"
+              <button type="button" @click="onSelectLanguage('it')"
                 class="btn btn-sm rounded-xl flex items-center justify-center gap-2 transition-all font-black text-xs uppercase tracking-wider"
-                :class="currentLocale === 'it' ? 'btn-primary shadow-lg shadow-primary/30' : 'bg-base-100/50 hover:bg-base-100 border border-base-content/10'"
-              >
+                :class="currentLocale === 'it' ? 'btn-primary shadow-lg shadow-primary/30' : 'bg-base-100/50 hover:bg-base-100 border border-base-content/10'">
                 <span>🇮🇹</span>
                 <span>{{ $t('settings.italian') }}</span>
               </button>
 
-              <button
-                type="button"
-                @click="onSelectLanguage('en')"
+              <button type="button" @click="onSelectLanguage('en')"
                 class="btn btn-sm rounded-xl flex items-center justify-center gap-2 transition-all font-black text-xs uppercase tracking-wider"
-                :class="currentLocale === 'en' ? 'btn-primary shadow-lg shadow-primary/30' : 'bg-base-100/50 hover:bg-base-100 border border-base-content/10'"
-              >
+                :class="currentLocale === 'en' ? 'btn-primary shadow-lg shadow-primary/30' : 'bg-base-100/50 hover:bg-base-100 border border-base-content/10'">
                 <span>🇬🇧</span>
                 <span>{{ $t('settings.english') }}</span>
               </button>
@@ -258,8 +344,10 @@
                 <i class="fa-brands fa-telegram text-info text-lg md:text-xl"></i>
               </div>
               <div>
-                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('settings.telegramCardTitle') }}</h3>
-                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('settings.telegramCardSubtitle') }}</span>
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('settings.telegramCardTitle')
+                  }}</h3>
+                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{
+                  $t('settings.telegramCardSubtitle') }}</span>
               </div>
             </div>
 
@@ -269,42 +357,48 @@
               <div class="flex items-center gap-2">
                 <div class="w-2 h-2 rounded-full shadow-sm"
                   :class="form.telegram_enabled ? 'bg-success animate-pulse' : 'bg-error'"></div>
-                <span class="text-[10px] font-bold">{{ form.telegram_enabled ? $t('settings.activeStatus') : $t('settings.inactiveStatus') }}</span>
+                <span class="text-[10px] font-bold">{{ form.telegram_enabled ? $t('settings.activeStatus') :
+                  $t('settings.inactiveStatus') }}</span>
               </div>
             </div>
 
             <div class="space-y-1 md:space-y-2">
               <label
                 class="label cursor-pointer justify-between gap-2 p-2 md:p-3 bg-base-100/30 rounded-lg hover:bg-base-100/50 transition-colors shadow-sm hover:shadow-md">
-                <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{ $t('settings.enableTelegram') }}</span>
+                <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{
+                  $t('settings.enableTelegram') }}</span>
                 <input v-model="form.telegram_enabled" type="checkbox"
                   class="toggle toggle-primary toggle-xs md:toggle-sm flex-shrink-0" />
               </label>
 
               <label
                 class="label cursor-pointer justify-between gap-2 p-2 md:p-3 bg-base-100/30 rounded-lg hover:bg-base-100/50 transition-colors shadow-sm hover:shadow-md">
-                <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{ $t('settings.alertHighLow') }}</span>
+                <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{
+                  $t('settings.alertHighLow') }}</span>
                 <input v-model="form.telegram_high_low_alerts" :disabled="!form.telegram_enabled" type="checkbox"
                   class="toggle toggle-error toggle-xs md:toggle-sm flex-shrink-0" />
               </label>
 
               <label
                 class="label cursor-pointer justify-between gap-2 p-2 md:p-3 bg-base-100/30 rounded-lg hover:bg-base-100/50 transition-colors shadow-sm hover:shadow-md">
-                <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{ $t('settings.insulinConfirm') }}</span>
+                <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{
+                  $t('settings.insulinConfirm') }}</span>
                 <input v-model="form.telegram_insulin_alerts" :disabled="!form.telegram_enabled" type="checkbox"
                   class="toggle toggle-success toggle-xs md:toggle-sm flex-shrink-0" />
               </label>
 
               <label
                 class="label cursor-pointer justify-between gap-2 p-2 md:p-3 bg-base-100/30 rounded-lg hover:bg-base-100/50 transition-colors shadow-sm hover:shadow-md">
-                <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{ $t('settings.carbConfirm') }}</span>
+                <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{
+                  $t('settings.carbConfirm') }}</span>
                 <input v-model="form.telegram_carb_alerts" :disabled="!form.telegram_enabled" type="checkbox"
                   class="toggle toggle-accent toggle-xs md:toggle-sm flex-shrink-0" />
               </label>
 
               <label
                 class="label cursor-pointer justify-between gap-2 p-2 md:p-3 bg-base-100/30 rounded-lg hover:bg-base-100/50 transition-colors shadow-sm hover:shadow-md">
-                <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{ $t('settings.dailySummary') }}</span>
+                <span class="label-text text-[10px] font-black uppercase opacity-60 truncate">{{
+                  $t('settings.dailySummary') }}</span>
                 <input v-model="form.telegram_daily_summary" :disabled="!form.telegram_enabled" type="checkbox"
                   class="toggle toggle-info toggle-xs md:toggle-sm flex-shrink-0" />
               </label>
@@ -328,8 +422,10 @@
                 <i class="fa-solid fa-download text-accent text-lg md:text-xl"></i>
               </div>
               <div>
-                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('settings.exportCardTitle') }}</h3>
-                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('settings.exportCardSubtitle') }}</span>
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('settings.exportCardTitle') }}
+                </h3>
+                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{
+                  $t('settings.exportCardSubtitle') }}</span>
               </div>
             </div>
 
@@ -344,8 +440,12 @@
             </button>
           </div>
         </div>
+
+
       </div>
     </div>
+
+
 
     <!-- Action Bar -->
     <div
@@ -549,5 +649,29 @@ async function save() {
 
 function openExportModal() {
   showExportModal.value = true
+}
+
+const newPin = ref('')
+const currentPin = ref('')
+
+async function savePin() {
+  await store.setPin(newPin.value)
+  newPin.value = ''
+  saved.value = true
+  setTimeout(() => saved.value = false, 3000)
+}
+
+async function changePin() {
+  await store.setPin(currentPin.value)
+  currentPin.value = ''
+  saved.value = true
+  setTimeout(() => saved.value = false, 3000)
+}
+
+async function confirmRemovePin() {
+  if (!confirm(t('pin.removeConfirm'))) return
+  await store.removePin()
+  saved.value = true
+  setTimeout(() => saved.value = false, 3000)
 }
 </script>

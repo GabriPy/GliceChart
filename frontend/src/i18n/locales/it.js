@@ -474,6 +474,27 @@ export default {
     resetModalDesc: 'Sei sicuro di voler ripristinare i valori predefiniti? Tutte le tue impostazioni personalizzate verranno perse.'
   },
 
+  pin: {
+    title: 'PIN richiesto',
+    subtitle: 'Inserisci il codice per sbloccare',
+    placeholder: 'PIN',
+    unlock: 'Sblocca',
+    wrong: 'PIN errato',
+    notSet: 'Nessun PIN impostato. Impostane uno per proteggere l\'accesso.',
+    newPlaceholder: 'Nuovo PIN',
+    setBtn: 'Imposta PIN',
+    enabled: 'PIN attivo',
+    editPinPlaceholder: 'Nuovo PIN',
+    changeBtn: 'Cambia PIN',
+    removeBtn: 'Rimuovi PIN',
+    errorSet: 'Errore impostazione PIN',
+    errorRemove: 'Errore rimozione PIN',
+    removeConfirm: 'Sei sicuro di voler rimuovere il PIN?',
+    statusLabel: 'Stato',
+    cardTitle: 'Modifica PIN',
+    cardSubtitle: 'Modifica del pin di accesso (dalle 4 alle 6 cifre)',
+  },
+
   about: {
     title: 'Informazioni',
     subtitle: 'Guida Rapida a GliceChart',

@@ -131,6 +131,33 @@ cd backend && npm run migrate
 
 ---
 
+## 🔒 PIN Lock
+
+GliceChart supporta un PIN numerico per proteggere l'accesso alla dashboard.
+
+### Configurazione
+
+1. Accedi a **Impostazioni**
+2. Nella sezione **PIN Blocco App** imposta un PIN di almeno 4 cifre
+3. Il PIN viene salvato come hash SHA-256 nel database (mai in chiaro)
+
+### Comportamento
+
+- All'avvio, se il PIN è attivo, viene mostrata una schermata di sblocco
+- Il PIN viene richiesto una sola volta per sessione browser (`sessionStorage`)
+- Per bloccare manualmente: chiudi e riapri il browser
+
+### API
+
+| Metodo | Endpoint | Descrizione |
+|---|---|---|
+| `GET` | `/api/auth/status` | Verifica se PIN è attivo |
+| `POST` | `/api/auth/verify` | Verifica PIN inserito |
+| `POST` | `/api/auth/set-pin` | Imposta/aggiorna PIN |
+| `POST` | `/api/auth/remove-pin` | Rimuove PIN |
+
+---
+
 ## 🧹 Disinstallazione
 
 ```bash

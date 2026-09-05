@@ -37,7 +37,14 @@ const {
   getNotesByMinutes,
   getNotesByDate,
   getSettings,
-  updateSettings
+  updateSettings,
+  getPinHash,
+  setPinHash,
+  removePinHash,
+  hashPin,
+  createUnlockSession,
+  validateUnlockSession,
+  deleteUnlockSession
 } = require('./db');
 const { fetchLatestReadings } = require('./gluroo');
 
@@ -55,6 +62,18 @@ let lastDailySummaryDate = null;
 // CORS aperto: necessario perché Cloudflare Tunnel può fare richieste cross-origin
 app.use(cors());
 app.use(express.json());
+
+// ── Unlock token middleware ──────────────────────────────────────────────────
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api/auth')) return next();
+  const pinHash = await getPinHash();
+  if (!pinHash) return next();
+  const token = req.headers['x-unlock-token'];
+  if (!token || !(await validateUnlockSession(token))) {
+    return res.status(401).json({ error: 'Sblocca l\'app per continuare' });
+  }
+  next();
+});
 
 // ── API Routes ────────────────────────────────────────────────────────────────
 
@@ -413,6 +432,64 @@ app.put('/api/settings', async (req, res) => {
   }
 });
 
+// ── Auth / PIN lock ──────────────────────────────────────────────────────────
+
+app.get('/api/auth/status', async (req, res) => {
+  try {
+    const hash = await getPinHash();
+    res.json({ enabled: !!hash });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/auth/verify', async (req, res) => {
+  const { pin } = req.body;
+  if (!pin) return res.status(400).json({ error: 'PIN mancante' });
+  try {
+    const hash = await getPinHash();
+    if (!hash) return res.status(404).json({ error: 'PIN non impostato' });
+    if (hashPin(pin) !== hash) return res.status(401).json({ error: 'PIN errato' });
+    const token = await createUnlockSession();
+    res.json({ ok: true, token });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/auth/set-pin', async (req, res) => {
+  const { pin } = req.body;
+  if (!pin || String(pin).length < 4) {
+    return res.status(400).json({ error: 'Il PIN deve essere di almeno 4 cifre' });
+  }
+  try {
+    await setPinHash(pin);
+    const token = await createUnlockSession();
+    res.json({ ok: true, token });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/auth/remove-pin', async (req, res) => {
+  try {
+    await removePinHash();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/auth/lock', async (req, res) => {
+  const token = req.headers['x-unlock-token'];
+  try {
+    await deleteUnlockSession(token);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── Telegram webhook / comandi ─────────────────────────────────────────────
 
 app.post('/api/telegram/webhook', async (req, res) => {
@@ -602,8 +679,14 @@ async function syncReadings() {
 // ── Avvio ─────────────────────────────────────────────────────────────────────
 
 async function start() {
-  // Connetti al DB prima di tutto
   await getPool();
+
+  try {
+    const { execSync } = require('child_process');
+    execSync('node scripts/migrate.js', { cwd: __dirname, stdio: 'inherit' });
+  } catch (e) {
+    console.error('⚠️ Migration fallite:', e.message);
+  }
 
   app.listen(PORT, () => {
     console.log(`\n🚀 GliceChart in ascolto su http://localhost:${PORT}`);

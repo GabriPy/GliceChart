@@ -474,6 +474,27 @@ export default {
     resetModalDesc: 'Are you sure you want to restore default values? All your custom settings will be lost.'
   },
 
+  pin: {
+    title: 'PIN required',
+    subtitle: 'Enter your code to unlock',
+    placeholder: 'PIN',
+    unlock: 'Unlock',
+    wrong: 'Wrong PIN',
+    notSet: 'No PIN set. Set one to protect access.',
+    newPlaceholder: 'New PIN',
+    setBtn: 'Set PIN',
+    enabled: 'PIN active',
+    editPinPlaceholder: 'New PIN',
+    changeBtn: 'Change PIN',
+    removeBtn: 'Remove PIN',
+    errorSet: 'Error setting PIN',
+    errorRemove: 'Error removing PIN',
+    removeConfirm: 'Are you sure you want to remove the PIN?',
+    statusLabel: 'Status',
+    cardTitle: 'Edit PIN',
+    cardSubtitle: 'Edit access pin (4 to 6 digits)'
+  },
+
   about: {
     title: 'About',
     subtitle: 'Quick Guide to GliceChart',

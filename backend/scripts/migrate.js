@@ -21,6 +21,16 @@ async function run() {
   try {
     await conn.beginTransaction();
 
+    // Se la tabella di tracking non esiste, creala prima di leggere le migration
+    const [tables] = await conn.execute(`
+      SELECT 1 FROM information_schema.tables
+      WHERE table_schema = DATABASE() AND table_name = 'schema_migrations'
+    `);
+    if (!tables.length) {
+      const initSql = fs.readFileSync(path.join(MIGRATIONS_DIR, '001_create_schema_migrations.sql'), 'utf8');
+      await conn.query(initSql);
+    }
+
     const [rows] = await conn.execute(`
       SELECT filename FROM schema_migrations ORDER BY filename ASC
     `);
@@ -42,8 +52,11 @@ async function run() {
 
     for (const file of pending) {
       const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');
+      const statements = sql.split(';').map(s => s.trim()).filter(s => s.length > 0);
       try {
-        await conn.query(sql);
+        for (const stmt of statements) {
+          await conn.query(stmt);
+        }
         await conn.execute('INSERT INTO schema_migrations (filename) VALUES (?)', [file]);
         console.log(`  ✔ ${file}`);
       } catch (err) {

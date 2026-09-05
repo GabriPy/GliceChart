@@ -8,6 +8,12 @@ import { t } from '../i18n'
 
 export const useGlucoseStore = defineStore('glucose', () => {
 
+  axios.interceptors.request.use((config) => {
+    const token = sessionStorage.getItem('glicechart_unlock_token');
+    if (token) config.headers['X-Unlock-Token'] = token;
+    return config;
+  });
+
   function normalizeBooleanSetting(value, fallback = false) {
     if (value === null || value === undefined) return fallback
     if (value === true || value === 1 || value === '1' || value === 'true') return true
@@ -480,6 +486,73 @@ export const useGlucoseStore = defineStore('glucose', () => {
 
   try { document.documentElement.setAttribute('data-theme', theme.value) } catch (e) { }
 
+  // ── PIN Lock ────────────────────────────────────────────────────────────────
+  const pinEnabled = ref(false)
+  const isUnlocked = computed(() => sessionStorage.getItem('glicechart_unlocked') === '1')
+
+  async function checkPinStatus() {
+    try {
+      const { data } = await axios.get('/api/auth/status')
+      pinEnabled.value = data.enabled
+      if (!data.enabled) {
+        sessionStorage.setItem('glicechart_unlocked', '1')
+      }
+    } catch {
+      // Se l'API non risponde, non blocchiamo l'app in sviluppo
+    }
+  }
+
+  async function setPin(pin) {
+    loading.value = true
+    try {
+      const { data } = await axios.post('/api/auth/set-pin', { pin })
+      pinEnabled.value = true
+      if (data.token) sessionStorage.setItem('glicechart_unlock_token', data.token)
+      sessionStorage.setItem('glicechart_unlocked', '1')
+      error.value = null
+    } catch {
+      error.value = t('pin.errorSet')
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function verifyPin(pin) {
+    loading.value = true
+    try {
+      const { data } = await axios.post('/api/auth/verify', { pin })
+      if (data.token) sessionStorage.setItem('glicechart_unlock_token', data.token)
+      sessionStorage.setItem('glicechart_unlocked', '1')
+      return true
+    } catch (e) {
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function removePin() {
+    loading.value = true
+    try {
+      await axios.post('/api/auth/remove-pin')
+      pinEnabled.value = false
+      sessionStorage.setItem('glicechart_unlocked', '1')
+      error.value = null
+    } catch {
+      error.value = t('pin.errorRemove')
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function lock() {
+    try {
+      await axios.post('/api/auth/lock')
+    } catch {}
+    sessionStorage.removeItem('glicechart_unlocked')
+    sessionStorage.removeItem('glicechart_unlock_token')
+  }
+
   async function fetchAll() {
     loading.value = true
     try {
@@ -657,6 +730,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     addNote, removeNote, editNote,
     fetchSensors, addSensor, endSensor, deleteSensor,
     fetchHistory, fetchLongHistory, fetchSettings, updateSettings, resetSettings, getStatusColor,
-    themes, theme, setTheme
+    themes, theme, setTheme,
+    pinEnabled, isUnlocked, checkPinStatus, verifyPin, setPin, removePin, lock
   }
 })

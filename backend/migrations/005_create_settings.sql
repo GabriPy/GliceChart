@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS settings (
-  id                         INT PRIMARY KEY DEFAULT 1,
+  id                         TINYINT PRIMARY KEY DEFAULT 1,
   tir_min                    INT DEFAULT 70,
   tir_max                    INT DEFAULT 180,
   red_under                  INT DEFAULT 55,
@@ -19,6 +19,5 @@ CREATE TABLE IF NOT EXISTS settings (
   telegram_insulin_alerts   BOOLEAN DEFAULT FALSE,
   telegram_carb_alerts      BOOLEAN DEFAULT FALSE,
   telegram_daily_summary    BOOLEAN DEFAULT FALSE,
-  telegram_daily_summary_time VARCHAR(5) DEFAULT '21:00',
-  CONSTRAINT one_row CHECK (id = 1)
+  telegram_daily_summary_time VARCHAR(5) DEFAULT '21:00'
 );
