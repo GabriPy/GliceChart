@@ -1,0 +1,394 @@
+<template>
+  <aside :class="collapsed ? 'w-16' : 'w-64'"
+    class="h-full bg-base-200 border-r border-base-content/5 flex flex-col z-[100] transition-all duration-200 overflow-hidden">
+    <!-- Logo + Collapse -->
+    <div
+      :class="collapsed ? 'px-2 py-2 mb-2 flex items-center justify-center' : 'p-4 mb-2 flex items-center justify-between'">
+      <div v-if="!collapsed" class="flex items-center gap-3">
+        <div
+          class="flex items-center justify-center rounded-2xl border border-primary/20 bg-primary/15 shadow-sm w-11 h-11 p-2">
+          <img :src="favicon" :alt="$t('accessibility.logoAlt')" class="object-contain w-7 h-7" />
+        </div>
+        <span class="text-lg font-display font-bold tracking-tight uppercase">Glice<span
+            class="text-primary">Chart</span></span>
+      </div>
+
+      <div v-else class="flex items-center justify-center">
+        <div
+          class="flex items-center justify-center rounded-2xl border border-primary/20 bg-primary/15 shadow-sm w-10 h-10 p-1.5">
+          <img :src="favicon" :alt="$t('accessibility.logoAlt')" class="object-contain w-6 h-6" />
+        </div>
+      </div>
+    </div>
+
+    <div v-show="!collapsed" class="px-4 text-[8px] font-black opacity-20 uppercase tracking-[0.2em]">{{
+      $t('navigation.dashboardSubtitle', { version: APP_VERSION_LABEL }) }}</div>
+
+    <!-- Navigazione -->
+    <nav class="flex-1 px-2 space-y-2 mt-4">
+      <router-link to="/" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
+        :class="$route.path === '/' ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' : 'hover:bg-base-300 opacity-60 hover:opacity-100'"
+        @click="$emit('close-drawer')">
+        <div class="tooltip" :data-tip="$t('navigation.home')">
+          <Zap class="w-5 h-5" />
+        </div>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.home') }}</span>
+      </router-link>
+
+      <router-link to="/calendar" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
+        :class="$route.path === '/calendar' ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' : 'hover:bg-base-300 opacity-60 hover:opacity-100'"
+        @click="$emit('close-drawer')">
+        <div class="tooltip" :data-tip="$t('navigation.calendar')">
+          <Calendar class="w-5 h-5" />
+        </div>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.calendar') }}</span>
+      </router-link>
+
+      <router-link to="/patterns" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
+        :class="$route.path === '/patterns' ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' : 'hover:bg-base-300 opacity-60 hover:opacity-100'"
+        @click="$emit('close-drawer')">
+        <div class="tooltip" :data-tip="$t('navigation.patterns')">
+          <Brain class="w-5 h-5" />
+        </div>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.patterns') }}</span>
+      </router-link>
+
+      <router-link to="/dietometer"
+        class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
+        :class="$route.path === '/dietometer' ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' : 'hover:bg-base-300 opacity-60 hover:opacity-100'"
+        @click="$emit('close-drawer')">
+        <div class="tooltip" :data-tip="$t('navigation.dietometer')">
+          <Wheat class="w-5 h-5" />
+        </div>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.dietometer') }}</span>
+      </router-link>
+
+      <router-link to="/summary" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
+        :class="$route.path === '/summary' ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' : 'hover:bg-base-300 opacity-60 hover:opacity-100'"
+        @click="$emit('close-drawer')">
+        <div class="tooltip" :data-tip="$t('navigation.summary')">
+          <FileText class="w-5 h-5" />
+        </div>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.summary') }}</span>
+      </router-link>
+
+      <router-link to="/sensors" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
+        :class="$route.path === '/sensors' ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' : 'hover:bg-base-300 opacity-60 hover:opacity-100'"
+        @click="$emit('close-drawer')">
+        <div class="tooltip" :data-tip="$t('navigation.sensors')">
+          <Microchip class="w-5 h-5" />
+        </div>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.sensors') }}</span>
+      </router-link>
+
+      <router-link to="/about" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
+        :class="$route.path === '/about' ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' : 'hover:bg-base-300 opacity-60 hover:opacity-100'"
+        @click="$emit('close-drawer')">
+        <div class="tooltip" :data-tip="$t('navigation.about')">
+          <Info class="w-5 h-5" />
+        </div>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.about') }}</span>
+      </router-link>
+
+      <router-link to="/settings" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
+        :class="$route.path === '/settings' ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' : 'hover:bg-base-300 opacity-60 hover:opacity-100'"
+        @click="$emit('close-drawer')">
+        <div class="tooltip" :data-tip="$t('navigation.settings')">
+          <Settings class="w-5 h-5" />
+        </div>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.settings') }}</span>
+      </router-link>
+    </nav>
+
+    <!-- Footer Sidebar: Refresh + Language + Themes + Version -->
+    <div class="p-3 mt-auto border-t border-base-content/5">
+      <div class="flex items-center" :class="collapsed ? 'justify-center' : 'justify-between gap-1 mb-3'">
+        <button @click="toggle" class="btn btn-ghost btn-sm btn-square" :class="collapsed ? '' : 'mr-1'"
+          :title="$t('navigation.toggleSidebar')" :aria-label="$t('navigation.toggleSidebar')">
+          <component :is="collapsed ? ChevronRight : ChevronLeft" class="w-4 h-4" />
+        </button>
+
+        <div class="flex items-center gap-1" :class="collapsed ? 'justify-center w-full' : ''">
+          <button v-show="!collapsed" @click="doRefresh" class="btn btn-ghost btn-sm btn-circle" :title="$t('navigation.syncTooltip')" :aria-label="$t('navigation.syncTooltip')">
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.loading }" />
+          </button>
+
+          <!-- Language switcher button -->
+          <div v-show="!collapsed" class="relative">
+            <button ref="langBtn" @click="toggleLangDropdown"
+              class="btn btn-ghost btn-sm gap-1.5 normal-case hover:bg-base-200 px-2" type="button" :title="$t('common.language')">
+              <Languages class="w-4 h-4" />
+              <span class="font-bold text-xs uppercase tracking-widest opacity-60">{{ currentLangUpper }}</span>
+            </button>
+
+            <teleport to="body">
+              <div v-if="showLangDropdown" ref="langDropdownEl" :style="langDropdownStyle"
+                class="p-2 shadow-2xl bg-base-300/90 backdrop-blur-xl rounded-box w-44 border border-white/10">
+                <ul class="menu p-0">
+                  <li v-for="l in languages" :key="l.code" class="mb-1 last:mb-0">
+                    <button
+                      class="flex items-center justify-between p-2 rounded-xl outline-none focus:outline-none transition-all duration-200 bg-base-100/50 hover:bg-base-200 w-full"
+                      :class="{ 'ring-2 ring-primary ring-offset-2 ring-offset-base-300': currentLocale === l.code }"
+                      @click="changeLang(l.code)">
+                      <div class="flex items-center gap-2">
+                        <span class="text-base">{{ l.flag }}</span>
+                        <span class="text-[11px] font-black uppercase tracking-widest">{{ l.label }}</span>
+                      </div>
+                      <span v-if="currentLocale === l.code" class="text-primary font-black">✓</span>
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </teleport>
+          </div>
+
+          <!-- Theme switcher button -->
+          <div v-show="!collapsed" class="relative">
+            <button ref="themeBtn" @click="toggleThemes"
+              class="btn btn-ghost btn-sm gap-1.5 normal-case hover:bg-base-200 px-2" type="button" :title="$t('common.theme')">
+              <Palette class="w-4 h-4" />
+              <span class="font-bold text-xs uppercase tracking-widest opacity-60">{{ $t('common.theme') }}</span>
+            </button>
+
+            <teleport to="body">
+              <div v-if="showThemes" ref="themeDropdown" :style="dropdownStyle"
+                class="p-3 shadow-2xl bg-base-300/90 backdrop-blur-xl rounded-box w-64 border border-white/10">
+                <ul class="menu">
+                  <li v-for="t in themes" :key="t" class="mb-1 last:mb-0">
+                    <button
+                      class="flex items-center justify-between p-2 rounded-xl outline-none focus:outline-none transition-all duration-200 bg-base-100/50 hover:bg-base-200 w-full"
+                      :class="{ 'ring-2 ring-primary ring-offset-2 ring-offset-base-300': currentThemeLocal === t }"
+                      @click="applyTheme(t)" :data-theme="t" :aria-label="$t('accessibility.selectTheme', { theme: t })">
+                      <div class="flex items-center gap-2">
+                        <span class="w-4 h-3 rounded-sm" :class="['bg-primary']" aria-hidden="true"></span>
+                        <span class="w-4 h-3 rounded-sm" :class="['bg-secondary']" aria-hidden="true"></span>
+                        <span class="w-4 h-3 rounded-sm" :class="['bg-accent']" aria-hidden="true"></span>
+                        <span class="text-[11px] font-black uppercase tracking-widest ml-2">{{ t }}</span>
+                      </div>
+                      <span v-if="currentThemeLocal === t" class="text-primary font-black">✓</span>
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </teleport>
+          </div>
+        </div>
+        <div v-show="!collapsed" class="text-[10px] font-black opacity-40">{{ APP_VERSION_LABEL }}</div>
+      </div>
+
+      <div class="flex items-center justify-center" v-show="collapsed">
+        <button @click="doRefresh" class="btn btn-ghost btn-sm btn-circle" :title="$t('navigation.syncTooltip')" :aria-label="$t('navigation.syncTooltip')">
+          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.loading }" />
+        </button>
+      </div>
+    </div>
+  </aside>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { APP_VERSION_LABEL } from '../appVersion'
+import { useGlucoseStore } from '../stores/glucose'
+import { setLanguage } from '../i18n'
+import {
+  Zap,
+  Calendar,
+  Brain,
+  Wheat,
+  FileText,
+  Settings,
+  Info,
+  RefreshCw,
+  Palette,
+  Languages,
+  ChevronLeft,
+  ChevronRight,
+  Microchip
+} from 'lucide-vue-next'
+import favicon from '../assets/favicon.png'
+
+const $route = useRoute()
+const store = useGlucoseStore()
+const { locale, t } = useI18n()
+
+const collapsed = ref(localStorage.getItem('sidebar-collapsed') === '1')
+
+function toggle() {
+  collapsed.value = !collapsed.value
+  localStorage.setItem('sidebar-collapsed', collapsed.value ? '1' : '0')
+}
+
+function doRefresh() {
+  store.syncNow()
+}
+
+const emit = defineEmits(['close-drawer'])
+
+function setTheme(t) {
+  store.setTheme(t)
+}
+
+const themes = store.themes
+const currentThemeLocal = computed(() => store.theme)
+
+// Language management
+const languages = [
+  { code: 'it', label: 'Italiano', flag: '🇮🇹' },
+  { code: 'en', label: 'English', flag: '🇬🇧' }
+]
+
+const currentLocale = computed(() => locale.value)
+const currentLangUpper = computed(() => (locale.value || 'it').toUpperCase())
+
+const showLangDropdown = ref(false)
+const langBtn = ref(null)
+const langDropdownEl = ref(null)
+const langDropdownStyle = ref({ position: 'fixed', zIndex: 9999 })
+
+function toggleLangDropdown() {
+  showLangDropdown.value = !showLangDropdown.value
+  showThemes.value = false
+  if (showLangDropdown.value) positionLangDropdown()
+}
+
+function changeLang(code) {
+  setLanguage(code)
+  showLangDropdown.value = false
+}
+
+function positionLangDropdown() {
+  nextTick(() => {
+    const btn = langBtn.value
+    const dd = langDropdownEl.value
+    if (!btn) return
+
+    const rect = btn.getBoundingClientRect()
+    const dropdownWidth = 176
+    const measuredHeight = dd ? dd.offsetHeight : 120
+
+    const spaceAbove = rect.top
+    let top
+    if (spaceAbove > measuredHeight + 16) {
+      top = rect.top - measuredHeight - 8
+    } else {
+      top = rect.bottom + 8
+    }
+
+    top = Math.max(8, Math.min(top, window.innerHeight - measuredHeight - 8))
+    let left = rect.left
+    if (left + dropdownWidth > window.innerWidth - 8) {
+      left = window.innerWidth - dropdownWidth - 8
+    }
+    if (left < 8) left = 8
+
+    langDropdownStyle.value = {
+      position: 'fixed',
+      left: `${Math.round(left)}px`,
+      top: `${Math.round(top)}px`,
+      width: '11rem',
+      zIndex: 9999
+    }
+  })
+}
+
+// Theme dropdown overlay (teleport)
+const showThemes = ref(false)
+const themeBtn = ref(null)
+const themeDropdown = ref(null)
+const dropdownStyle = ref({ position: 'fixed', zIndex: 9999 })
+
+function toggleThemes() {
+  showThemes.value = !showThemes.value
+  showLangDropdown.value = false
+  if (showThemes.value) positionDropdown()
+}
+
+function applyTheme(t) {
+  setTheme(t)
+  showThemes.value = false
+}
+
+function positionDropdown() {
+  nextTick(() => {
+    const btn = themeBtn.value
+    const dd = themeDropdown.value
+    if (!btn) return
+
+    const rect = btn.getBoundingClientRect()
+    const dropdownWidth = 256
+    const measuredHeight = dd ? dd.offsetHeight : 240
+
+    const spaceAbove = rect.top
+
+    let top
+    if (spaceAbove > measuredHeight + 16) {
+      top = rect.top - measuredHeight - 8
+    } else {
+      top = rect.bottom + 8
+    }
+
+    top = Math.max(8, Math.min(top, window.innerHeight - measuredHeight - 8))
+
+    let left = rect.left
+    if (left + dropdownWidth > window.innerWidth - 8) {
+      left = window.innerWidth - dropdownWidth - 8
+    }
+    if (left < 8) left = 8
+
+    dropdownStyle.value = {
+      position: 'fixed',
+      left: `${Math.round(left)}px`,
+      top: `${Math.round(top)}px`,
+      width: '16rem',
+      zIndex: 9999
+    }
+  })
+}
+
+function onDocClick(e) {
+  const tBtn = themeBtn.value
+  const tDd = themeDropdown.value
+  if (showThemes.value && tBtn && !tBtn.contains(e.target) && (!tDd || !tDd.contains(e.target))) {
+    showThemes.value = false
+  }
+
+  const lBtn = langBtn.value
+  const lDd = langDropdownEl.value
+  if (showLangDropdown.value && lBtn && !lBtn.contains(e.target) && (!lDd || !lDd.contains(e.target))) {
+    showLangDropdown.value = false
+  }
+}
+
+function onKey(e) {
+  if (e.key === 'Escape') {
+    showThemes.value = false
+    showLangDropdown.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', onDocClick, true)
+  window.addEventListener('resize', positionDropdown)
+  window.addEventListener('resize', positionLangDropdown)
+  window.addEventListener('scroll', positionDropdown, true)
+  window.addEventListener('scroll', positionLangDropdown, true)
+  document.addEventListener('keydown', onKey)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onDocClick, true)
+  window.removeEventListener('resize', positionDropdown)
+  window.removeEventListener('resize', positionLangDropdown)
+  window.removeEventListener('scroll', positionDropdown, true)
+  window.removeEventListener('scroll', positionLangDropdown, true)
+  document.removeEventListener('keydown', onKey)
+})
+</script>
+
+<style scoped>
+.router-link-active {
+  /* Classi gestite dinamicamente nel template */
+}
+</style>
