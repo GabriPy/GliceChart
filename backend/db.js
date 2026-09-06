@@ -491,9 +491,10 @@ module.exports = {
   deleteCarb,
   updateCarb,
   getCarbsByDate,
-   insertNote,
-    deleteNote,
-    getNotesByMinutes,
+  insertNote,
+  deleteNote,
+  updateNote,
+  getNotesByMinutes,
   getNotesByDate,
   getDietFoods,
   insertDietFood,
@@ -507,6 +508,9 @@ module.exports = {
   setPinHash,
   removePinHash,
   hashPin,
+  createUnlockSession,
+  validateUnlockSession,
+  deleteUnlockSession,
   createRecoveryToken,
   consumeRecoveryToken
 };
