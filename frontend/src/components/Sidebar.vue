@@ -108,7 +108,7 @@
       </router-link>
 
       <!-- Lock Button -->
-      <button v-if="store.pinEnabled" @click="lockApp"
+      <button v-if="auth.pinEnabled" @click="lockApp"
         class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group text-error/80 hover:text-error hover:bg-error/10"
         :class="collapsed ? 'justify-center' : ''"
         :title="collapsed ? $t('navigation.lock') : undefined"
@@ -219,6 +219,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { APP_VERSION_LABEL } from '../appVersion'
+import { useAuthStore } from '../stores/auth'
 import { useGlucoseStore } from '../stores/glucose'
 import { setLanguage } from '../i18n'
 import {
@@ -240,6 +241,7 @@ import favicon from '../assets/favicon.png'
 
 const $route = useRoute()
 const store = useGlucoseStore()
+const auth = useAuthStore()
 const { locale, t } = useI18n()
 
 const collapsed = ref(localStorage.getItem('sidebar-collapsed') === '1')
@@ -254,7 +256,7 @@ function doRefresh() {
 }
 
 async function lockApp() {
-  await store.lock()
+  await auth.lock()
   window.location.reload()
 }
 

@@ -1,0 +1,6 @@
+ALTER TABLE recovery_tokens
+  ADD COLUMN IF NOT EXISTS verified BOOLEAN NOT NULL DEFAULT FALSE AFTER used,
+  ADD COLUMN IF NOT EXISTS attempt_count INT NOT NULL DEFAULT 0 AFTER verified,
+  ADD COLUMN IF NOT EXISTS session_id VARCHAR(128) NULL AFTER attempt_count,
+  ADD COLUMN IF NOT EXISTS session_expires_at DATETIME NULL AFTER session_id,
+  ADD COLUMN IF NOT EXISTS last_attempt_at DATETIME NULL AFTER session_expires_at;

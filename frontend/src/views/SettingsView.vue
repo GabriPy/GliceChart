@@ -237,7 +237,7 @@
                 </div>
               </div>
 
-              <div v-if="store.pinEnabled"
+              <div v-if="auth.pinEnabled"
                 class="flex items-center gap-2 px-3 py-1.5 bg-success/10 rounded-lg shadow-sm w-fit shrink-0">
                 <div class="w-2 h-2 rounded-full bg-success animate-pulse shadow-sm shadow-success/30"></div>
                 <span class="text-[10px] md:text-xs font-black uppercase tracking-widest">{{ $t('pin.enabled') }}</span>
@@ -253,7 +253,7 @@
             <div class="divider my-0 opacity-10 w-full"></div>
 
             <!-- Nessun PIN impostato -->
-            <div v-if="!store.pinEnabled" class="flex flex-col md:flex-row md:items-end gap-3 md:gap-4 w-full">
+            <div v-if="!auth.pinEnabled" class="flex flex-col md:flex-row md:items-end gap-3 md:gap-4 w-full">
               <div class="space-y-1.5 flex-1 max-w-full md:max-w-xs">
                 <label class="text-[10px] font-black uppercase opacity-40">{{ $t('pin.newPlaceholder') }}</label>
                 <input v-model="newPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6"
@@ -262,8 +262,8 @@
               </div>
               <button @click="savePin"
                 class="btn btn-warning btn-md font-black uppercase tracking-widest shadow-md shadow-warning/40 gap-2 w-full md:w-auto shrink-0"
-                :disabled="store.loading || !newPin">
-                <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
+                :disabled="auth.loading || !newPin">
+                <span v-if="auth.loading" class="loading loading-spinner loading-xs"></span>
                 <i v-else class="fa-solid fa-check"></i>
                 {{ $t('pin.setBtn') }}
               </button>
@@ -280,14 +280,14 @@
               <div class="flex gap-2 w-full md:w-auto shrink-0">
                 <button @click="changePin"
                   class="btn btn-primary btn-md font-black uppercase tracking-widest shadow-md shadow-primary/40 gap-2 flex-1 md:flex-none"
-                  :disabled="store.loading || !currentPin">
-                  <span v-if="store.loading" class="loading loading-spinner loading-xs"></span>
+                  :disabled="auth.loading || !currentPin">
+                  <span v-if="auth.loading" class="loading loading-spinner loading-xs"></span>
                   <i v-else class="fa-solid fa-rotate"></i>
                   {{ $t('pin.changeBtn') }}
                 </button>
                 <button @click="confirmRemovePin"
                   class="btn btn-error btn-outline btn-md font-black uppercase tracking-widest gap-2 flex-1 md:flex-none"
-                  :disabled="store.loading">
+                  :disabled="auth.loading">
                   <i class="fa-solid fa-trash"></i>
                   {{ $t('pin.removeBtn') }}
                 </button>
@@ -528,12 +528,14 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '../stores/auth'
 import { useGlucoseStore } from '../stores/glucose'
 import { setLanguage } from '../i18n'
 import ExportModal from '../components/ExportModal.vue'
 
 const { t, locale } = useI18n()
 const store = useGlucoseStore()
+const auth = useAuthStore()
 const saved = ref(false)
 const showExportModal = ref(false)
 
@@ -655,23 +657,29 @@ const newPin = ref('')
 const currentPin = ref('')
 
 async function savePin() {
-  await store.setPin(newPin.value)
-  newPin.value = ''
-  saved.value = true
-  setTimeout(() => saved.value = false, 3000)
+  const ok = await auth.setPin(newPin.value)
+  if (ok) {
+    newPin.value = ''
+    saved.value = true
+    setTimeout(() => saved.value = false, 3000)
+  }
 }
 
 async function changePin() {
-  await store.setPin(currentPin.value)
-  currentPin.value = ''
-  saved.value = true
-  setTimeout(() => saved.value = false, 3000)
+  const ok = await auth.setPin(currentPin.value)
+  if (ok) {
+    currentPin.value = ''
+    saved.value = true
+    setTimeout(() => saved.value = false, 3000)
+  }
 }
 
 async function confirmRemovePin() {
   if (!confirm(t('pin.removeConfirm'))) return
-  await store.removePin()
-  saved.value = true
-  setTimeout(() => saved.value = false, 3000)
+  const ok = await auth.removePin()
+  if (ok) {
+    saved.value = true
+    setTimeout(() => saved.value = false, 3000)
+  }
 }
 </script>

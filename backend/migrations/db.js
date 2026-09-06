@@ -465,12 +465,12 @@ async function createRecoveryChallenge(chatId, ttlMs = 10 * 60 * 1000) {
   }
 
   const code = String(crypto.randomInt(100000, 1000000)).padStart(6, '0');
-  const ttlSeconds = Math.max(1, Math.ceil(ttlMs / 1000));
+  const expiresAt = new Date(Date.now() + ttlMs).toISOString().slice(0, 19).replace('T', ' ');
   const p = await getPool();
   const [result] = await p.execute(
     `INSERT INTO recovery_tokens (token, chat_id, expires_at, used, verified, attempt_count, session_id, session_expires_at, last_attempt_at)
-     VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? SECOND), FALSE, FALSE, 0, NULL, NULL, NULL)`,
-    [hashRecoveryValue(code), finalChatId, ttlSeconds]
+     VALUES (?, ?, ?, FALSE, FALSE, 0, NULL, NULL, NULL)`,
+    [hashRecoveryValue(code), finalChatId, expiresAt]
   );
 
   return { code, recoveryId: result.insertId };
@@ -506,13 +506,14 @@ async function verifyRecoveryChallenge(code, chatId) {
   }
 
   const sessionId = crypto.randomBytes(18).toString('hex');
+  const sessionExpiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
   const nextAttempts = Number(matchingRow.attempt_count || 0) + 1;
 
   await p.execute(
     `UPDATE recovery_tokens
-     SET verified = TRUE, used = TRUE, attempt_count = ?, last_attempt_at = NOW(), session_id = ?, session_expires_at = DATE_ADD(NOW(), INTERVAL 10 MINUTE)
+     SET verified = TRUE, used = TRUE, attempt_count = ?, last_attempt_at = NOW(), session_id = ?, session_expires_at = ?
      WHERE id = ?`,
-    [nextAttempts, sessionId, matchingRow.id]
+    [nextAttempts, sessionId, sessionExpiresAt, matchingRow.id]
   );
 
   return { recoveryId: matchingRow.id, sessionId };

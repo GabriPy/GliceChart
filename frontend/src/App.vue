@@ -22,16 +22,16 @@
       <main class="flex-1 max-w-6xl mx-auto w-full p-4 md:p-6 space-y-4 relative">
 
         <!-- Alert errore -->
-        <div v-if="store.error"
+        <div v-if="auth.error"
           class="alert alert-error shadow-sm border border-error/20 text-[10px] font-black uppercase tracking-wider py-2 px-6">
           <AlertCircle class="h-3 w-3" />
-          <span>{{ store.error }}</span>
-          <button class="btn btn-xs btn-circle btn-ghost" @click="store.error = null" :aria-label="$t('common.close')">
+          <span>{{ auth.error }}</span>
+          <button class="btn btn-xs btn-circle btn-ghost" @click="auth.error = null" :aria-label="$t('common.close')">
             <X class="w-3 h-3" />
           </button>
         </div>
 
-        <router-view v-slot="{ Component }">
+        <router-view v-if="auth.initialized && (!auth.pinEnabled || auth.isUnlocked)" v-slot="{ Component }">
           <transition name="page" mode="out-in">
             <component :is="Component" />
           </transition>
@@ -59,17 +59,19 @@
     </div>
 
     <!-- PIN Lock Overlay -->
-    <PinLock v-if="store.pinEnabled && !store.isUnlocked" />
+    <PinLock v-if="auth.initialized && auth.pinEnabled && !auth.isUnlocked" />
   </div>
 </template>
 
 <script setup>
+import { useAuthStore } from './stores/auth'
 import { useGlucoseStore } from './stores/glucose'
 import Sidebar from './components/Sidebar.vue'
 import PinLock from './components/PinLock.vue'
 import { APP_VERSION_LABEL } from './appVersion'
 import { AlertCircle, X } from 'lucide-vue-next'
 
+const auth = useAuthStore()
 const store = useGlucoseStore()
 
 function closeDrawer() {

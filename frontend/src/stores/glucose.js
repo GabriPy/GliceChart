@@ -581,9 +581,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
   const historyCarbs = ref([])
   const historyNotes = ref([])
 
-  // Stato: sicurezza (PIN)
-  const pinEnabled = ref(false)
-
   // Stato: tema
   const theme = ref(localStorage.getItem('theme') || 'dark')
 
@@ -602,7 +599,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
   function handleSessionExpired() {
     sessionStorage.removeItem('glicechart_unlocked')
     sessionStorage.removeItem('glicechart_unlock_token')
-    pinEnabled.value = true
     error.value = t('errors.sessionExpired')
   }
 
@@ -668,8 +664,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
     if (!current.value) return null
     return Math.floor((Date.now() - new Date(current.value.timestamp).getTime()) / MS_PER_MINUTE)
   })
-
-  const isUnlocked = computed(() => sessionStorage.getItem('glicechart_unlocked') === '1')
 
   function getStatusColor(value) {
     return getStatusColorForValue(value, settings.value)
@@ -949,77 +943,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
     console.error('[glucose store] Unable to apply initial theme:', err)
   }
 
-  // ── PIN Lock ──────────────────────────────────────────────────────────────
-
-  async function checkPinStatus() {
-    try {
-      const { data } = await axios.get('/api/auth/status')
-      pinEnabled.value = Boolean(data?.enabled)
-      if (!pinEnabled.value) {
-        sessionStorage.setItem('glicechart_unlocked', '1')
-      }
-    } catch (err) {
-      // In sviluppo il backend potrebbe non essere raggiungibile: non
-      // blocchiamo l'app, ma logghiamo per non nascondere problemi di
-      // configurazione una volta in produzione.
-      console.error('[glucose store] Unable to determine PIN status:', err)
-    }
-  }
-
-  async function setPin(pin) {
-    return loadingState.run(async () => {
-      try {
-        assertValidPin(pin)
-        const { data } = await axios.post('/api/auth/set-pin', { pin })
-        pinEnabled.value = true
-        if (data?.token) sessionStorage.setItem('glicechart_unlock_token', data.token)
-        sessionStorage.setItem('glicechart_unlocked', '1')
-        error.value = null
-      } catch (err) {
-        reportError(err, err instanceof ValidationError ? 'pin.errorInvalidFormat' : 'pin.errorSet')
-      }
-    })
-  }
-
-  async function verifyPin(pin) {
-    return loadingState.run(async () => {
-      try {
-        assertValidPin(pin)
-        const { data } = await axios.post('/api/auth/verify', { pin })
-        if (data?.token) sessionStorage.setItem('glicechart_unlock_token', data.token)
-        sessionStorage.setItem('glicechart_unlocked', '1')
-        return true
-      } catch {
-        // Un PIN errato è un normale evento utente, non un errore di sistema:
-        // non lo logghiamo né lo mostriamo come errore applicativo.
-        return false
-      }
-    })
-  }
-
-  async function removePin() {
-    return loadingState.run(async () => {
-      try {
-        await axios.post('/api/auth/remove-pin')
-        pinEnabled.value = false
-        sessionStorage.setItem('glicechart_unlocked', '1')
-        error.value = null
-      } catch (err) {
-        reportError(err, 'pin.errorRemove')
-      }
-    })
-  }
-
-  async function lock() {
-    try {
-      await axios.post('/api/auth/lock')
-    } catch (err) {
-      console.error('[glucose store] Failed to notify backend of lock:', err)
-    }
-    sessionStorage.removeItem('glicechart_unlocked')
-    sessionStorage.removeItem('glicechart_unlock_token')
-  }
-
   // ── Sensori ───────────────────────────────────────────────────────────────
 
   async function fetchSensors() {
@@ -1143,7 +1066,6 @@ export const useGlucoseStore = defineStore('glucose', () => {
     addNote, removeNote, editNote,
     fetchSensors, addSensor, endSensor, deleteSensor,
     fetchHistory, fetchLongHistory, fetchSettings, updateSettings, resetSettings, getStatusColor,
-    themes: AVAILABLE_THEMES, theme, setTheme,
-    pinEnabled, isUnlocked, checkPinStatus, verifyPin, setPin, removePin, lock
+    themes: AVAILABLE_THEMES, theme, setTheme
   }
 })
