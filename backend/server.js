@@ -466,10 +466,14 @@ app.post('/api/auth/set-pin', async (req, res) => {
     return res.status(400).json({ error: 'Il PIN deve essere di almeno 4 cifre' });
   }
   try {
-    await setPinHash(pin);
+    const saved = await setPinHash(pin);
+    if (!saved) {
+      return res.status(500).json({ error: 'Impossibile salvare il PIN: impostazioni non inizializzate' });
+    }
     const token = await createUnlockSession();
     res.json({ ok: true, token });
   } catch (e) {
+    console.error('[auth/set-pin] Errore:', e);
     res.status(500).json({ error: e.message });
   }
 });

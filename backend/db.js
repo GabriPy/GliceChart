@@ -392,40 +392,25 @@ function hashPin(pin) {
 
 async function getPinHash() {
   const p = await getPool();
-  try {
-    const [rows] = await p.execute(`SELECT pin_hash FROM settings WHERE id = 1`);
-    return rows[0]?.pin_hash || null;
-  } catch (e) {
-    // Se la colonna non esiste ancora (migration non applicata), restituisci null
-    return null;
-  }
+  const [rows] = await p.execute(`SELECT pin_hash FROM settings WHERE id = 1`);
+  return rows[0]?.pin_hash || null;
 }
 
 async function setPinHash(pin) {
   const p = await getPool();
-  try {
-    const [result] = await p.execute(
-      `UPDATE settings SET pin_hash = ? WHERE id = 1`,
-      [hashPin(pin)]
-    );
-    return result.affectedRows > 0;
-  } catch (e) {
-    // Se la colonna non esiste ancora, restituisci false senza bloccare
-    return false;
-  }
+  const [result] = await p.execute(
+    `UPDATE settings SET pin_hash = ? WHERE id = 1`,
+    [hashPin(pin)]
+  );
+  return result.affectedRows > 0;
 }
 
 async function removePinHash() {
   const p = await getPool();
-  try {
-    const [result] = await p.execute(
-      `UPDATE settings SET pin_hash = NULL WHERE id = 1`
-    );
-    return result.affectedRows > 0;
-  } catch (e) {
-    // Se la colonna non esiste ancora, restituisci false senza bloccare
-    return false;
-  }
+  const [result] = await p.execute(
+    `UPDATE settings SET pin_hash = NULL WHERE id = 1`
+  );
+  return result.affectedRows > 0;
 }
 
 function generateToken() {
