@@ -282,7 +282,7 @@
           <button
             class="btn btn-accent btn-sm rounded-lg md:rounded-xl border-none font-black uppercase tracking-widest text-[10px]"
             :class="cartTotal > 0 ? 'shadow-md md:shadow-lg shadow-accent/40' : ''" :disabled="cartTotal <= 0"
-            @click="sendToCarbInput">
+            @click="recordCarbs">
             {{ $t('dietometer.recordCho') }}
           </button>
         </div>
@@ -460,7 +460,7 @@ function openCart() {
   cartDialog.value.showModal()
 }
 
-async function sendToCarbInput() {
+async function recordCarbs() {
   const total = Math.round(cartTotal.value)
   if (total <= 0) return
   await store.addCarb(total)
