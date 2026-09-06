@@ -44,7 +44,9 @@ const {
   hashPin,
   createUnlockSession,
   validateUnlockSession,
-  deleteUnlockSession
+  deleteUnlockSession,
+  createRecoveryToken,
+  consumeRecoveryToken
 } = require('./db');
 const { fetchLatestReadings } = require('./gluroo');
 
@@ -485,6 +487,45 @@ app.post('/api/auth/lock', async (req, res) => {
   const token = req.headers['x-unlock-token'];
   try {
     await deleteUnlockSession(token);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Telegram recovery PIN ───────────────────────────────────────────────────
+
+app.post('/api/auth/recovery-request', async (req, res) => {
+  try {
+    const hash = await getPinHash();
+    if (!hash) return res.status(404).json({ error: 'PIN non impostato' });
+
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    if (!chatId) return res.status(500).json({ error: 'Telegram non configurato' });
+
+    const token = require('crypto').randomBytes(16).toString('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+    await createRecoveryToken(token, chatId, expiresAt);
+
+    const message = `🔐 <b>Recovery PIN GliceChart</b>\n\nUsa questo codice per reimpostare il PIN:\n<code>${token}</code>\n\nScade tra 15 minuti.`;
+    await sendTelegramMessage(message, chatId);
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/auth/recovery-verify', async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: 'Token mancante' });
+
+  try {
+    const ok = await consumeRecoveryToken(token);
+    if (!ok) return res.status(400).json({ error: 'Token non valido o scaduto' });
+
+    await removePinHash();
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: e.message });

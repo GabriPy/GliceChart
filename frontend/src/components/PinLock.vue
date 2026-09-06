@@ -33,8 +33,57 @@
             <span v-else>{{ $t('pin.unlock') }}</span>
           </button>
         </form>
+
+        <div class="text-center">
+          <button @click="openRecovery" class="text-[10px] font-black uppercase tracking-widest opacity-50 hover:opacity-100 transition-all">
+            {{ $t('pin.forgot') }}
+          </button>
+        </div>
       </div>
     </div>
+
+    <!-- Recovery Modal -->
+    <dialog v-if="showRecovery" class="modal modal-open">
+      <div class="modal-box bg-base-200 border border-base-content/10 shadow-2xl rounded-2xl md:rounded-3xl max-w-sm w-full mx-4">
+        <h3 class="font-black text-sm uppercase tracking-widest mb-2">{{ $t('pin.recoveryTitle') }}</h3>
+        <p class="text-[10px] opacity-60 mb-4">{{ $t('pin.recoveryDesc') }}</p>
+
+        <div v-if="recoverySent" class="space-y-2">
+          <div class="alert alert-success text-[10px] font-black">
+            <i class="fa-solid fa-check"></i>
+            <span>{{ $t('pin.recoverySent') }}</span>
+          </div>
+        </div>
+
+        <div v-else class="space-y-3">
+          <input v-model="recoveryToken" type="text" maxlength="32"
+            :placeholder="$t('pin.recoveryPlaceholder')"
+            class="input input-bordered font-black text-center tracking-[0.2em] w-full" />
+
+          <button @click="requestRecovery" class="btn btn-primary w-full font-black uppercase tracking-widest text-xs"
+            :disabled="recoveryLoading">
+            <span v-if="recoveryLoading" class="loading loading-spinner loading-xs"></span>
+            <span v-else>{{ $t('pin.recoveryRequest') }}</span>
+          </button>
+        </div>
+
+        <div v-if="recoveryVerified" class="space-y-2 mt-3">
+          <div class="alert alert-success text-[10px] font-black">
+            <i class="fa-solid fa-check"></i>
+            <span>{{ $t('pin.recoverySuccess') }}</span>
+          </div>
+        </div>
+
+        <div class="modal-action justify-end mt-4">
+          <button @click="closeRecovery" class="btn btn-ghost btn-xs font-black uppercase tracking-widest">
+            {{ $t('common.close') }}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button @click="closeRecovery">{{ $t('common.close') }}</button>
+      </form>
+    </dialog>
   </div>
 </template>
 
@@ -49,6 +98,12 @@ const pin = ref('')
 const error = ref('')
 const loading = ref(false)
 const pinInput = ref(null)
+
+const showRecovery = ref(false)
+const recoveryToken = ref('')
+const recoveryLoading = ref(false)
+const recoverySent = ref(false)
+const recoveryVerified = ref(false)
 
 onMounted(() => {
   pinInput.value?.focus()
@@ -65,5 +120,28 @@ async function verify() {
     pin.value = ''
   }
   loading.value = false
+}
+
+function openRecovery() {
+  showRecovery.value = true
+  recoverySent.value = false
+  recoveryVerified.value = false
+  recoveryToken.value = ''
+}
+
+function closeRecovery() {
+  showRecovery.value = false
+}
+
+async function requestRecovery() {
+  recoveryLoading.value = true
+  try {
+    await store.requestPinRecovery()
+    recoverySent.value = true
+  } catch {
+    // error handled in store
+  } finally {
+    recoveryLoading.value = false
+  }
 }
 </script>

@@ -442,6 +442,28 @@ async function deleteUnlockSession(token) {
   await p.execute(`DELETE FROM sessions WHERE id = ?`, [token]);
 }
 
+async function createRecoveryToken(token, chatId, expiresAt) {
+  const p = await getPool();
+  await p.execute(
+    `INSERT INTO recovery_tokens (token, chat_id, expires_at) VALUES (?, ?, ?)`,
+    [token, String(chatId), expiresAt]
+  );
+}
+
+async function consumeRecoveryToken(token) {
+  const p = await getPool();
+  const [rows] = await p.execute(
+    `SELECT id, used, expires_at FROM recovery_tokens WHERE token = ?`,
+    [token]
+  );
+  if (!rows.length) return null;
+  const row = rows[0];
+  if (row.used) return null;
+  if (new Date(row.expires_at) < new Date()) return null;
+  await p.execute(`UPDATE recovery_tokens SET used = TRUE WHERE id = ?`, [row.id]);
+  return true;
+}
+
 module.exports = {
   getPool,
   insertReading,
@@ -474,5 +496,7 @@ module.exports = {
   getPinHash,
   setPinHash,
   removePinHash,
-  hashPin
+  hashPin,
+  createRecoveryToken,
+  consumeRecoveryToken
 };
