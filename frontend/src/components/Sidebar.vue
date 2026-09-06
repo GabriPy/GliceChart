@@ -108,11 +108,18 @@
       </router-link>
 
       <!-- Lock Button -->
-        <button  v-if="store.pinEnabled" @click="lockApp"
-          class="btn btn-error btn-outline btn-xs w-full font-black uppercase tracking-widest gap-2 ">
-          <i class="fa-solid fa-lock"></i>
-          <span v-show="!collapsed">{{ $t('navigation.lock') }}</span>
-        </button>
+      <button v-if="store.pinEnabled" @click="lockApp"
+        class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group text-error/80 hover:text-error hover:bg-error/10"
+        :class="collapsed ? 'justify-center' : ''"
+        :title="collapsed ? $t('navigation.lock') : undefined"
+        :aria-label="$t('navigation.lock')">
+        <div class="tooltip" :data-tip="$t('navigation.lock')">
+          <i class="fa-solid fa-lock w-5 text-center"></i>
+        </div>
+        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">
+          {{ $t('navigation.lock') }}
+        </span>
+      </button>
     </nav>
 
     <!-- Footer Sidebar: Refresh + Language + Themes + Version -->
