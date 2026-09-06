@@ -108,7 +108,7 @@
       </router-link>
 
       <!-- Lock Button -->
-      <button v-if="store.pinEnabled" @click="lockApp"
+      <button v-if="auth.pinEnabled" @click="lockApp"
         class="w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group text-error/80 hover:text-error hover:bg-error/10"
         :class="collapsed ? 'justify-center' : ''" :title="collapsed ? $t('navigation.lock') : undefined"
         :aria-label="$t('navigation.lock')">
