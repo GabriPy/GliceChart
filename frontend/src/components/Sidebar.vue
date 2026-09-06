@@ -33,7 +33,7 @@
           <Zap class="w-5 h-5" />
         </div>
         <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.home')
-          }}</span>
+        }}</span>
       </router-link>
 
       <router-link to="/calendar" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
@@ -43,7 +43,7 @@
           <Calendar class="w-5 h-5" />
         </div>
         <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.calendar')
-          }}</span>
+        }}</span>
       </router-link>
 
       <router-link to="/patterns" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
@@ -53,7 +53,7 @@
           <Brain class="w-5 h-5" />
         </div>
         <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.patterns')
-          }}</span>
+        }}</span>
       </router-link>
 
       <router-link to="/dietometer"
@@ -74,7 +74,7 @@
           <FileText class="w-5 h-5" />
         </div>
         <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.summary')
-          }}</span>
+        }}</span>
       </router-link>
 
       <router-link to="/sensors" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
@@ -84,7 +84,7 @@
           <Microchip class="w-5 h-5" />
         </div>
         <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.sensors')
-          }}</span>
+        }}</span>
       </router-link>
 
       <router-link to="/about" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
@@ -94,7 +94,7 @@
           <Info class="w-5 h-5" />
         </div>
         <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.about')
-          }}</span>
+        }}</span>
       </router-link>
 
       <router-link to="/settings" class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group"
@@ -104,22 +104,23 @@
           <Settings class="w-5 h-5" />
         </div>
         <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">{{ $t('navigation.settings')
-          }}</span>
+        }}</span>
       </router-link>
 
-      <!-- Lock Button -->
-      <button v-if="auth.pinEnabled" @click="lockApp"
-        class="flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group text-error/80 hover:text-error hover:bg-error/10"
-        :class="collapsed ? 'justify-center' : ''"
-        :title="collapsed ? $t('navigation.lock') : undefined"
-        :aria-label="$t('navigation.lock')">
-        <div class="tooltip" :data-tip="$t('navigation.lock')">
-          <i class="fa-solid fa-lock w-5 text-center"></i>
-        </div>
-        <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">
-          {{ $t('navigation.lock') }}
-        </span>
-      </button>
+      <<!-- Lock Button -->
+        <button v-if="store.pinEnabled" @click="lockApp"
+          class="w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-300 group text-error/80 hover:text-error hover:bg-error/10"
+          :class="collapsed ? 'justify-center' : ''" :title="collapsed ? $t('navigation.lock') : undefined"
+          :aria-label="$t('navigation.lock')">
+
+          <div class="tooltip" :data-tip="$t('navigation.lock')">
+            <i class="fa-solid fa-lock w-5 text-center"></i>
+          </div>
+
+          <span v-show="!collapsed" class="text-[11px] font-black uppercase tracking-widest">
+            {{ $t('navigation.lock') }}
+          </span>
+        </button>
     </nav>
 
     <!-- Footer Sidebar: Refresh + Language + Themes + Version -->
@@ -422,9 +423,3 @@ onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKey)
 })
 </script>
-
-<style scoped>
-.router-link-active {
-  /* Classi gestite dinamicamente nel template */
-}
-</style>
