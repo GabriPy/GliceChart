@@ -3,7 +3,7 @@
 
     <!-- Header -->
     <div
-      class="relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
+      class="border border-base-content/10 border-l-4 border-l-accent relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
       <div
         class="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-accent/15 rounded-full blur-2xl md:blur-3xl opacity-70">
       </div>

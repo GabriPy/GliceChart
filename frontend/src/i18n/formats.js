@@ -56,6 +56,90 @@ export const datetimeFormats = {
       month: 'long',
       year: 'numeric'
     }
+  },
+  es: {
+    short: {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    },
+    shortWithTime: {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    },
+    long: {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    },
+    time: {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    },
+    monthYear: {
+      month: 'long',
+      year: 'numeric'
+    }
+  },
+  fr: {
+    short: {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    },
+    shortWithTime: {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    },
+    long: {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    },
+    time: {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    },
+    monthYear: {
+      month: 'long',
+      year: 'numeric'
+    }
+  },
+  de: {
+    short: {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    },
+    shortWithTime: {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    },
+    long: {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    },
+    time: {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    },
+    monthYear: {
+      month: 'long',
+      year: 'numeric'
+    }
   }
 }
 
@@ -76,6 +160,51 @@ export const numberFormats = {
     }
   },
   en: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    },
+    integer: {
+      style: 'decimal',
+      maximumFractionDigits: 0
+    },
+    percent: {
+      style: 'percent',
+      useGrouping: false
+    }
+  },
+  es: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    },
+    integer: {
+      style: 'decimal',
+      maximumFractionDigits: 0
+    },
+    percent: {
+      style: 'percent',
+      useGrouping: false
+    }
+  },
+  fr: {
+    decimal: {
+      style: 'decimal',
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
+    },
+    integer: {
+      style: 'decimal',
+      maximumFractionDigits: 0
+    },
+    percent: {
+      style: 'percent',
+      useGrouping: false
+    }
+  },
+  de: {
     decimal: {
       style: 'decimal',
       minimumFractionDigits: 1,

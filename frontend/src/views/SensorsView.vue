@@ -3,7 +3,7 @@
 
     <!-- HEADER -->
     <div
-      class="relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
+      class="border border-base-content/10 border-l-4 border-l-primary relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
       <div
         class="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-primary/15 rounded-full blur-2xl md:blur-3xl opacity-70">
       </div>
@@ -27,7 +27,7 @@
 
     <!-- CARD NUOVO SENSORE -->
     <div
-      class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
+      class="border border-base-content/10 border-l-4 border-l-success card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
       <div class="card-body p-4 md:p-6 lg:p-8 gap-4 md:gap-6">
 
         <div class="flex items-center gap-2 md:gap-3">
@@ -79,7 +79,7 @@
 
     <!-- TABELLONE STORICO SENSORI -->
     <div
-      class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
+      class="border border-base-content/10 border-l-4 border-l-primary card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
       <div class="card-body p-4 md:p-6 lg:p-8 gap-4 md:gap-6">
 
         <!-- Header Tabella -->

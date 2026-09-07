@@ -273,7 +273,10 @@ const currentThemeLocal = computed(() => store.theme)
 // Language management
 const languages = [
   { code: 'it', label: 'Italiano', flag: '🇮🇹' },
-  { code: 'en', label: 'English', flag: '🇬🇧' }
+  { code: 'en', label: 'English', flag: '🇬🇧' },
+  { code: 'es', label: 'Español', flag: '🇪🇸' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪' }
 ]
 
 const currentLocale = computed(() => locale.value)

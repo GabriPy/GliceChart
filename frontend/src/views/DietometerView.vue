@@ -3,7 +3,7 @@
 
     <!-- Header -->
     <div
-      class="relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
+      class="border border-base-content/10 border-l-4 border-l-accent relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
       <div
         class="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-accent/15 rounded-full blur-2xl md:blur-3xl opacity-70">
       </div>
@@ -18,8 +18,10 @@
               <i class="fa-solid fa-wheat-awn text-accent text-xl md:text-2xl"></i>
             </div>
             <div>
-              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{ $t('dietometer.title') }}</h2>
-              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{ $t('dietometer.subtitle') }}</span>
+              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{ $t('dietometer.title')
+                }}</h2>
+              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{
+                $t('dietometer.subtitle') }}</span>
             </div>
           </div>
 
@@ -64,12 +66,14 @@
               <i class="fa-solid fa-plus text-accent text-lg md:text-xl"></i>
             </div>
             <div>
-              <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('dietometer.newFoodTitle') }}</h3>
-              <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('dietometer.newFoodSubtitle') }}</span>
+              <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('dietometer.newFoodTitle') }}
+              </h3>
+              <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{
+                $t('dietometer.newFoodSubtitle') }}</span>
             </div>
           </div>
-          <button class="btn btn-ghost btn-xs font-black uppercase tracking-widest"
-            @click="showAddFood = false">{{ $t('common.close') }}</button>
+          <button class="btn btn-ghost btn-xs font-black uppercase tracking-widest" @click="showAddFood = false">{{
+            $t('common.close') }}</button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -183,10 +187,12 @@
                   <div class="flex items-center gap-2 shrink-0">
                     <div class="text-right">
                       <div class="text-2xl md:text-3xl font-black tracking-tighter text-accent leading-none">
-                        {{ carbsFor(food).toFixed(0) }}<span class="text-xs ml-0.5 opacity-50">{{ $t('common.gramSymbol') }}</span>
+                        {{ carbsFor(food).toFixed(0) }}<span class="text-xs ml-0.5 opacity-50">{{
+                          $t('common.gramSymbol') }}</span>
                       </div>
                       <div class="text-[8px] font-black opacity-30 uppercase tracking-widest mt-1">
-                        {{ $t('dietometer.estimatedCho') }} <span v-if="!expandedFoodCards[food.id]">/ 100{{ $t('common.gramSymbol') }}</span>
+                        {{ $t('dietometer.estimatedCho') }} <span v-if="!expandedFoodCards[food.id]">/ 100{{
+                          $t('common.gramSymbol') }}</span>
                       </div>
                     </div>
                     <i class="fa-solid text-[10px] opacity-40 transition-all"
@@ -197,13 +203,15 @@
                 <div v-if="expandedFoodCards[food.id]" class="flex flex-col gap-3 md:gap-4">
                   <div
                     class="flex items-center justify-between bg-base-100/50 rounded-lg md:rounded-xl px-4 py-3 border border-base-content/10 shadow-sm">
-                    <span class="text-[9px] font-black uppercase opacity-40 tracking-widest">{{ $t('dietometer.weight') }}</span>
+                    <span class="text-[9px] font-black uppercase opacity-40 tracking-widest">{{ $t('dietometer.weight')
+                      }}</span>
                     <div class="flex items-center justify-end leading-none">
                       <input v-model.number="grams[food.id]" type="number" min="0" max="300" step="1"
                         inputmode="numeric" pattern="[0-9]*"
                         class="w-20 text-right text-2xl font-black text-base-content leading-none bg-transparent border-none outline-none focus:ring-0 p-0 no-spinner"
                         @input="clampGrams(food.id)" @blur="clampGrams(food.id)" />
-                      <span class="text-[10px] ml-1 opacity-40 uppercase tracking-widest">{{ $t('common.grams') }}</span>
+                      <span class="text-[10px] ml-1 opacity-40 uppercase tracking-widest">{{ $t('common.grams')
+                        }}</span>
                     </div>
                   </div>
 
@@ -242,8 +250,10 @@
               <i class="fa-solid fa-cart-shopping text-accent text-lg md:text-xl"></i>
             </div>
             <div>
-              <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('dietometer.totalChoTitle') }}</h3>
-              <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-[0.2em]">{{ $t('dietometer.totalChoAmount', { count: Math.round(cartTotal) }) }}</span>
+              <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('dietometer.totalChoTitle') }}
+              </h3>
+              <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-[0.2em]">{{
+                $t('dietometer.totalChoAmount', { count: Math.round(cartTotal) }) }}</span>
             </div>
           </div>
           <form method="dialog">
@@ -262,7 +272,9 @@
               <div class="min-w-0">
                 <div class="text-[10px] font-black uppercase tracking-widest truncate">{{ item.name }}</div>
                 <div class="text-[9px] font-black opacity-30 uppercase tracking-widest mt-1">
-                  {{ item.grams }}{{ $t('common.gramSymbol') }} • {{ item.carbs.toFixed(0) }}{{ $t('common.gramSymbol') }} CHO
+                  {{ item.grams }}{{ $t('common.gramSymbol') }} • {{ item.carbs.toFixed(0) }}{{ $t('common.gramSymbol')
+                  }}
+                  CHO
                 </div>
               </div>
               <button class="btn btn-ghost btn-xs btn-circle text-error hover:bg-error/10"
@@ -314,7 +326,7 @@ const creatingFood = ref(false)
 const foodError = ref(null)
 
 const categories = ['primi', 'secondi', 'contorni', 'frutta', 'latticini', 'bevande', 'prodotti_da_forno']
-function labelForCategory(cat) { 
+function labelForCategory(cat) {
   return t(`dietometer.categories.${cat}`) || cat
 }
 

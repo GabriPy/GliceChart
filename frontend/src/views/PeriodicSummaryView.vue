@@ -3,7 +3,7 @@
 
     <!-- Header -->
     <div
-      class="relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
+      class="border border-base-content/10 border-l-4 border-l-primary relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
       <div
         class="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-primary/15 rounded-full blur-2xl md:blur-3xl opacity-70">
       </div>
@@ -18,8 +18,10 @@
               <i class="fa-solid fa-chart-pie text-primary text-xl md:text-2xl"></i>
             </div>
             <div>
-              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{ $t('periodicSummary.title') }}</h2>
-              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{ $t('periodicSummary.subtitle') }}</span>
+              <h2 class="text-lg md:text-2xl font-black uppercase tracking-tight leading-none">{{
+                $t('periodicSummary.title') }}</h2>
+              <span class="text-[10px] md:text-xs font-black opacity-40 uppercase tracking-[0.2em]">{{
+                $t('periodicSummary.subtitle') }}</span>
             </div>
           </div>
 
@@ -53,15 +55,17 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <!-- Sintesi Glicemica -->
         <div
-          class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
+          class="border border-base-content/10 border-l-4 border-l-success card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
           <div class="card-body p-4 md:p-6 gap-4 md:gap-5">
             <div class="flex items-center gap-2 md:gap-3">
               <div class="p-2 md:p-3 bg-success/10 rounded-lg md:rounded-xl shadow-sm">
                 <i class="fa-solid fa-chart-line text-success text-lg md:text-xl"></i>
               </div>
               <div>
-                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('periodicSummary.glycemicSummary') }}</h3>
-                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('periodicSummary.avgAndVariability') }}</span>
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{
+                  $t('periodicSummary.glycemicSummary') }}</h3>
+                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{
+                  $t('periodicSummary.avgAndVariability') }}</span>
               </div>
             </div>
 
@@ -72,19 +76,23 @@
             <template v-else>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 <div class="bg-base-100/50 rounded-lg md:rounded-xl p-3 md:p-4 border border-base-content/10 shadow-sm">
-                  <div class="text-[9px] font-black uppercase tracking-widest opacity-40">{{ $t('periodicSummary.avgGlucose') }}</div>
+                  <div class="text-[9px] font-black uppercase tracking-widest opacity-40">{{
+                    $t('periodicSummary.avgGlucose') }}</div>
                   <div class="mt-1 flex items-end gap-2">
                     <div class="text-2xl md:text-3xl font-black tracking-tight">{{ avg }}</div>
-                    <div class="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">{{ $t('common.mgDl') }}</div>
+                    <div class="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">{{ $t('common.mgDl')
+                      }}</div>
                   </div>
                 </div>
 
                 <div class="bg-base-100/50 rounded-lg md:rounded-xl p-3 md:p-4 border border-base-content/10 shadow-sm">
-                  <div class="text-[9px] font-black uppercase tracking-widest opacity-40">{{ $t('periodicSummary.variabilitySD') }}</div>
+                  <div class="text-[9px] font-black uppercase tracking-widest opacity-40">{{
+                    $t('periodicSummary.variabilitySD') }}</div>
                   <div class="mt-1 flex items-end justify-between gap-2">
                     <div class="flex items-end gap-2">
                       <div class="text-2xl md:text-3xl font-black tracking-tight">{{ sd }}</div>
-                      <div class="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">{{ $t('common.mgDl') }}</div>
+                      <div class="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">{{ $t('common.mgDl')
+                        }}</div>
                     </div>
                     <div
                       class="px-2 py-1 rounded-lg md:rounded-xl text-[9px] font-black uppercase tracking-widest shadow-sm"
@@ -97,8 +105,11 @@
 
               <div class="bg-base-100/50 rounded-lg md:rounded-xl p-3 md:p-4 border border-base-content/10 shadow-sm">
                 <div class="flex items-center justify-between">
-                  <div class="text-[9px] font-black uppercase tracking-widest opacity-40">{{ $t('periodicSummary.distribution') }}</div>
-                  <div class="text-[9px] font-black opacity-30 uppercase tracking-widest">{{ $t('periodicSummary.targetRangeLabel', { min: store.settings.tir_min, max: store.settings.tir_max }) }}</div>
+                  <div class="text-[9px] font-black uppercase tracking-widest opacity-40">{{
+                    $t('periodicSummary.distribution') }}</div>
+                  <div class="text-[9px] font-black opacity-30 uppercase tracking-widest">{{
+                    $t('periodicSummary.targetRangeLabel', { min: store.settings.tir_min, max: store.settings.tir_max })
+                    }}</div>
                 </div>
 
                 <div
@@ -130,15 +141,18 @@
 
         <!-- Stima HbA1c -->
         <div
-          class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
+          class="border border-base-content/10 border-l-4 border-l-primary card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
           <div class="card-body p-4 md:p-6 gap-4 md:gap-5">
             <div class="flex items-center gap-2 md:gap-3">
               <div class="p-2 md:p-3 bg-primary/10 rounded-lg md:rounded-xl shadow-sm">
                 <i class="fa-solid fa-vial-circle-check text-primary text-lg md:text-xl"></i>
               </div>
               <div>
-                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{ $t('periodicSummary.hba1cEstimateTitle') }}</h3>
-                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{ $t('periodicSummary.gmiSubtitle') }}</span>
+                <h3 class="text-xs md:text-sm font-black uppercase tracking-wider">{{
+                  $t('periodicSummary.hba1cEstimateTitle')
+                  }}</h3>
+                <span class="text-[9px] md:text-[10px] font-bold opacity-40 uppercase tracking-widest">{{
+                  $t('periodicSummary.gmiSubtitle') }}</span>
               </div>
             </div>
 
@@ -148,7 +162,8 @@
 
             <template v-else>
               <div class="bg-base-100/50 rounded-lg md:rounded-xl p-3 md:p-4 border border-base-content/10 shadow-sm">
-                <div class="text-[9px] font-black uppercase tracking-widest opacity-40">{{ $t('periodicSummary.estimatedGmi') }}</div>
+                <div class="text-[9px] font-black uppercase tracking-widest opacity-40">{{
+                  $t('periodicSummary.estimatedGmi') }}</div>
                 <div class="mt-1 flex items-end justify-between gap-3">
                   <div class="flex items-end gap-2">
                     <div class="text-2xl md:text-3xl font-black tracking-tight">{{ gmi.toFixed(1) }}</div>
@@ -172,7 +187,8 @@
 
                     <div
                       class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 border-base-100 bg-base-content shadow-md"
-                      :style="{ left: `calc(${gmiMarkerLeft}% - 6px)` }" :title="$t('periodicSummary.estimatedGmi')"></div>
+                      :style="{ left: `calc(${gmiMarkerLeft}% - 6px)` }" :title="$t('periodicSummary.estimatedGmi')">
+                    </div>
                   </div>
 
                   <div class="mt-2 flex justify-between text-[9px] font-black uppercase tracking-widest opacity-40">
@@ -184,7 +200,8 @@
 
               <div class="bg-base-100/50 rounded-lg md:rounded-xl p-3 md:p-4 border border-base-content/10 shadow-sm">
                 <div class="flex items-center justify-between">
-                  <div class="text-[9px] font-black uppercase tracking-widest opacity-40">{{ $t('periodicSummary.usedData') }}</div>
+                  <div class="text-[9px] font-black uppercase tracking-widest opacity-40">{{
+                    $t('periodicSummary.usedData') }}</div>
                   <div class="text-[9px] font-black uppercase tracking-widest opacity-30">{{ daysUsed }} / {{ days }}
                   </div>
                 </div>

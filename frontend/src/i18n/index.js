@@ -2,9 +2,12 @@
 import { createI18n } from 'vue-i18n'
 import it from './locales/it.js'
 import en from './locales/en.js'
+import fr from './locales/fr.js'
+import de from './locales/de.js'
+import es from './locales/es.js'
 import { datetimeFormats, numberFormats } from './formats.js'
 
-export const SUPPORTED_LOCALES = ['it', 'en']
+export const SUPPORTED_LOCALES = ['it', 'en', 'fr', 'de', 'es']
 export const DEFAULT_LOCALE = 'it'
 export const STORAGE_KEY = 'glicechart_lang'
 
@@ -21,8 +24,9 @@ export function detectLocale() {
     const browserLangs = navigator.languages || [navigator.language || '']
     for (const lang of browserLangs) {
       const code = String(lang || '').toLowerCase()
-      if (code.startsWith('it')) return 'it'
-      if (code.startsWith('en')) return 'en'
+      for (const supported of SUPPORTED_LOCALES) {
+        if (code.startsWith(supported)) return supported
+      }
     }
   } catch (e) {
     // LocalStorage or navigator inaccessible
@@ -43,7 +47,10 @@ export const i18n = createI18n({
   fallbackLocale: DEFAULT_LOCALE,
   messages: {
     it,
-    en
+    en,
+    fr,
+    de,
+    es
   },
   datetimeFormats,
   numberFormats,
@@ -58,7 +65,7 @@ export const i18n = createI18n({
 
 /**
  * Change the active application language
- * @param {'it' | 'en'} lang 
+ * @param {'it' | 'en' | 'fr' | 'de' | 'es'} lang 
  */
 export function setLanguage(lang) {
   if (!SUPPORTED_LOCALES.includes(lang)) return
@@ -71,7 +78,7 @@ export function setLanguage(lang) {
 
 /**
  * Get current active language
- * @returns {'it' | 'en'}
+ * @returns {'it' | 'en' | 'fr' | 'de' | 'es'}
  */
 export function getLanguage() {
   return i18n.global.locale.value || DEFAULT_LOCALE

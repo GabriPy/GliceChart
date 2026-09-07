@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-4 md:gap-6 lg:gap-8 px-2 md:px-4 lg:px-0">
     <!-- Header Dashboard Home -->
     <div
-      class="relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
+      class="border border-base-content/10 border-l-4 border-l-primary relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
       <div
         class="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-primary/15 rounded-full blur-2xl md:blur-3xl opacity-70">
       </div>
@@ -44,7 +44,7 @@
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
       <!-- Insulina Rapida Card -->
       <div
-        class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
+        class="border border-base-content/10 border-l-4 border-l-primary card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
         <div class="card-body p-4 md:p-6 gap-4 md:gap-6">
           <div class="flex items-center gap-2 md:gap-3">
             <div class="p-2 md:p-3 bg-primary/10 rounded-lg md:rounded-xl shadow-sm">
@@ -102,7 +102,7 @@
 
       <!-- Carboidrati Card -->
       <div
-        class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
+        class="border border-base-content/10 border-l-4 border-l-accent card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10">
         <div class="card-body p-4 md:p-6 gap-4 md:gap-6">
           <div class="flex items-center gap-2 md:gap-3">
             <div class="p-2 md:p-3 bg-accent/10 rounded-lg md:rounded-xl shadow-sm">

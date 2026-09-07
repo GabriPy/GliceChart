@@ -3,7 +3,7 @@
 
     <!-- Header / Calendario -->
     <div
-      class="relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
+      class="border border-base-content/10 border-l-4 border-l-primary relative overflow-hidden bg-gradient-to-br from-base-200 to-base-300 shadow-lg md:shadow-xl lg:shadow-2xl shadow-black/5 md:shadow-black/10 border border-base-content/10 rounded-2xl md:rounded-3xl">
       <div
         class="absolute top-0 right-0 w-48 md:w-64 h-48 md:h-64 bg-primary/15 rounded-full blur-2xl md:blur-3xl opacity-70">
       </div>
@@ -61,7 +61,7 @@
 
       <!-- Card Insuline -->
       <div
-        class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10 overflow-hidden">
+        class="border border-base-content/10 border-l-4 border-l-primary card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10 overflow-hidden">
         <div class="card-body p-0">
           <div class="p-4 md:p-6 border-b border-base-content/10 flex items-center justify-between">
             <div class="flex items-center gap-2 md:gap-3">
@@ -124,7 +124,7 @@
 
       <!-- Card Carboidrati -->
       <div
-        class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10 overflow-hidden">
+        class="border border-base-content/10 border-l-4 border-l-accent card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10 overflow-hidden">
         <div class="card-body p-0">
           <div class="p-4 md:p-6 border-b border-base-content/10 flex items-center justify-between">
             <div class="flex items-center gap-2 md:gap-3">
@@ -184,7 +184,7 @@
 
       <!-- Card Note -->
       <div
-        class="card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10 overflow-hidden">
+        class="border border-base-content/10 border-l-4 border-l-info card bg-gradient-to-br from-base-200 to-base-300 shadow-md md:shadow-lg lg:shadow-xl shadow-black/5 md:shadow-black/10 border border-base-content/10 overflow-hidden">
         <div class="card-body p-0">
           <div class="p-4 md:p-6 border-b border-base-content/10 flex items-center justify-between">
             <div class="flex items-center gap-2 md:gap-3">
