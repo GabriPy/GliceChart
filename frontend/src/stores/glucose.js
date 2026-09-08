@@ -1,26 +1,39 @@
-// stores/glucose.js
+﻿// stores/glucose.js
 //
 // Store Pinia per la gestione dei dati glicemici, insulina, carboidrati,
 // impostazioni e sicurezza (PIN) dell'applicazione GliceChart.
 //
-// Le chiamate usano path relativi (/api/...) — funziona sia in locale che
-// dietro Cloudflare Tunnel perché il frontend è servito dallo stesso Node.js.
+// Le chiamate usano path relativi (/api/...) â€” funziona sia in locale che
+// dietro Cloudflare Tunnel perchÃ© il frontend Ã¨ servito dallo stesso Node.js.
 //
 // Note di design:
 // - La logica di dominio (statistiche, IOB/COB, rilevamento pattern,
-//   validazione impostazioni) è isolata in funzioni pure a livello di modulo,
-//   così può essere testata senza montare lo store Pinia.
+//   validazione impostazioni) Ã¨ isolata in funzioni pure a livello di modulo,
+//   cosÃ¬ puÃ² essere testata senza montare lo store Pinia.
 // - Gli stati di "loading" usano un contatore (non un semplice booleano) per
-//   restare corretti anche quando più operazioni asincrone sono in corso
+//   restare corretti anche quando piÃ¹ operazioni asincrone sono in corso
 //   contemporaneamente.
 // - Gli errori vengono sempre loggati in console con contesto, oltre a
-//   popolare il messaggio tradotto mostrato all'utente — indispensabile per
+//   popolare il messaggio tradotto mostrato all'utente â€” indispensabile per
 //   diagnosticare problemi in un'applicazione che gestisce dati sanitari.
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { t } from '../i18n'
+import {
+  DEFAULT_SETTINGS,
+  SETTINGS_CONSTRAINTS,
+  normalizeBooleanSetting,
+  normalizeTelegramFlags,
+  assertPositiveNumber,
+  assertValidPin,
+  validateSettings,
+  ValidationError
+} from './validation'
+import { calculateStats, getStatusColorForValue, calculateIob, calculateCob } from './stats'
+import { PATTERN_THRESHOLDS, detectHourlyPatterns, detectNotePatterns } from './patterns'
+import { createLoadingFlag } from './loading'
 
 /**
  * @typedef {Object} GlucoseReading
@@ -64,12 +77,12 @@ import { t } from '../i18n'
  * @property {string} telegram_daily_summary_time - formato HH:mm
  */
 
-// ── Costanti temporali ───────────────────────────────────────────────────────
+// â”€â”€ Costanti temporali â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const MS_PER_MINUTE = 60 * 1000
 const MS_PER_HOUR = 60 * MS_PER_MINUTE
 const MS_PER_DAY = 24 * MS_PER_HOUR
 
-// ── Costanti applicative ──────────────────────────────────────────────────────
+// â”€â”€ Costanti applicative â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const DEFAULT_RANGE_MINUTES = 180
 const FULL_DAY_RANGE_MINUTES = 1440
 const FULL_HISTORY_RANGE_MINUTES = 4320
@@ -80,101 +93,21 @@ const PIN_MAX_LENGTH = 6
 const VALID_INSULIN_TYPES = Object.freeze(['rapid', 'slow'])
 const AVAILABLE_THEMES = Object.freeze(['light', 'dark', 'retro', 'forest', 'wireframe', 'coffee'])
 
-const DEFAULT_SETTINGS = Object.freeze({
-  tir_min: 70,
-  tir_max: 180,
-  red_under: 55,
-  red_over: 250,
-  rapid_duration: 3,
-  slow_duration: 24,
-  carb_duration: 4,
-  insulin_sensitivity: 60,
-  carb_ratio: 15,
-  quick_insulin_1: 1,
-  quick_insulin_2: 2,
-  quick_carb_1: 10,
-  quick_carb_2: 20,
-  telegram_enabled: false,
-  telegram_high_low_alerts: true,
-  telegram_insulin_alerts: false,
-  telegram_carb_alerts: false,
-  telegram_daily_summary: false,
-  telegram_daily_summary_time: '21:00'
-})
 
 // Limiti fisiologici plausibili usati per rifiutare impostazioni palesemente
 // errate prima di inviarle al backend. Non sostituiscono un controllo medico,
 // servono solo a evitare configurazioni assurde (es. soglie invertite).
-const SETTINGS_CONSTRAINTS = Object.freeze({
-  tir_min: { min: 40, max: 300 },
-  tir_max: { min: 40, max: 300 },
-  red_under: { min: 20, max: 100 },
-  red_over: { min: 150, max: 400 },
-  rapid_duration: { min: 1, max: 12 },
-  slow_duration: { min: 1, max: 48 },
-  carb_duration: { min: 1, max: 12 },
-  insulin_sensitivity: { min: 1, max: 500 },
-  carb_ratio: { min: 1, max: 100 },
-  quick_insulin_1: { min: 0.5, max: 20 },
-  quick_insulin_2: { min: 0.5, max: 20 },
-  quick_carb_1: { min: 1, max: 200 },
-  quick_carb_2: { min: 1, max: 200 }
-})
 
 // Soglie usate dal motore di rilevamento pattern. Raccolte in un unico posto
-// così sono documentate e regolabili senza toccare la logica.
-const PATTERN_THRESHOLDS = Object.freeze({
-  minReadingsForAnalysis: 288, // circa 1 giorno di letture ogni 5 minuti
-  maxSampleGapMinutes: 15,
-  minSlopeMgDlPerMinute: 0.45,
-  minConsistencyRatio: 0.65,
-  minAbsoluteSamples: 10,
-  minSamplesRatioOfDaysObserved: 0.3,
-  recencyHalfLifeDays: 30,
-  minNoteOccurrences: 4,
-  minNoteImpactMgDl: 20,
-  postEventWindowHours: 3
-})
+// cosÃ¬ sono documentate e regolabili senza toccare la logica.
 
 /** Errore applicativo per input non validi, distinto dagli errori di rete/API. */
-class ValidationError extends Error { }
 
-// ── Helper puri: normalizzazione e validazione ────────────────────────────────
+// â”€â”€ Helper puri: normalizzazione e validazione â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-function normalizeBooleanSetting(value, fallback = false) {
-  if (value === null || value === undefined) return fallback
-  if (value === true || value === 1 || value === '1' || value === 'true') return true
-  if (value === false || value === 0 || value === '0' || value === 'false') return false
-  return Boolean(value)
-}
 
-function normalizeTelegramFlags(raw) {
-  return {
-    telegram_enabled: normalizeBooleanSetting(raw.telegram_enabled, false),
-    telegram_high_low_alerts: normalizeBooleanSetting(raw.telegram_high_low_alerts, true),
-    telegram_insulin_alerts: normalizeBooleanSetting(raw.telegram_insulin_alerts, false),
-    telegram_carb_alerts: normalizeBooleanSetting(raw.telegram_carb_alerts, false),
-    telegram_daily_summary: normalizeBooleanSetting(raw.telegram_daily_summary, false),
-    telegram_daily_summary_time: raw.telegram_daily_summary_time || '21:00'
-  }
-}
 
-function assertPositiveNumber(value, fieldLabel) {
-  const numericValue = Number(value)
-  if (!Number.isFinite(numericValue) || numericValue <= 0) {
-    throw new ValidationError(`Invalid ${fieldLabel}: expected a positive number, received "${value}"`)
-  }
-  return numericValue
-}
 
-function assertValidPin(pin) {
-  if (typeof pin !== 'string' || !/^\d+$/.test(pin)) {
-    throw new ValidationError('PIN must contain only digits')
-  }
-  if (pin.length < PIN_MIN_LENGTH || pin.length > PIN_MAX_LENGTH) {
-    throw new ValidationError(`PIN must be between ${PIN_MIN_LENGTH} and ${PIN_MAX_LENGTH} digits`)
-  }
-}
 
 /**
  * Valida un oggetto impostazioni contro limiti fisiologici plausibili e
@@ -182,220 +115,33 @@ function assertValidPin(pin) {
  * @param {Partial<AppSettings>} candidate
  * @returns {string[]} elenco di codici di errore, vuoto se tutto valido
  */
-function validateSettings(candidate) {
-  if (!candidate || typeof candidate !== 'object') {
-    return ['settings_payload_missing']
-  }
 
-  const issues = []
-
-  for (const [field, range] of Object.entries(SETTINGS_CONSTRAINTS)) {
-    const value = Number(candidate[field])
-    if (!Number.isFinite(value) || value < range.min || value > range.max) {
-      issues.push(field)
-    }
-  }
-
-  const tirMin = Number(candidate.tir_min)
-  const tirMax = Number(candidate.tir_max)
-  const redUnder = Number(candidate.red_under)
-  const redOver = Number(candidate.red_over)
-
-  if (Number.isFinite(tirMin) && Number.isFinite(tirMax) && tirMin >= tirMax) {
-    issues.push('tir_min_must_be_below_tir_max')
-  }
-  if (Number.isFinite(redUnder) && Number.isFinite(tirMin) && redUnder >= tirMin) {
-    issues.push('red_under_must_be_below_tir_min')
-  }
-  if (Number.isFinite(redOver) && Number.isFinite(tirMax) && redOver <= tirMax) {
-    issues.push('red_over_must_be_above_tir_max')
-  }
-
-  return issues
-}
-
-// ── Helper puri: statistiche e colori di stato ────────────────────────────────
+// â”€â”€ Helper puri: statistiche e colori di stato â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * @param {GlucoseReading[]} data
  * @param {AppSettings} settings
  * @returns {{avg: number, min: number, max: number, tir: number} | null}
  */
-function calculateStats(data, settings) {
-  if (!data || data.length === 0) return null
 
-  const values = data.map((r) => r.glucose)
-  const avg = Math.round(values.reduce((sum, v) => sum + v, 0) / values.length)
-  const min = Math.min(...values)
-  const max = Math.max(...values)
 
-  const inRangeCount = data.filter(
-    (r) => r.glucose >= settings.tir_min && r.glucose <= settings.tir_max
-  ).length
-  const tir = Math.round((inRangeCount / data.length) * 100)
+// â”€â”€ Helper puri: IOB / COB (decadimento lineare) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  return { avg, min, max, tir }
-}
 
-function getStatusColorForValue(value, settings) {
-  if (value === null || value === undefined) return 'text-base-content'
 
-  const glucose = Number(value)
-  const min = Number(settings.tir_min)
-  const max = Number(settings.tir_max)
-  const redUnder = Number(settings.red_under)
-  const redOver = Number(settings.red_over)
+// â”€â”€ Helper puri: rilevamento pattern â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  if (glucose <= redUnder || glucose >= redOver) return 'text-error'
-  if (glucose < min || glucose > max) return 'text-warning'
-  return 'text-success'
-}
 
-// ── Helper puri: IOB / COB (decadimento lineare) ──────────────────────────────
-
-function calculateIob(insulinEntries, rapidDurationHours) {
-  const now = Date.now()
-  const durationMs = (Number(rapidDurationHours) || 3) * MS_PER_HOUR
-
-  return insulinEntries.reduce((total, entry) => {
-    if (entry.type !== 'rapid') return total // Solo la rapida contribuisce all'IOB standard
-
-    const elapsedMs = now - new Date(entry.timestamp).getTime()
-    if (elapsedMs < 0 || elapsedMs >= durationMs) return total
-
-    const remainingFraction = 1 - elapsedMs / durationMs
-    return total + Number(entry.units) * remainingFraction
-  }, 0)
-}
-
-function calculateCob(carbEntries, carbDurationHours) {
-  const now = Date.now()
-  const durationMs = (Number(carbDurationHours) || 4) * MS_PER_HOUR
-
-  return carbEntries.reduce((total, entry) => {
-    const elapsedMs = now - new Date(entry.timestamp).getTime()
-    if (elapsedMs < 0 || elapsedMs >= durationMs) return total
-
-    const remainingFraction = 1 - elapsedMs / durationMs
-    return total + Number(entry.amount) * remainingFraction
-  }, 0)
-}
-
-// ── Helper puri: rilevamento pattern ──────────────────────────────────────────
-
-function daysBetween(startMs, endMs) {
-  return (endMs - startMs) / MS_PER_DAY
-}
-
-function computeRecencyWeight(timestampMs, halfLifeDays) {
-  const ageDays = daysBetween(timestampMs, Date.now())
-  return Math.pow(0.5, ageDays / halfLifeDays)
-}
 
 /**
  * Rileva tendenze glicemiche ricorrenti per fascia oraria (bucket da 2 ore).
  * Il numero minimo di campioni richiesti scala con i giorni di storico
- * disponibili, e i campioni più recenti pesano di più nel calcolo della
- * pendenza media — un pattern che non si ripete più da settimane perde
+ * disponibili, e i campioni piÃ¹ recenti pesano di piÃ¹ nel calcolo della
+ * pendenza media â€” un pattern che non si ripete piÃ¹ da settimane perde
  * progressivamente rilevanza invece di restare fisso.
  * @param {GlucoseReading[]} readings - ordinate cronologicamente, crescenti
  * @param {typeof PATTERN_THRESHOLDS} thresholds
  */
-function detectHourlyPatterns(readings, thresholds = PATTERN_THRESHOLDS) {
-  if (!readings || readings.length < thresholds.minReadingsForAnalysis) return []
-
-  const buckets = Array.from({ length: 12 }, () => ({ slopes: [], samples: [] }))
-
-  for (let i = 1; i < readings.length; i++) {
-    const previous = readings[i - 1]
-    const current = readings[i]
-    const currentDate = new Date(current.timestamp)
-    const previousDate = new Date(previous.timestamp)
-    const elapsedMinutes = (currentDate.getTime() - previousDate.getTime()) / MS_PER_MINUTE
-
-    if (elapsedMinutes <= 0 || elapsedMinutes > thresholds.maxSampleGapMinutes) continue
-
-    const bucketIndex = Math.floor(currentDate.getHours() / 2)
-    if (bucketIndex < 0 || bucketIndex >= buckets.length) continue
-
-    const slope = (current.glucose - previous.glucose) / elapsedMinutes
-    buckets[bucketIndex].slopes.push(slope)
-    buckets[bucketIndex].samples.push({ slope, timestamp: currentDate.getTime() })
-  }
-
-  const firstTimestamp = new Date(readings[0].timestamp).getTime()
-  const lastTimestamp = new Date(readings[readings.length - 1].timestamp).getTime()
-  const daysObserved = Math.max(1, daysBetween(firstTimestamp, lastTimestamp))
-  const minSamplesRequired = Math.max(
-    thresholds.minAbsoluteSamples,
-    Math.ceil(daysObserved * thresholds.minSamplesRatioOfDaysObserved)
-  )
-
-  const patterns = []
-
-  buckets.forEach((bucket, bucketIndex) => {
-    if (bucket.slopes.length < minSamplesRequired) return
-
-    const simpleAvgSlope = bucket.slopes.reduce((sum, s) => sum + s, 0) / bucket.slopes.length
-    const isRising = simpleAvgSlope > 0
-
-    let weightedSlopeSum = 0
-    let weightSum = 0
-    let consistentWeightSum = 0
-
-    bucket.samples.forEach(({ slope, timestamp }) => {
-      const weight = computeRecencyWeight(timestamp, thresholds.recencyHalfLifeDays)
-      weightedSlopeSum += slope * weight
-      weightSum += weight
-      if (isRising ? slope > 0 : slope < 0) {
-        consistentWeightSum += weight
-      }
-    })
-
-    if (weightSum === 0) return
-
-    const weightedAvgSlope = weightedSlopeSum / weightSum
-    const consistency = consistentWeightSum / weightSum
-
-    if (Math.abs(weightedAvgSlope) < thresholds.minSlopeMgDlPerMinute) return
-    if (consistency < thresholds.minConsistencyRatio) return
-
-    const startHour = bucketIndex * 2
-    const endHour = startHour + 2
-    const timeRange = `${String(startHour).padStart(2, '0')}:00-${String(endHour).padStart(2, '0')}:00`
-    const speed = Math.abs(weightedAvgSlope).toFixed(2)
-
-    const countRecentOccurrences = (days) => {
-      const cutoff = Date.now() - days * MS_PER_DAY
-      return bucket.samples.filter(
-        (sample) => sample.timestamp >= cutoff && (isRising ? sample.slope > 0 : sample.slope < 0)
-      ).length
-    }
-
-    const intensity = Math.min(100, Math.abs(weightedAvgSlope) * 50)
-    const confidence = Math.round(consistency * 100)
-
-    patterns.push({
-      id: `hour-${bucketIndex}`,
-      title: isRising
-        ? t('patterns.recurringRiseTitle', { timeRange })
-        : t('patterns.recurringDropTitle', { timeRange }),
-      description: isRising
-        ? t('patterns.recurringRiseDesc', { timeRange, speed })
-        : t('patterns.recurringDropDesc', { timeRange, speed }),
-      icon: isRising ? 'fi-sr-trending-up' : 'fi-sr-trending-down',
-      color: isRising ? 'warning' : 'info',
-      intensity,
-      confidence,
-      frequency15: countRecentOccurrences(15),
-      frequency30: countRecentOccurrences(30),
-      timeHour: startHour,
-      score: (confidence / 100) * intensity
-    })
-  })
-
-  return patterns
-}
 
 /**
  * Rileva correlazioni tra note testuali ricorrenti e l'andamento glicemico
@@ -407,129 +153,17 @@ function detectHourlyPatterns(readings, thresholds = PATTERN_THRESHOLDS) {
  * @param {{timestamp: string, text: string}[]} notes
  * @param {typeof PATTERN_THRESHOLDS} thresholds
  */
-function detectNotePatterns(readings, notes, thresholds = PATTERN_THRESHOLDS) {
-  if (!readings || !notes || readings.length < thresholds.minReadingsForAnalysis) return []
 
-  const notesByKey = new Map()
-  notes.forEach((note) => {
-    const key = note.text?.toLowerCase().trim()
-    if (!key || key.length < 3) return
-    if (!notesByKey.has(key)) notesByKey.set(key, [])
-    notesByKey.get(key).push(note)
-  })
-
-  const windowMs = thresholds.postEventWindowHours * MS_PER_HOUR
-  const patterns = []
-
-  notesByKey.forEach((occurrences, noteKey) => {
-    if (occurrences.length < thresholds.minNoteOccurrences) return
-
-    let peakRiseSum = 0
-    let nadirDropSum = 0
-    let validOccurrences = 0
-
-    occurrences.forEach((occurrence) => {
-      const startTime = new Date(occurrence.timestamp).getTime()
-      const endTime = startTime + windowMs
-
-      const postEventReadings = readings.filter((reading) => {
-        const readingTime = new Date(reading.timestamp).getTime()
-        return readingTime >= startTime && readingTime <= endTime
-      })
-
-      if (postEventReadings.length <= 5) return
-
-      const startGlucose = postEventReadings[0].glucose
-      const peakGlucose = Math.max(...postEventReadings.map((r) => r.glucose))
-      const nadirGlucose = Math.min(...postEventReadings.map((r) => r.glucose))
-
-      const rise = peakGlucose - startGlucose
-      const drop = startGlucose - nadirGlucose
-
-      if (rise < thresholds.minNoteImpactMgDl && drop < thresholds.minNoteImpactMgDl) return
-
-      peakRiseSum += rise
-      nadirDropSum += drop
-      validOccurrences++
-    })
-
-    if (validOccurrences < thresholds.minNoteOccurrences) return
-
-    const avgPeakRise = peakRiseSum / validOccurrences
-    const avgNadirDrop = nadirDropSum / validOccurrences
-    const confidence = Math.round((validOccurrences / occurrences.length) * 100)
-
-    const countRecentOccurrences = (days) => {
-      const cutoff = Date.now() - days * MS_PER_DAY
-      return occurrences.filter((o) => new Date(o.timestamp).getTime() >= cutoff).length
-    }
-
-    const frequency15 = countRecentOccurrences(15)
-    const frequency30 = countRecentOccurrences(30)
-    const noteLabel = noteKey.toUpperCase()
-    const safeIdSuffix = noteKey.replace(/\s+/g, '-')
-
-    if (avgPeakRise >= thresholds.minNoteImpactMgDl) {
-      const intensity = Math.min(100, avgPeakRise)
-      patterns.push({
-        id: `note-rise-${safeIdSuffix}`,
-        title: t('patterns.noteRiseTitle', { note: noteLabel }),
-        description: t('patterns.noteRiseDesc', { note: noteKey, impact: Math.round(avgPeakRise) }),
-        icon: 'fi-sr-assessment',
-        color: 'error',
-        intensity,
-        confidence,
-        frequency15,
-        frequency30,
-        score: (confidence / 100) * intensity
-      })
-    }
-
-    if (avgNadirDrop >= thresholds.minNoteImpactMgDl) {
-      const intensity = Math.min(100, avgNadirDrop)
-      patterns.push({
-        id: `note-drop-${safeIdSuffix}`,
-        title: t('patterns.noteDropTitle', { note: noteLabel }),
-        description: t('patterns.noteDropDesc', { note: noteKey, impact: Math.round(avgNadirDrop) }),
-        icon: 'fi-sr-assessment',
-        color: 'success',
-        intensity,
-        confidence,
-        frequency15,
-        frequency30,
-        score: (confidence / 100) * intensity
-      })
-    }
-  })
-
-  return patterns
-}
-
-// ── Helper: stato di caricamento sicuro in concorrenza ────────────────────────
+// â”€â”€ Helper: stato di caricamento sicuro in concorrenza â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Crea un flag di "loading" basato su un contatore invece che su un booleano
  * semplice. Con un booleano, due operazioni asincrone in corso contemporanea-
  * mente possono "spegnere" lo stato di caricamento quando la prima finisce,
- * anche se la seconda è ancora in volo. Il contatore evita questo problema.
+ * anche se la seconda Ã¨ ancora in volo. Il contatore evita questo problema.
  */
-function createLoadingFlag() {
-  const activeCount = ref(0)
-  const isActive = computed(() => activeCount.value > 0)
 
-  async function run(fn) {
-    activeCount.value++
-    try {
-      return await fn()
-    } finally {
-      activeCount.value--
-    }
-  }
-
-  return { isActive, run }
-}
-
-// ── Interceptor axios (registrati una sola volta per l'intera app) ───────────
+// â”€â”€ Interceptor axios (registrati una sola volta per l'intera app) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 let axiosInterceptorsRegistered = false
 
@@ -556,7 +190,7 @@ function registerAxiosInterceptors(onUnauthorized) {
   )
 }
 
-// ── Store ──────────────────────────────────────────────────────────────────
+// â”€â”€ Store â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const useGlucoseStore = defineStore('glucose', () => {
   // Stato: dati correnti
@@ -646,8 +280,8 @@ export const useGlucoseStore = defineStore('glucose', () => {
   const iob = computed(() => calculateIob(allInsulin.value, settings.value.rapid_duration))
   const cob = computed(() => calculateCob(allCarbs.value, settings.value.carb_duration))
 
-  // Pattern Smart: ordinati per punteggio (confidenza × intensità), non solo
-  // per ora del giorno, così un pattern ad alto impatto emerge per primo
+  // Pattern Smart: ordinati per punteggio (confidenza Ã— intensitÃ ), non solo
+  // per ora del giorno, cosÃ¬ un pattern ad alto impatto emerge per primo
   // anche con confidenza leggermente inferiore a uno innocuo.
   const patterns = computed(() => {
     const hourlyPatterns = detectHourlyPatterns(historyReadings.value)
@@ -669,7 +303,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return getStatusColorForValue(value, settings.value)
   }
 
-  // ── Lettura corrente e serie temporali ───────────────────────────────────
+  // â”€â”€ Lettura corrente e serie temporali â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   async function fetchCurrent() {
     try {
@@ -730,7 +364,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
-  // ── Note (CRUD) ───────────────────────────────────────────────────────────
+  // â”€â”€ Note (CRUD) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   async function addNote(text, timestamp = null) {
     return loadingState.run(async () => {
@@ -779,7 +413,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
-  // ── Carboidrati (CHO) ────────────────────────────────────────────────────
+  // â”€â”€ Carboidrati (CHO) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   async function addCarb(amount, timestamp = null) {
     return loadingState.run(async () => {
@@ -822,7 +456,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
-  // ── Insulina ──────────────────────────────────────────────────────────────
+  // â”€â”€ Insulina â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   async function addInsulin(type, units, timestamp = null) {
     return loadingState.run(async () => {
@@ -872,7 +506,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
-  // ── Impostazioni ──────────────────────────────────────────────────────────
+  // â”€â”€ Impostazioni â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   async function fetchSettings() {
     try {
@@ -925,7 +559,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return updateSettings(settings.value)
   }
 
-  // ── Tema ──────────────────────────────────────────────────────────────────
+  // â”€â”€ Tema â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   function setTheme(nextTheme) {
     theme.value = nextTheme
@@ -943,7 +577,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     console.error('[glucose store] Unable to apply initial theme:', err)
   }
 
-  // ── Sensori ───────────────────────────────────────────────────────────────
+  // â”€â”€ Sensori â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   async function fetchSensors() {
     try {
@@ -998,7 +632,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
-  // ── Storico (Calendario / Analisi) ────────────────────────────────────────
+  // â”€â”€ Storico (Calendario / Analisi) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   async function fetchLongHistory(minutes = FULL_HISTORY_RANGE_MINUTES) {
     return historyLoadingState.run(async () => {
