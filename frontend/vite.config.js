@@ -7,6 +7,11 @@ export default defineConfig(({ mode }) => {
   // In produzione il frontend gira sullo stesso server, quindi /api funziona direttamente
   return {
     plugins: [vue()],
+    test: {
+      resolve: {
+        extensions: ['.js', '.vue', '.json']
+      }
+    },
     server: {
       host: '0.0.0.0', // Permette accesso dalla rete locale
       port: 5173,

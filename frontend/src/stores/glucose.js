@@ -32,7 +32,7 @@ import {
   ValidationError
 } from './validation'
 import { calculateStats, getStatusColorForValue, calculateIob, calculateCob } from './stats'
-import { PATTERN_THRESHOLDS, detectHourlyPatterns, detectNotePatterns } from './patterns'
+import { PATTERN_THRESHOLDS, detectHourlyPatterns, detectNotePatterns, enrichPatterns } from './patterns.js'
 import { createLoadingFlag } from './loading'
 
 /**
@@ -286,7 +286,8 @@ export const useGlucoseStore = defineStore('glucose', () => {
   const patterns = computed(() => {
     const hourlyPatterns = detectHourlyPatterns(historyReadings.value)
     const noteCorrelationPatterns = detectNotePatterns(historyReadings.value, historyNotes.value)
-    return [...hourlyPatterns, ...noteCorrelationPatterns].sort((a, b) => b.score - a.score)
+    const merged = [...hourlyPatterns, ...noteCorrelationPatterns].sort((a, b) => b.score - a.score)
+    return enrichPatterns(merged, historyReadings.value, historyNotes.value)
   })
 
   const glucoseColor = computed(() => {

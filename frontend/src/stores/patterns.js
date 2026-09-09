@@ -1,17 +1,10 @@
 import { t } from '../i18n'
+import { PATTERN_THRESHOLDS, PATTERN_OVERLAP } from './patternConfig.js'
+import { analyzeTemporalTrend } from './patternTemporal.js'
+import { detectExceptions } from './patternExceptions.js'
+import { findOverlaps } from './patternOverlap.js'
 
-export const PATTERN_THRESHOLDS = Object.freeze({
-  minReadingsForAnalysis: 288,
-  maxSampleGapMinutes: 15,
-  minSlopeMgDlPerMinute: 0.45,
-  minConsistencyRatio: 0.65,
-  minAbsoluteSamples: 10,
-  minSamplesRatioOfDaysObserved: 0.3,
-  recencyHalfLifeDays: 30,
-  minNoteOccurrences: 4,
-  minNoteImpactMgDl: 20,
-  postEventWindowHours: 3
-})
+export { PATTERN_THRESHOLDS } from './patternConfig.js'
 
 const MS_PER_MINUTE = 60 * 1000
 const MS_PER_HOUR = 60 * MS_PER_MINUTE
@@ -218,4 +211,28 @@ export function detectNotePatterns(readings, notes, thresholds = PATTERN_THRESHO
   })
 
   return patterns
+}
+
+/**
+ * Arricchisce i pattern rilevati con andamento temporale, eccezioni e overlap.
+ * @param {Array} patterns - pattern da arricchire
+ * @param {Array} readings - letture glicemiche
+ * @param {Array} notes - note registrate
+ * @returns {Array} pattern arricchiti
+ */
+export function enrichPatterns(patterns, readings, notes) {
+  if (!Array.isArray(patterns) || patterns.length === 0) return []
+
+  const enriched = patterns.map((pattern) => {
+    const andamento = analyzeTemporalTrend(pattern, readings)
+    const eccezioni = detectExceptions(pattern, readings, notes)
+
+    return {
+      ...pattern,
+      andamento,
+      eccezioni
+    }
+  })
+
+  return findOverlaps(enriched)
 }

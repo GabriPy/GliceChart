@@ -96,6 +96,47 @@
                 :style="{ width: p.intensity + '%' }"></div>
             </div>
           </div>
+
+          <!-- Andamento temporale -->
+          <div v-if="p.andamento" class="text-[10px] font-black uppercase tracking-widest gap-2">
+            <span class="opacity-40">{{ $t('patterns.trend.variation') }}:</span>
+            <span :class="{
+              'text-success': p.andamento.stato === 'in_miglioramento',
+              'text-error': p.andamento.stato === 'in_peggioramento',
+              'text-base-content': p.andamento.stato === 'stabile' || p.andamento.stato === 'dati_insufficienti'
+            }">{{ $t('patterns.trend.' + p.andamento.stato) }}</span>
+            <span v-if="p.andamento.variazione_percentuale !== undefined" class="opacity-60">
+              ({{ p.andamento.variazione_percentuale }}%)
+            </span>
+          </div>
+
+          <!-- Eccezioni -->
+          <div v-if="p.eccezioni && p.eccezioni.length > 0" class="space-y-1">
+            <div class="text-[10px] font-black uppercase tracking-widest opacity-40">
+              {{ $t('patterns.exceptions.title') }}
+            </div>
+            <div v-for="(exc, idx) in p.eccezioni" :key="idx"
+              class="text-[10px] font-bold bg-base-100/50 rounded-lg p-2 border border-base-content/10">
+              <div class="flex items-center gap-2">
+                <span class="opacity-60">{{ $t('patterns.exceptions.date') }}:</span>
+                <span class="font-black">{{ exc.data }}</span>
+                <span class="opacity-60">{{ $t('patterns.exceptions.deviation') }}:</span>
+                <span class="font-black">{{ exc.scostamento }}</span>
+              </div>
+              <div v-if="exc.motivo_probabile" class="mt-1 opacity-80">
+                {{ $t('patterns.exceptions.associatedNote') }}: {{ exc.motivo_probabile }}
+              </div>
+              <div v-else class="mt-1 opacity-40">
+                {{ $t('patterns.exceptions.noNote') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Pattern correlati -->
+          <div v-if="p.pattern_correlati && p.pattern_correlati.length > 0" class="text-[10px] font-black uppercase tracking-widest">
+            <span class="opacity-40">{{ $t('patterns.relatedPatterns') }}:</span>
+            <span class="opacity-80">{{ p.pattern_correlati.join(', ') }}</span>
+          </div>
         </div>
       </div>
     </div>

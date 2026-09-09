@@ -287,7 +287,26 @@ export default {
     noteDropTitle: 'Calo dopo "{note}"',
     noteDropDesc: 'Dopo la nota "{note}", la glicemia ha mostrato un calo medio di -{impact} mg/dL nelle 3 ore successive.',
     occurrencesLast15: '{count} volte negli ultimi 15 giorni',
-    occurrencesLast30: '{count} volte negli ultimi 30 giorni'
+    occurrencesLast30: '{count} volte negli ultimi 30 giorni',
+    trend: {
+      improving: 'In miglioramento',
+      worsening: 'In peggioramento',
+      stable: 'Stabile',
+      insufficientData: 'Dati insufficienti',
+      recentWindow: 'Finestra recente',
+      previousWindow: 'Finestra precedente',
+      variation: 'Variazione'
+    },
+    exceptions: {
+      title: 'Eccezioni',
+      noExceptions: 'Nessuna eccezione rilevata',
+      date: 'Data',
+      deviation: 'Scostamento',
+      associatedNote: 'Nota associata',
+      noNote: 'Nessuna nota associata'
+    },
+    relatedPatterns: 'Pattern correlati',
+    noRelatedPatterns: 'Nessun pattern correlato'
   },
 
   periodicSummary: {

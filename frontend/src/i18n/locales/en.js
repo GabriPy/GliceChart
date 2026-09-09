@@ -287,7 +287,26 @@ export default {
     noteDropTitle: 'Drop after "{note}"',
     noteDropDesc: 'Following the note "{note}", glucose showed an average drop of -{impact} mg/dL over the next 3 hours.',
     occurrencesLast15: '{count} times in the last 15 days',
-    occurrencesLast30: '{count} times in the last 30 days'
+    occurrencesLast30: '{count} times in the last 30 days',
+    trend: {
+      improving: 'Improving',
+      worsening: 'Worsening',
+      stable: 'Stable',
+      insufficientData: 'Insufficient data',
+      recentWindow: 'Recent window',
+      previousWindow: 'Previous window',
+      variation: 'Variation'
+    },
+    exceptions: {
+      title: 'Exceptions',
+      noExceptions: 'No exceptions detected',
+      date: 'Date',
+      deviation: 'Deviation',
+      associatedNote: 'Associated note',
+      noNote: 'No associated note'
+    },
+    relatedPatterns: 'Related patterns',
+    noRelatedPatterns: 'No related patterns'
   },
 
   periodicSummary: {
