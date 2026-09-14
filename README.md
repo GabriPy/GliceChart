@@ -83,8 +83,7 @@ GliceChart/
 │   └── package.json
 ├── docker-compose.yml     Due servizi: frontend + backend
 ├── .env                   Variabili d'ambiente (NON commitare)
-├── .env.example           Template
-└── cloudflared.example.yml Template tunnel Cloudflare
+└── .env.example           Template
 ```
 
 ---

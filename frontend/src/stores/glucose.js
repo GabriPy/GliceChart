@@ -154,7 +154,7 @@ const AVAILABLE_THEMES = Object.freeze(['light', 'dark', 'retro', 'forest', 'wir
  * @param {typeof PATTERN_THRESHOLDS} thresholds
  */
 
-// â”€â”€ Helper: stato di caricamento sicuro in concorrenza â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Helper: stato di caricamento sicuro in concorrenza
 
 /**
  * Crea un flag di "loading" basato su un contatore invece che su un booleano
@@ -163,7 +163,7 @@ const AVAILABLE_THEMES = Object.freeze(['light', 'dark', 'retro', 'forest', 'wir
  * anche se la seconda Ã¨ ancora in volo. Il contatore evita questo problema.
  */
 
-// â”€â”€ Interceptor axios (registrati una sola volta per l'intera app) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Interceptor axios (registrati una sola volta per l'intera app)
 
 let axiosInterceptorsRegistered = false
 
@@ -190,7 +190,7 @@ function registerAxiosInterceptors(onUnauthorized) {
   )
 }
 
-// â”€â”€ Store â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+//  Store
 
 export const useGlucoseStore = defineStore('glucose', () => {
   // Stato: dati correnti
@@ -304,7 +304,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return getStatusColorForValue(value, settings.value)
   }
 
-  // â”€â”€ Lettura corrente e serie temporali â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Lettura corrente e serie temporali
 
   async function fetchCurrent() {
     try {
@@ -365,7 +365,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
-  // â”€â”€ Note (CRUD) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Note (CRUD)
 
   async function addNote(text, timestamp = null) {
     return loadingState.run(async () => {
@@ -414,7 +414,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
-  // â”€â”€ Carboidrati (CHO) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Carboidrati (CHO)
 
   async function addCarb(amount, timestamp = null) {
     return loadingState.run(async () => {
@@ -457,7 +457,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
-  // â”€â”€ Insulina â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Insulina
 
   async function addInsulin(type, units, timestamp = null) {
     return loadingState.run(async () => {
@@ -507,7 +507,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
-  // â”€â”€ Impostazioni â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Impostazioni
 
   async function fetchSettings() {
     try {
@@ -560,7 +560,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return updateSettings(settings.value)
   }
 
-  // â”€â”€ Tema â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Tema
 
   function setTheme(nextTheme) {
     theme.value = nextTheme
@@ -578,7 +578,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     console.error('[glucose store] Unable to apply initial theme:', err)
   }
 
-  // â”€â”€ Sensori â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Sensori
 
   async function fetchSensors() {
     try {
@@ -633,7 +633,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
-  // â”€â”€ Storico (Calendario / Analisi) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Storico (Calendario / Analisi)
 
   async function fetchLongHistory(minutes = FULL_HISTORY_RANGE_MINUTES) {
     return historyLoadingState.run(async () => {
