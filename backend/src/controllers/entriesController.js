@@ -22,17 +22,14 @@ const {
   sendTelegramCarbConfirmation
 } = require('../services/telegram');
 
-function parseRange(queryRange) {
-  if (queryRange === undefined) return 180;
-  if (!/^\d+$/.test(String(queryRange).trim())) return null;
-  const num = parseInt(queryRange, 10);
-  if (!Number.isFinite(num) || num < 60 || num > 129600) return null;
-  return num;
-}
+const { parseRange } = require('../utils/validation');
 
 // ── Insulina ────────────────────────────────────────────────────────────────
 async function getInsulin(req, res, next) {
-  const range = parseRange(req.query.range) || 180;
+  const range = parseRange(req.query.range);
+  if (range === null) {
+    return res.status(400).json({ error: 'Range non valido' });
+  }
   try {
     const rows = await getInsulinByMinutes(range);
     res.json(rows);
@@ -79,7 +76,10 @@ async function deleteInsulinEntry(req, res, next) {
 
 // ── Carboidrati ─────────────────────────────────────────────────────────────
 async function getCarbs(req, res, next) {
-  const range = parseRange(req.query.range) || 180;
+  const range = parseRange(req.query.range);
+  if (range === null) {
+    return res.status(400).json({ error: 'Range non valido' });
+  }
   try {
     const rows = await getCarbsByMinutes(range);
     res.json(rows);

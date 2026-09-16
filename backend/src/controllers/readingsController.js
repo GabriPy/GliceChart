@@ -1,4 +1,5 @@
 // src/controllers/readingsController.js
+const { parseRange } = require('../utils/validation');
 const { getLatestReading, getReadingsByMinutes } = require('../db/queries/readingsQueries');
 const { syncReadings } = require('../services/glurooSync');
 
@@ -13,25 +14,9 @@ async function getCurrent(req, res, next) {
 }
 
 async function getReadings(req, res, next) {
-  const rangeQuery = req.query.range;
-  let range = 180;
-  if (rangeQuery !== undefined) {
-    if (!/^\d+$/.test(String(rangeQuery).trim())) {
-      return res.status(400).json({ error: 'Range non valido' });
-    }
-    range = parseInt(rangeQuery, 10);
-  }
-
-  const maxRange = 129600; // 90 giorni
-  if (!Number.isFinite(range) || range < 60 || range > maxRange) {
+  const range = parseRange(req.query.range);
+  if (range === null) {
     return res.status(400).json({ error: 'Range non valido' });
-  }
-
-  try {
-    const rows = await getReadingsByMinutes(range);
-    res.json(rows);
-  } catch (e) {
-    next(e);
   }
 }
 
