@@ -1,5 +1,5 @@
 // src/services/glurooSync.js
-const { fetchLatestReadings } = require('../../gluroo');
+const { fetchLatestReadings } = require('./gluroo');
 const { insertReading, getLatestReading } = require('../db/queries/readingsQueries');
 const { sendTelegramHighLowAlert } = require('./telegram');
 const { DEMO_MODE } = require('../config/env');
