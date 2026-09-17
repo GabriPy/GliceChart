@@ -18,6 +18,12 @@ async function getReadings(req, res, next) {
   if (range === null) {
     return res.status(400).json({ error: 'Range non valido' });
   }
+  try {
+    const rows = await getReadingsByMinutes(range);
+    res.json(rows);
+  } catch (e) {
+    next(e);
+  }
 }
 
 async function sync(req, res, next) {

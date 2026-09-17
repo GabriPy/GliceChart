@@ -10,7 +10,7 @@ function parseRange(raw, { def = 180, min = 60, max = 129600 } = {}) {
     const range = parseInt(raw, 10);
     if (!Number.isFinite(range) || range < min || range > max) return null;
 
-    return rande;
+    return range;
 }
 
 module.exports = { parseRange };
