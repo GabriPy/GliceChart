@@ -37,3 +37,4 @@ services:
       GLUROO_API_SECRET_HEADER: ${GLUROO_API_SECRET_HEADER:-}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://glicemia.gabrielepili.it}

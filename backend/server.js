@@ -1,7 +1,7 @@
 // server.js - Bootstrap < 60 lines
 const express = require('express');
 const cors = require('cors');
-const { PORT, POLL_INTERVAL_MINUTES, PUBLIC_API_URL, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, DEMO_MODE } = require('./src/config/env');
+const { PORT, POLL_INTERVAL_MINUTES, PUBLIC_API_URL, CORS_ORIGIN, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, DEMO_MODE } = require('./src/config/env');
 const { getPool } = require('./src/db/pool');
 const { runMigrations } = require('./src/services/migrationRunner');
 const { syncReadings } = require('./src/services/glurooSync');
@@ -12,7 +12,9 @@ const apiRoutes = require('./src/routes');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: CORS_ORIGIN.length > 0 ? CORS_ORIGIN : true,
+}));
 app.use(express.json());
 app.use(pinAuthMiddleware);
 

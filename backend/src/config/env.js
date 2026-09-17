@@ -7,6 +7,7 @@ module.exports = {
   PORT: parseInt(process.env.BACKEND_PORT || '3001', 10),
   POLL_INTERVAL_MINUTES: parseInt(process.env.POLL_INTERVAL_MINUTES || '5', 10),
   PUBLIC_API_URL: process.env.PUBLIC_API_URL || '',
+  CORS_ORIGIN: (process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean),
   TELEGRAM_BOT_TOKEN: (process.env.TELEGRAM_BOT_TOKEN || '').trim(),
   TELEGRAM_CHAT_ID: (process.env.TELEGRAM_CHAT_ID || '').trim(),
   DEMO_MODE: process.env.DEMO_MODE === 'true' || process.env.DEMO_MODE === '1',
