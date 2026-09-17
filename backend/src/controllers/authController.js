@@ -3,7 +3,7 @@ const {
   getPinHash,
   setPinHash,
   removePinHash,
-  hashPin,
+  verifyPinHash,
   createUnlockSession,
   deleteUnlockSession,
   createRecoveryChallenge,
@@ -40,7 +40,7 @@ async function verifyPin(req, res, next) {
     const normalizedPin = validatePinInput(pin);
     const hash = await getPinHash();
     if (!hash) return res.status(404).json({ error: 'PIN non impostato' });
-    if (hashPin(normalizedPin) !== hash) {
+    if (!verifyPinHash(normalizedPin, hash)) {
       return res.status(401).json({ error: 'PIN errato' });
     }
     const token = await createUnlockSession();

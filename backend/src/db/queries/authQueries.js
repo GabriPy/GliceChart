@@ -2,8 +2,36 @@
 const crypto = require('crypto');
 const { getPool } = require('../pool');
 
+const SCRYPT_KEYLEN = 64;
+
 function hashPin(pin) {
-  return crypto.createHash('sha256').update(String(pin)).digest('hex');
+  const salt = crypto.randomBytes(16).toString('hex');
+  const derivedKey = crypto.scryptSync(String(pin), salt, SCRYPT_KEYLEN);
+  return `${salt}:${derivedKey.toString('hex')}`;
+}
+
+/**
++ * Verifica un PIN contro l'hash salvato, supportando sia il nuovo formato
++ * (scrypt+salt, "salt:hash") sia il vecchio (sha256 semplice, per compatibilità
++ * con i PIN impostati prima di questa modifica).
++ */
+function verifyPinHash(pin, storedHash) {
+  if (!storedHash) return false;
+
+  if (storedHash.includes(':')) {
+    const [salt, key] = storedHash.split(':');
+    const derivedKey = crypto.scryptSync(String(pin), salt, SCRYPT_KEYLEN);
+    const keyBuffer = Buffer.from(key, 'hex');
+    if (keyBuffer.length !== derivedKey.length) return false;
+    return crypto.timingSafeEqual(keyBuffer, derivedKey);
+  }
+
+  // Formato legacy
+  const legacyHash = crypto.createHash('sha256').update(String(pin)).digest('hex');
+  const legacyBuffer = Buffer.from(legacyHash, 'hex');
+  const storedBuffer = Buffer.from(storedHash, 'hex');
+  if (legacyBuffer.length !== storedBuffer.length) return false;
+  return crypto.timingSafeEqual(legacyBuffer, storedBuffer);
 }
 
 function hashRecoveryValue(value) {
@@ -190,6 +218,7 @@ module.exports = {
   hashRecoveryValue,
   getPinHash,
   setPinHash,
+  verifyPinHash,
   removePinHash,
   createUnlockSession,
   validateUnlockSession,
