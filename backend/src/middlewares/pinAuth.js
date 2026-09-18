@@ -7,11 +7,18 @@ async function pinAuthMiddleware(req, res, next) {
     return next();
   }
 
+  let pinHash;
   try {
-    const pinHash = await getPinHash().catch(() => null);
-    if (!pinHash) {
-      return next(); // PIN non attivo o DB offline: accesso libero
-    }
+    pinHash = await getPinHash();
+  } catch (err) {
+    return res.status(503).json({ error: 'Servizio temporaneamente non disponibile' });
+  }
+
+  if (!pinHash) {
+    return next(); // PIN non attivo: nessuna protezione richiesta
+  }
+
+  try {
 
     const token = req.headers['x-unlock-token'];
     if (!token || !(await validateUnlockSession(token).catch(() => false))) {

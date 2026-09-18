@@ -11,10 +11,10 @@ function hashPin(pin) {
 }
 
 /**
-+ * Verifica un PIN contro l'hash salvato, supportando sia il nuovo formato
-+ * (scrypt+salt, "salt:hash") sia il vecchio (sha256 semplice, per compatibilità
-+ * con i PIN impostati prima di questa modifica).
-+ */
+ * Verifica un PIN contro l'hash salvato, supportando sia il nuovo formato
+ * (scrypt+salt, "salt:hash") sia il vecchio (sha256 semplice, per compatibilità
+ * con i PIN impostati prima di questa modifica).
+ */
 function verifyPinHash(pin, storedHash) {
   if (!storedHash) return false;
 
