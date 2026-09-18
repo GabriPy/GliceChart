@@ -3,18 +3,18 @@
 // Store Pinia per la gestione dei dati glicemici, insulina, carboidrati,
 // impostazioni e sicurezza (PIN) dell'applicazione GliceChart.
 //
-// Le chiamate usano path relativi (/api/...) â€” funziona sia in locale che
-// dietro Cloudflare Tunnel perchÃ© il frontend Ã¨ servito dallo stesso Node.js.
+// Le chiamate usano path relativi (/api/...) — funziona sia in locale che
+// dietro Cloudflare Tunnel perché il frontend è servito dallo stesso Node.js.
 //
 // Note di design:
 // - La logica di dominio (statistiche, IOB/COB, rilevamento pattern,
-//   validazione impostazioni) Ã¨ isolata in funzioni pure a livello di modulo,
-//   cosÃ¬ puÃ² essere testata senza montare lo store Pinia.
+//   validazione impostazioni) è isolata in funzioni pure a livello di modulo,
+//   così può essere testata senza montare lo store Pinia.
 // - Gli stati di "loading" usano un contatore (non un semplice booleano) per
-//   restare corretti anche quando piÃ¹ operazioni asincrone sono in corso
+//   restare corretti anche quando più operazioni asincrone sono in corso
 //   contemporaneamente.
 // - Gli errori vengono sempre loggati in console con contesto, oltre a
-//   popolare il messaggio tradotto mostrato all'utente â€” indispensabile per
+//   popolare il messaggio tradotto mostrato all'utente — indispensabile per
 //   diagnosticare problemi in un'applicazione che gestisce dati sanitari.
 
 import { defineStore } from 'pinia'
@@ -77,12 +77,18 @@ import { createLoadingFlag } from './loading'
  * @property {string} telegram_daily_summary_time - formato HH:mm
  */
 
-// â”€â”€ Costanti temporali â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
+// Costanti temporali
+// ─────────────────────────────────────────────────────────────────────────────
+
 const MS_PER_MINUTE = 60 * 1000
 const MS_PER_HOUR = 60 * MS_PER_MINUTE
 const MS_PER_DAY = 24 * MS_PER_HOUR
 
-// â”€â”€ Costanti applicative â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
+// Costanti applicative
+// ─────────────────────────────────────────────────────────────────────────────
+
 const DEFAULT_RANGE_MINUTES = 180
 const FULL_DAY_RANGE_MINUTES = 1440
 const FULL_HISTORY_RANGE_MINUTES = 4320
@@ -91,23 +97,27 @@ const PIN_MIN_LENGTH = 4
 const PIN_MAX_LENGTH = 6
 
 const VALID_INSULIN_TYPES = Object.freeze(['rapid', 'slow'])
-const AVAILABLE_THEMES = Object.freeze(['light', 'dark', 'retro', 'forest', 'wireframe', 'coffee'])
-
+const AVAILABLE_THEMES = Object.freeze([
+  'light',
+  'dark',
+  'retro',
+  'forest',
+  'wireframe',
+  'coffee'
+])
 
 // Limiti fisiologici plausibili usati per rifiutare impostazioni palesemente
 // errate prima di inviarle al backend. Non sostituiscono un controllo medico,
 // servono solo a evitare configurazioni assurde (es. soglie invertite).
 
 // Soglie usate dal motore di rilevamento pattern. Raccolte in un unico posto
-// cosÃ¬ sono documentate e regolabili senza toccare la logica.
+// così sono documentate e regolabili senza toccare la logica.
 
 /** Errore applicativo per input non validi, distinto dagli errori di rete/API. */
 
-// â”€â”€ Helper puri: normalizzazione e validazione â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-
-
-
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper puri: normalizzazione e validazione
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Valida un oggetto impostazioni contro limiti fisiologici plausibili e
@@ -116,7 +126,9 @@ const AVAILABLE_THEMES = Object.freeze(['light', 'dark', 'retro', 'forest', 'wir
  * @returns {string[]} elenco di codici di errore, vuoto se tutto valido
  */
 
-// â”€â”€ Helper puri: statistiche e colori di stato â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper puri: statistiche e colori di stato
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * @param {GlucoseReading[]} data
@@ -124,20 +136,19 @@ const AVAILABLE_THEMES = Object.freeze(['light', 'dark', 'retro', 'forest', 'wir
  * @returns {{avg: number, min: number, max: number, tir: number} | null}
  */
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper puri: IOB / COB (decadimento lineare)
+// ─────────────────────────────────────────────────────────────────────────────
 
-// â”€â”€ Helper puri: IOB / COB (decadimento lineare) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-
-
-// â”€â”€ Helper puri: rilevamento pattern â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper puri: rilevamento pattern
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Rileva tendenze glicemiche ricorrenti per fascia oraria (bucket da 2 ore).
  * Il numero minimo di campioni richiesti scala con i giorni di storico
- * disponibili, e i campioni piÃ¹ recenti pesano di piÃ¹ nel calcolo della
- * pendenza media â€” un pattern che non si ripete piÃ¹ da settimane perde
+ * disponibili, e i campioni più recenti pesano di più nel calcolo della
+ * pendenza media — un pattern che non si ripete più da settimane perde
  * progressivamente rilevanza invece di restare fisso.
  * @param {GlucoseReading[]} readings - ordinate cronologicamente, crescenti
  * @param {typeof PATTERN_THRESHOLDS} thresholds
@@ -154,16 +165,20 @@ const AVAILABLE_THEMES = Object.freeze(['light', 'dark', 'retro', 'forest', 'wir
  * @param {typeof PATTERN_THRESHOLDS} thresholds
  */
 
+// ─────────────────────────────────────────────────────────────────────────────
 // Helper: stato di caricamento sicuro in concorrenza
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Crea un flag di "loading" basato su un contatore invece che su un booleano
  * semplice. Con un booleano, due operazioni asincrone in corso contemporanea-
  * mente possono "spegnere" lo stato di caricamento quando la prima finisce,
- * anche se la seconda Ã¨ ancora in volo. Il contatore evita questo problema.
+ * anche se la seconda è ancora in volo. Il contatore evita questo problema.
  */
 
+// ─────────────────────────────────────────────────────────────────────────────
 // Interceptor axios (registrati una sola volta per l'intera app)
+// ─────────────────────────────────────────────────────────────────────────────
 
 let axiosInterceptorsRegistered = false
 
@@ -173,9 +188,11 @@ function registerAxiosInterceptors(onUnauthorized) {
 
   axios.interceptors.request.use((config) => {
     const token = sessionStorage.getItem('glicechart_unlock_token')
+
     if (token) {
       config.headers['X-Unlock-Token'] = token
     }
+
     return config
   })
 
@@ -185,12 +202,15 @@ function registerAxiosInterceptors(onUnauthorized) {
       if (err?.response?.status === 401) {
         onUnauthorized()
       }
+
       return Promise.reject(err)
     }
   )
 }
 
-//  Store
+// ─────────────────────────────────────────────────────────────────────────────
+// Store
+// ─────────────────────────────────────────────────────────────────────────────
 
 export const useGlucoseStore = defineStore('glucose', () => {
   // Stato: dati correnti
@@ -222,6 +242,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
   const loadingState = createLoadingFlag()
   const chartLoadingState = createLoadingFlag()
   const historyLoadingState = createLoadingFlag()
+
   const loading = loadingState.isActive
   const chartLoading = chartLoadingState.isActive
   const historyLoading = historyLoadingState.isActive
@@ -242,7 +263,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
    * messaggio tradotto e sicuro da mostrare all'utente.
    */
   function reportError(err, fallbackTranslationKey) {
-    console.error(`[glucose store] ${fallbackTranslationKey}:`, err)
+    console.error(`[glucose store] ${fallbackTranslationKey}: `, err)
 
     if (err instanceof ValidationError) {
       error.value = err.message
@@ -263,13 +284,19 @@ export const useGlucoseStore = defineStore('glucose', () => {
   const insulinRecords = computed(() => {
     const now = Date.now()
     const rangeMs = selectedRange.value * MS_PER_MINUTE
-    return allInsulin.value.filter((ins) => now - new Date(ins.timestamp).getTime() <= rangeMs)
+
+    return allInsulin.value.filter(
+      (ins) => now - new Date(ins.timestamp).getTime() <= rangeMs
+    )
   })
 
   const carbRecords = computed(() => {
     const now = Date.now()
     const rangeMs = selectedRange.value * MS_PER_MINUTE
-    return allCarbs.value.filter((c) => now - new Date(c.timestamp).getTime() <= rangeMs)
+
+    return allCarbs.value.filter(
+      (c) => now - new Date(c.timestamp).getTime() <= rangeMs
+    )
   })
 
   // Statistiche correnti (Homepage) e storiche (Calendario)
@@ -277,34 +304,61 @@ export const useGlucoseStore = defineStore('glucose', () => {
   const historyStats = computed(() => calculateStats(historyReadings.value, settings.value))
 
   // IOB / COB
-  const iob = computed(() => calculateIob(allInsulin.value, settings.value.rapid_duration))
-  const cob = computed(() => calculateCob(allCarbs.value, settings.value.carb_duration))
+  const iob = computed(() =>
+    calculateIob(allInsulin.value, settings.value.rapid_duration)
+  )
 
-  // Pattern Smart: ordinati per punteggio (confidenza Ã— intensitÃ ), non solo
-  // per ora del giorno, cosÃ¬ un pattern ad alto impatto emerge per primo
+  const cob = computed(() =>
+    calculateCob(allCarbs.value, settings.value.carb_duration)
+  )
+
+  // Pattern Smart: ordinati per punteggio (confidenza × intensità), non solo
+  // per ora del giorno, così un pattern ad alto impatto emerge per primo
   // anche con confidenza leggermente inferiore a uno innocuo.
   const patterns = computed(() => {
     const hourlyPatterns = detectHourlyPatterns(historyReadings.value)
-    const noteCorrelationPatterns = detectNotePatterns(historyReadings.value, historyNotes.value)
-    const merged = [...hourlyPatterns, ...noteCorrelationPatterns].sort((a, b) => b.score - a.score)
-    return enrichPatterns(merged, historyReadings.value, historyNotes.value)
+    const noteCorrelationPatterns = detectNotePatterns(
+      historyReadings.value,
+      historyNotes.value
+    )
+
+    const merged = [
+      ...hourlyPatterns,
+      ...noteCorrelationPatterns
+    ].sort((a, b) => b.score - a.score)
+
+    return enrichPatterns(
+      merged,
+      historyReadings.value,
+      historyNotes.value
+    )
   })
 
   const glucoseColor = computed(() => {
     if (!current.value) return 'text-base-content'
-    return getStatusColorForValue(current.value.glucose, settings.value)
+
+    return getStatusColorForValue(
+      current.value.glucose,
+      settings.value
+    )
   })
 
   const minutesAgo = computed(() => {
     if (!current.value) return null
-    return Math.floor((Date.now() - new Date(current.value.timestamp).getTime()) / MS_PER_MINUTE)
+
+    return Math.floor(
+      (Date.now() - new Date(current.value.timestamp).getTime()) /
+      MS_PER_MINUTE
+    )
   })
 
   function getStatusColor(value) {
     return getStatusColorForValue(value, settings.value)
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
   // Lettura corrente e serie temporali
+  // ───────────────────────────────────────────────────────────────────────────
 
   async function fetchCurrent() {
     try {
@@ -325,11 +379,20 @@ export const useGlucoseStore = defineStore('glucose', () => {
           { data: carbsData },
           { data: notesData }
         ] = await Promise.all([
-          axios.get('/api/readings', { params: { range: selectedRange.value } }),
-          axios.get('/api/insulin', { params: { range: FULL_DAY_RANGE_MINUTES } }),
-          axios.get('/api/carbs', { params: { range: FULL_DAY_RANGE_MINUTES } }),
-          axios.get('/api/notes', { params: { range: selectedRange.value } })
+          axios.get('/api/readings', {
+            params: { range: selectedRange.value }
+          }),
+          axios.get('/api/insulin', {
+            params: { range: FULL_DAY_RANGE_MINUTES }
+          }),
+          axios.get('/api/carbs', {
+            params: { range: FULL_DAY_RANGE_MINUTES }
+          }),
+          axios.get('/api/notes', {
+            params: { range: selectedRange.value }
+          })
         ])
+
         readings.value = readingsData
         allInsulin.value = insulinData
         allCarbs.value = carbsData
@@ -344,7 +407,11 @@ export const useGlucoseStore = defineStore('glucose', () => {
 
   async function fetchAll() {
     return loadingState.run(async () => {
-      await Promise.all([fetchCurrent(), fetchReadings(), fetchSettings()])
+      await Promise.all([
+        fetchCurrent(),
+        fetchReadings(),
+        fetchSettings()
+      ])
     })
   }
 
@@ -365,19 +432,24 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
   // Note (CRUD)
+  // ───────────────────────────────────────────────────────────────────────────
 
   async function addNote(text, timestamp = null) {
     return loadingState.run(async () => {
       try {
         const trimmedText = (text ?? '').trim()
+
         if (!trimmedText) {
           throw new ValidationError(t('errors.emptyNote'))
         }
+
         await axios.post('/api/notes', {
           timestamp: timestamp || new Date().toISOString(),
           text: trimmedText
         })
+
         await fetchReadings()
         error.value = null
       } catch (err) {
@@ -389,7 +461,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
   async function removeNote(id) {
     return loadingState.run(async () => {
       try {
-        await axios.delete(`/api/notes/${id}`)
+        await axios.delete(`/ api / notes / ${id} `)
         await fetchReadings()
         error.value = null
       } catch (err) {
@@ -402,10 +474,16 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return loadingState.run(async () => {
       try {
         const trimmedText = (text ?? '').trim()
+
         if (!trimmedText) {
           throw new ValidationError(t('errors.emptyNote'))
         }
-        await axios.put(`/api/notes/${id}`, { timestamp, text: trimmedText })
+
+        await axios.put(`/ api / notes / ${id} `, {
+          timestamp,
+          text: trimmedText
+        })
+
         await fetchReadings()
         error.value = null
       } catch (err) {
@@ -414,16 +492,20 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
   // Carboidrati (CHO)
+  // ───────────────────────────────────────────────────────────────────────────
 
   async function addCarb(amount, timestamp = null) {
     return loadingState.run(async () => {
       try {
         const validAmount = assertPositiveNumber(amount, 'carb amount')
+
         await axios.post('/api/carbs', {
           timestamp: timestamp || new Date().toISOString(),
           amount: validAmount
         })
+
         await fetchReadings()
         error.value = null
       } catch (err) {
@@ -435,7 +517,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
   async function removeCarb(id) {
     return loadingState.run(async () => {
       try {
-        await axios.delete(`/api/carbs/${id}`)
+        await axios.delete(`/ api / carbs / ${id} `)
         await fetchReadings()
         error.value = null
       } catch (err) {
@@ -448,7 +530,12 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return loadingState.run(async () => {
       try {
         const validAmount = assertPositiveNumber(amount, 'carb amount')
-        await axios.put(`/api/carbs/${id}`, { timestamp, amount: validAmount })
+
+        await axios.put(`/ api / carbs / ${id} `, {
+          timestamp,
+          amount: validAmount
+        })
+
         await fetchReadings()
         error.value = null
       } catch (err) {
@@ -457,20 +544,25 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
   // Insulina
+  // ───────────────────────────────────────────────────────────────────────────
 
   async function addInsulin(type, units, timestamp = null) {
     return loadingState.run(async () => {
       try {
         const validUnits = assertPositiveNumber(units, 'insulin units')
+
         if (!VALID_INSULIN_TYPES.includes(type)) {
-          throw new ValidationError(`Invalid insulin type: ${type}`)
+          throw new ValidationError(`Invalid insulin type: ${type} `)
         }
+
         await axios.post('/api/insulin', {
           timestamp: timestamp || new Date().toISOString(),
           type,
           units: validUnits
         })
+
         await fetchReadings()
         error.value = null
       } catch (err) {
@@ -482,7 +574,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
   async function removeInsulin(id) {
     return loadingState.run(async () => {
       try {
-        await axios.delete(`/api/insulin/${id}`)
+        await axios.delete(`/ api / insulin / ${id} `)
         await fetchReadings()
         error.value = null
       } catch (err) {
@@ -495,10 +587,17 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return loadingState.run(async () => {
       try {
         const validUnits = assertPositiveNumber(units, 'insulin units')
+
         if (!VALID_INSULIN_TYPES.includes(type)) {
-          throw new ValidationError(`Invalid insulin type: ${type}`)
+          throw new ValidationError(`Invalid insulin type: ${type} `)
         }
-        await axios.put(`/api/insulin/${id}`, { timestamp, type, units: validUnits })
+
+        await axios.put(`/ api / insulin / ${id} `, {
+          timestamp,
+          type,
+          units: validUnits
+        })
+
         await fetchReadings()
         error.value = null
       } catch (err) {
@@ -507,11 +606,14 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
   // Impostazioni
+  // ───────────────────────────────────────────────────────────────────────────
 
   async function fetchSettings() {
     try {
       const { data } = await axios.get('/api/settings')
+
       if (data) {
         settings.value = {
           ...DEFAULT_SETTINGS,
@@ -519,6 +621,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
           ...normalizeTelegramFlags(data)
         }
       }
+
       error.value = null
     } catch (err) {
       reportError(err, 'errors.loadSettings')
@@ -532,8 +635,13 @@ export const useGlucoseStore = defineStore('glucose', () => {
    */
   async function updateSettings(newSettings) {
     const validationIssues = validateSettings(newSettings)
+
     if (validationIssues.length > 0) {
-      console.error('[glucose store] Rejected invalid settings payload:', validationIssues)
+      console.error(
+        '[glucose store] Rejected invalid settings payload:',
+        validationIssues
+      )
+
       error.value = t('errors.invalidSettings')
       return false
     }
@@ -541,11 +649,13 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return loadingState.run(async () => {
       try {
         await axios.put('/api/settings', newSettings)
+
         settings.value = {
           ...DEFAULT_SETTINGS,
           ...newSettings,
           ...normalizeTelegramFlags(newSettings)
         }
+
         error.value = null
         return true
       } catch (err) {
@@ -560,25 +670,36 @@ export const useGlucoseStore = defineStore('glucose', () => {
     return updateSettings(settings.value)
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
   // Tema
+  // ───────────────────────────────────────────────────────────────────────────
 
   function setTheme(nextTheme) {
     theme.value = nextTheme
     localStorage.setItem('theme', nextTheme)
+
     try {
       document.documentElement.setAttribute('data-theme', nextTheme)
     } catch (err) {
-      console.error('[glucose store] Unable to apply theme to document:', err)
+      console.error(
+        '[glucose store] Unable to apply theme to document:',
+        err
+      )
     }
   }
 
   try {
     document.documentElement.setAttribute('data-theme', theme.value)
   } catch (err) {
-    console.error('[glucose store] Unable to apply initial theme:', err)
+    console.error(
+      '[glucose store] Unable to apply initial theme:',
+      err
+    )
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
   // Sensori
+  // ───────────────────────────────────────────────────────────────────────────
 
   async function fetchSensors() {
     try {
@@ -598,6 +719,7 @@ export const useGlucoseStore = defineStore('glucose', () => {
           lot_number: lotNumber,
           start_date: startDate || new Date().toISOString()
         })
+
         await fetchSensors()
         error.value = null
       } catch (err) {
@@ -609,10 +731,11 @@ export const useGlucoseStore = defineStore('glucose', () => {
   async function endSensor(id, actualEndDate, earlyEndNote) {
     return loadingState.run(async () => {
       try {
-        await axios.put(`/api/sensors/${id}/end`, {
+        await axios.put(`/ api / sensors / ${id}/end`, {
           actual_end_date: actualEndDate || new Date().toISOString(),
           early_end_note: earlyEndNote
         })
+
         await fetchSensors()
         error.value = null
       } catch (err) {
@@ -633,7 +756,9 @@ export const useGlucoseStore = defineStore('glucose', () => {
     })
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
   // Storico (Calendario / Analisi)
+  // ───────────────────────────────────────────────────────────────────────────
 
   async function fetchLongHistory(minutes = FULL_HISTORY_RANGE_MINUTES) {
     return historyLoadingState.run(async () => {
@@ -644,11 +769,20 @@ export const useGlucoseStore = defineStore('glucose', () => {
           { data: carbsData },
           { data: notesData }
         ] = await Promise.all([
-          axios.get('/api/readings', { params: { range: minutes } }),
-          axios.get('/api/insulin', { params: { range: minutes } }),
-          axios.get('/api/carbs', { params: { range: minutes } }),
-          axios.get('/api/notes', { params: { range: minutes } })
+          axios.get('/api/readings', {
+            params: { range: minutes }
+          }),
+          axios.get('/api/insulin', {
+            params: { range: minutes }
+          }),
+          axios.get('/api/carbs', {
+            params: { range: minutes }
+          }),
+          axios.get('/api/notes', {
+            params: { range: minutes }
+          })
         ])
+
         historyReadings.value = readingsData
         historyInsulin.value = insulinData
         historyChartInsulin.value = insulinData
@@ -671,12 +805,23 @@ export const useGlucoseStore = defineStore('glucose', () => {
           { data: carbsData },
           { data: notesData }
         ] = await Promise.all([
-          axios.get('/api/history/readings', { params: { date } }),
-          axios.get('/api/history/insulin', { params: { date } }),
-          axios.get('/api/history/insulin-overlap', { params: { date } }),
-          axios.get('/api/history/carbs', { params: { date } }),
-          axios.get('/api/history/notes', { params: { date } })
+          axios.get('/api/history/readings', {
+            params: { date }
+          }),
+          axios.get('/api/history/insulin', {
+            params: { date }
+          }),
+          axios.get('/api/history/insulin-overlap', {
+            params: { date }
+          }),
+          axios.get('/api/history/carbs', {
+            params: { date }
+          }),
+          axios.get('/api/history/notes', {
+            params: { date }
+          })
         ])
+
         historyReadings.value = readingsData
         historyInsulin.value = insulinData
         historyChartInsulin.value = insulinOverlapData
@@ -690,17 +835,68 @@ export const useGlucoseStore = defineStore('glucose', () => {
   }
 
   return {
-    current, readings, insulinRecords, carbRecords, notes, sensors, selectedRange, carbDraftAmount,
-    loading, chartLoading, error, lastUpdated,
+    current,
+    readings,
+    insulinRecords,
+    carbRecords,
+    notes,
+    sensors,
+    selectedRange,
+    carbDraftAmount,
+    loading,
+    chartLoading,
+    error,
+    lastUpdated,
+
     settings,
-    historyReadings, historyInsulin, historyChartInsulin, historyCarbs, historyNotes, historyLoading,
-    glucoseColor, minutesAgo, stats, historyStats, iob, cob, patterns,
-    fetchCurrent, fetchReadings, fetchAll, setRange, syncNow,
-    addInsulin, removeInsulin, editInsulin,
-    addCarb, removeCarb, editCarb,
-    addNote, removeNote, editNote,
-    fetchSensors, addSensor, endSensor, deleteSensor,
-    fetchHistory, fetchLongHistory, fetchSettings, updateSettings, resetSettings, getStatusColor,
-    themes: AVAILABLE_THEMES, theme, setTheme
+
+    historyReadings,
+    historyInsulin,
+    historyChartInsulin,
+    historyCarbs,
+    historyNotes,
+    historyLoading,
+
+    glucoseColor,
+    minutesAgo,
+    stats,
+    historyStats,
+    iob,
+    cob,
+    patterns,
+
+    fetchCurrent,
+    fetchReadings,
+    fetchAll,
+    setRange,
+    syncNow,
+
+    addInsulin,
+    removeInsulin,
+    editInsulin,
+
+    addCarb,
+    removeCarb,
+    editCarb,
+
+    addNote,
+    removeNote,
+    editNote,
+
+    fetchSensors,
+    addSensor,
+    endSensor,
+    deleteSensor,
+
+    fetchHistory,
+    fetchLongHistory,
+    fetchSettings,
+    updateSettings,
+    resetSettings,
+    getStatusColor,
+
+    themes: AVAILABLE_THEMES,
+    theme,
+    setTheme
   }
 })
